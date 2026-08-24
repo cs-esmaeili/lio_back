@@ -1,0 +1,10 @@
+model Location {
+  id        Int       @id @default(autoincrement())
+  province  String
+  city      String
+  addresses Address[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([province, city])
+}

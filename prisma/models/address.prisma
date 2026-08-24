@@ -1,0 +1,15 @@
+model Address {
+  id         Int      @id @default(autoincrement())
+  title      String
+  postalCode String
+  isMain     Boolean  @default(false)
+  userId     Int
+  locationId Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location   Location @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([locationId])
+}

@@ -1,0 +1,26 @@
+enum entityType {
+  PRODUCT
+  CATEGORY
+  POST
+  BRAND
+  PAGE
+}
+
+model Page {
+  id              Int          @id @default(autoincrement())
+  entityType      entityType
+  entityId        Int?
+  slug            String       @unique
+  metaTitle       String?
+  metaDescription String?      @db.Text
+  canonicalUrl    String?
+  robotsIndex     Boolean      @default(true)
+  robotsFollow    Boolean      @default(true)
+  ogTitle         String?
+  ogDescription   String?      @db.Text
+  ogImage         String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([entityType, entityId])
+}

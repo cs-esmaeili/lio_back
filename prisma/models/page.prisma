@@ -18,7 +18,9 @@ model Page {
   robotsFollow    Boolean      @default(true)
   ogTitle         String?
   ogDescription   String?      @db.Text
+  ogType          String       @default("website")
   ogImage         String?
+  twitterCard     String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 

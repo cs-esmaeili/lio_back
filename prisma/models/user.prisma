@@ -1,10 +1,20 @@
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  BANNED
+}
+
 model User {
-  id           Int       @id @default(autoincrement())
-  nationalCode String    @unique
-  name         String
-  lastName     String
-  username     String    @unique
+  id           Int           @id @default(autoincrement())
+  phone        String        @unique
+  nationalCode String?       @unique
+  name         String?
+  lastName     String?
+  username     String?       @unique
+  passwordHash String?
+  status       UserStatus    @default(ACTIVE)
   addresses    Address[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  sessions     AuthSession[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }

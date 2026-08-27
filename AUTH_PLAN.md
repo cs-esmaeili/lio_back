@@ -114,9 +114,15 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Note: DB was behind schema (missing `phone`/`status`/`passwordHash`/`AuthSession`); migration also synced pre-existing drift on `User` and `Page`.
   - Decisions made: `sid` = UUID; OTP stored as hash (`codeHash`).
 
+- [x] **Step 3 — Password service (Argon2id)**
+  - `@node-rs/argon2` installed (Rust binding, prebuilt, no node-gyp).
+  - `src/auth/services/password.service.ts` — `hash()` + `verify()` with Argon2id, OWASP params (19 MiB, t=2, p=1).
+  - Registered in `AuthModule` providers + exports.
+  - Note: `Algorithm` is a `const enum` — unusable with `isolatedModules: true` (TS2748); used literal `2` (Argon2id).
+  - Hash/verify sanity-checked.
+
 ### Remaining
 
-- [ ] Step 3 — Password service (Argon2id)
 - [ ] Step 4 — User service (DB-backed)
 - [ ] Step 5 — OTP service
 - [ ] Step 6 — Token service

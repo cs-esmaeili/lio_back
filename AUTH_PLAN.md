@@ -121,9 +121,15 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Note: `Algorithm` is a `const enum` — unusable with `isolatedModules: true` (TS2748); used literal `2` (Argon2id).
   - Hash/verify sanity-checked.
 
+- [x] **Step 4 — User service (DB-backed)**
+  - `src/prisma/prisma.module.ts` — `@Global()` module exporting `PrismaService`.
+  - `UsersService` rewritten: `findByPhone`, `findById`, `createByPhone`, `setPassword` (Prisma).
+  - `AuthService.validateUser` now: phone lookup → status `ACTIVE` check → `passwordHash` present → `PasswordService.verify`.
+  - `LocalStrategy` uses `usernameField: 'phone'`.
+  - App boots clean; DI resolves; routes mapped.
+
 ### Remaining
 
-- [ ] Step 4 — User service (DB-backed)
 - [ ] Step 5 — OTP service
 - [ ] Step 6 — Token service
 - [ ] Step 7 — Session service

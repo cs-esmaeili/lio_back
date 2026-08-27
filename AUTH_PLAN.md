@@ -128,9 +128,15 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - `LocalStrategy` uses `usernameField: 'phone'`.
   - App boots clean; DI resolves; routes mapped.
 
+- [x] **Step 5 — OTP service**
+  - `src/auth/services/otp.service.ts` — `request()` + `verify()`.
+  - OTP: 6-digit `crypto.randomInt`, HMAC-SHA256 hash (server secret) stored, never plaintext.
+  - Single-use: atomic `updateMany where usedAt null` → `count === 1` (replay/concurrency safe).
+  - Expiry (`expiresAt`), brute-force (`attempts` cap), request rate-limit (`maxRequests` per window).
+  - Config added: `otp.secret`, `otp.requestWindowSeconds`; `OTP_SECRET` added to `.env`.
+
 ### Remaining
 
-- [ ] Step 5 — OTP service
 - [ ] Step 6 — Token service
 - [ ] Step 7 — Session service
 - [ ] Step 8 — Cookie utilities

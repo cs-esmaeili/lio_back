@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { PasswordService } from './services/password.service';
+import { OtpService } from './services/otp.service';
 import { UsersModule } from 'src/users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -24,7 +25,13 @@ import { ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  providers: [AuthService, PasswordService, LocalStrategy, JwtStrategy],
-  exports: [AuthService, PasswordService],
+  providers: [
+    AuthService,
+    PasswordService,
+    OtpService,
+    LocalStrategy,
+    JwtStrategy,
+  ],
+  exports: [AuthService, PasswordService, OtpService],
 })
 export class AuthModule {}

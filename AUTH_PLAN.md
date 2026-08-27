@@ -106,9 +106,16 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - `.env.example` added.
   - Build green; keypair sign/verify verified.
 
+- [x] **Step 2 — Prisma OTP model + AuthSession review**
+  - `prisma/models/otp.prisma` — `Otp` model (`phone`, `codeHash`, `purpose`, `expiresAt`, `usedAt`, `attempts`, `createdAt`) + `OtpPurpose` enum (`LOGIN`, `RESET_PASSWORD`).
+  - `AuthSession.id` → `String @id @default(uuid())` (UUID = `sid`). `replacedById` → `String?`.
+  - Removed redundant `@@index([refreshTokenHash])` (`@unique` already indexes it).
+  - Migration `20260827120000_add_otp_and_auth_session` created + applied; client regenerated.
+  - Note: DB was behind schema (missing `phone`/`status`/`passwordHash`/`AuthSession`); migration also synced pre-existing drift on `User` and `Page`.
+  - Decisions made: `sid` = UUID; OTP stored as hash (`codeHash`).
+
 ### Remaining
 
-- [ ] Step 2 — Prisma OTP model + AuthSession review
 - [ ] Step 3 — Password service (Argon2id)
 - [ ] Step 4 — User service (DB-backed)
 - [ ] Step 5 — OTP service
@@ -125,6 +132,6 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
 ## Open decisions
 
 1. OTP delivery — console/log for dev, SMS later?
-2. OTP at rest — hash (recommended) vs plaintext?
-3. Cookie prefix — `__Host-` vs `__Secure-` (subdomain)?
-4. `sid` — UUID vs Int (`AuthSession.id`)?
+2. Cookie prefix — `__Host-` vs `__Secure-` (subdomain)?
+
+Resolved: OTP at rest = hash (`codeHash`); `sid` = UUID (`AuthSession.id`).

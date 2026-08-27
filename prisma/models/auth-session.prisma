@@ -1,12 +1,12 @@
 model AuthSession {
-  id               Int       @id @default(autoincrement())
+  id               String    @id @default(uuid(7))
   userId           Int
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   refreshTokenHash String    @unique
   familyId         String
   expiresAt        DateTime
   revokedAt        DateTime?
-  replacedById     Int?
+  replacedById     String?
   lastUsedAt       DateTime?
   ip               String?
   userAgent        String?
@@ -14,5 +14,4 @@ model AuthSession {
 
   @@index([userId])
   @@index([familyId])
-  @@index([refreshTokenHash])
 }

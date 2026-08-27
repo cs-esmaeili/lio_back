@@ -4,9 +4,14 @@ import { PrismaService } from './prisma/prisma.service';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import configuration from './config/configuration';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UsersModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
+    AuthModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [PrismaService],
 })

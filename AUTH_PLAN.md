@@ -164,9 +164,14 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - `OptionalAuthGuard` — authenticates if token valid, else passes through unauthenticated (for `/auth/me`).
   - Both registered + exported in `AuthModule`.
 
+- [x] **Step 11 — CSRF**
+  - `src/auth/services/csrf.service.ts` — `issueToken()` (32-byte token in NON-HttpOnly cookie), `validate()` (double-submit: `X-CSRF-Token` header == cookie, constant-time), `assertOrigin()` (`Origin` == `app.origin`).
+  - `src/auth/guards/csrf.guard.ts` — skips GET/HEAD/OPTIONS; on state-changing methods checks origin then token.
+  - Both registered + exported in `AuthModule`.
+  - Endpoint wiring (issuing token on login, applying guard) in Step 12.
+
 ### Remaining
 
-- [ ] Step 11 — CSRF
 - [ ] Step 12 — Controllers/endpoints
 - [ ] Step 13 — Status enforcement
 - [ ] Step 14 — Login state endpoint

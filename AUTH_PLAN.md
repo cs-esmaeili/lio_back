@@ -135,9 +135,13 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Expiry (`expiresAt`), brute-force (`attempts` cap), request rate-limit (`maxRequests` per window).
   - Config added: `otp.secret`, `otp.requestWindowSeconds`; `OTP_SECRET` added to `.env`.
 
+- [x] **Step 6 — Token service**
+  - `src/auth/services/token.service.ts` — `signAccessToken(claims)`, `generateRefreshToken()`, `hashRefreshToken()`, `newJti()`.
+  - Access claims typed `{ sub, sid, jti }`; JWT signed via configured `JwtService` (RS256).
+  - Refresh token: 32-byte `randomBytes` base64url, stored as SHA-256 hash (high-entropy → no HMAC key needed).
+
 ### Remaining
 
-- [ ] Step 6 — Token service
 - [ ] Step 7 — Session service
 - [ ] Step 8 — Cookie utilities
 - [ ] Step 9 — JWT strategy rewrite

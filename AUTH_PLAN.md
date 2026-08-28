@@ -147,9 +147,13 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - `familyId` = `randomUUID()` on create, preserved across rotation; `replacedById` = predecessor.
   - Integration-tested against DB: create → rotate → reuse throws → family revoked. UUIDv7 id confirmed (time-ordered `01…` prefix).
 
+- [x] **Step 8 — Cookie utilities**
+  - `src/auth/services/cookie.service.ts` — `setAccessToken`/`setRefreshToken`/`clearAuthCookies`, `accessTokenName`/`refreshTokenName`.
+  - Flags: `httpOnly`, `secure`, `sameSite`, `path=/`, `maxAge`. `__Host-` prefix when secure + no domain.
+  - Refactor: `jwt.accessTtl` (string `15m`) → `jwt.accessTtlSeconds` (number `900`) — single source for JWT `expiresIn` and cookie `maxAge`; dropped `JwtSignOptions` cast.
+
 ### Remaining
 
-- [ ] Step 8 — Cookie utilities
 - [ ] Step 9 — JWT strategy rewrite
 - [ ] Step 10 — Guards
 - [ ] Step 11 — CSRF

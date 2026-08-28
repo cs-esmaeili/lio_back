@@ -14,7 +14,7 @@ export default () => ({
   jwt: {
     privateKey: loadKey(process.env.JWT_PRIVATE_KEY_PATH, 'keys/jwt-private.pem'),
     publicKey: loadKey(process.env.JWT_PUBLIC_KEY_PATH, 'keys/jwt-public.pem'),
-    accessTtl: process.env.JWT_ACCESS_TTL ?? '15m',
+    accessTtlSeconds: parseInt(process.env.JWT_ACCESS_TTL_SECONDS ?? '900', 10),
     refreshTtlDays: parseInt(process.env.JWT_REFRESH_TTL_DAYS ?? '30', 10),
   },
   cookie: {

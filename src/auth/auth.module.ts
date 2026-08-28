@@ -14,8 +14,10 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
 import { CsrfService } from './services/csrf.service';
+import { AuthController } from './auth.controller';
 import { ConfigService } from '@nestjs/config';
 @Module({
+  controllers: [AuthController],
   imports: [
     UsersModule,
     PassportModule,

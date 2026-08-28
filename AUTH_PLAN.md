@@ -170,9 +170,20 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Both registered + exported in `AuthModule`.
   - Endpoint wiring (issuing token on login, applying guard) in Step 12.
 
+- [x] **Step 12 — Controllers/endpoints**
+  - `src/auth/auth.controller.ts` + `src/auth/dto/auth.dto.ts`.
+  - `GET /auth/csrf` (Public) — bootstrap CSRF cookie.
+  - `POST /auth/otp/request` (Public + Csrf) — rate-limited, logs code (dev), returns `ttlSeconds`.
+  - `POST /auth/otp/verify` (Public + Csrf) — verify, find-or-create user, establish session.
+  - `POST /auth/login` (Public + LocalAuth + Csrf) — password login.
+  - `POST /auth/refresh` (Public + Csrf) — rotate refresh, new access + fresh CSRF.
+  - `POST /auth/logout` (OptionalAuth + Csrf) — revoke session, clear cookies.
+  - `GET /auth/me` (OptionalAuth) — `{ authenticated, user, loading }`.
+  - `establishSession`: refresh token → session row → access JWT (`sub`/`sid`/`jti`) → set cookies → fresh CSRF.
+  - All routes mapped; build green; app boots clean.
+
 ### Remaining
 
-- [ ] Step 12 — Controllers/endpoints
 - [ ] Step 13 — Status enforcement
 - [ ] Step 14 — Login state endpoint
 

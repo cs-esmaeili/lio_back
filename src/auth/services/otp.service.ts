@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
+import { DateTime } from 'luxon';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OtpPurpose } from 'src/generated/prisma/client';
 
@@ -14,10 +15,12 @@ export class OtpService {
   async request(phone: string, purpose: OtpPurpose): Promise<string> {
     await this.assertRequestAllowed(phone);
 
+    const now = DateTime.now();
+
     // single active OTP per phone+purpose: invalidate previous unused ones
     await this.prisma.otp.updateMany({
       where: { phone, purpose, usedAt: null },
-      data: { usedAt: new Date() },
+      data: { usedAt: now.toJSDate() },
     });
 
     const code = this.generateCode();
@@ -26,7 +29,7 @@ export class OtpService {
         phone,
         purpose,
         codeHash: this.hashCode(code),
-        expiresAt: new Date(Date.now() + this.ttlSeconds * 1000),
+        expiresAt: now.plus({ seconds: this.ttlSeconds }).toJSDate(),
       },
     });
 
@@ -39,7 +42,12 @@ export class OtpService {
     code: string,
   ): Promise<boolean> {
     const otp = await this.prisma.otp.findFirst({
-      where: { phone, purpose, usedAt: null, expiresAt: { gt: new Date() } },
+      where: {
+        phone,
+        purpose,
+        usedAt: null,
+        expiresAt: { gt: DateTime.now().toJSDate() },
+      },
       orderBy: { createdAt: 'desc' },
     });
     if (!otp) return false;
@@ -47,7 +55,7 @@ export class OtpService {
     if (otp.attempts >= this.maxAttempts) {
       await this.prisma.otp.update({
         where: { id: otp.id },
-        data: { usedAt: new Date() },
+        data: { usedAt: DateTime.now().toJSDate() },
       });
       return false;
     }
@@ -63,13 +71,15 @@ export class OtpService {
     // atomic single-use consume (guards against concurrent replay)
     const consumed = await this.prisma.otp.updateMany({
       where: { id: otp.id, usedAt: null },
-      data: { usedAt: new Date() },
+      data: { usedAt: DateTime.now().toJSDate() },
     });
     return consumed.count === 1;
   }
 
   private async assertRequestAllowed(phone: string): Promise<void> {
-    const since = new Date(Date.now() - this.requestWindowSeconds * 1000);
+    const since = DateTime.now()
+      .minus({ seconds: this.requestWindowSeconds })
+      .toJSDate();
     const count = await this.prisma.otp.count({
       where: { phone, createdAt: { gte: since } },
     });

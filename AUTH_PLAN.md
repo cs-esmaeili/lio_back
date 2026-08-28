@@ -140,9 +140,15 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Access claims typed `{ sub, sid, jti }`; JWT signed via configured `JwtService` (RS256).
   - Refresh token: 32-byte `randomBytes` base64url, stored as SHA-256 hash (high-entropy → no HMAC key needed).
 
+- [x] **Step 7 — Session service**
+  - `src/auth/services/session.service.ts` — `create`, `findByRefreshHash`, `findById`, `rotate`, `revokeOne`, `revokeAllForUser`, `revokeFamily`, `touch`.
+  - `rotate`: atomic claim (`updateMany where revokedAt null`) → concurrent refresh gets `count 0` → revokes whole family.
+  - Reuse detection: presenting a revoked/expired token → `revokeFamily`.
+  - `familyId` = `randomUUID()` on create, preserved across rotation; `replacedById` = predecessor.
+  - Integration-tested against DB: create → rotate → reuse throws → family revoked. UUIDv7 id confirmed (time-ordered `01…` prefix).
+
 ### Remaining
 
-- [ ] Step 7 — Session service
 - [ ] Step 8 — Cookie utilities
 - [ ] Step 9 — JWT strategy rewrite
 - [ ] Step 10 — Guards

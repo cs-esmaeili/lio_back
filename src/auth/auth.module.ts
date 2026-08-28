@@ -3,6 +3,7 @@ import { AuthService } from './services/auth.service';
 import { PasswordService } from './services/password.service';
 import { OtpService } from './services/otp.service';
 import { TokenService } from './services/token.service';
+import { SessionService } from './services/session.service';
 import { UsersModule } from 'src/users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -31,9 +32,16 @@ import { ConfigService } from '@nestjs/config';
     PasswordService,
     OtpService,
     TokenService,
+    SessionService,
     LocalStrategy,
     JwtStrategy,
   ],
-  exports: [AuthService, PasswordService, OtpService, TokenService],
+  exports: [
+    AuthService,
+    PasswordService,
+    OtpService,
+    TokenService,
+    SessionService,
+  ],
 })
 export class AuthModule {}

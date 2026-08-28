@@ -158,9 +158,14 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Returns `{ userId, phone, sessionId }` on `req.user`.
   - Added `SessionService.isActive` helper. App boots clean.
 
+- [x] **Step 10 — Guards**
+  - `@Public()` decorator (`IS_PUBLIC_KEY` metadata).
+  - `JwtAuthGuard` — respects `@Public` via `Reflector`.
+  - `OptionalAuthGuard` — authenticates if token valid, else passes through unauthenticated (for `/auth/me`).
+  - Both registered + exported in `AuthModule`.
+
 ### Remaining
 
-- [ ] Step 10 — Guards
 - [ ] Step 11 — CSRF
 - [ ] Step 12 — Controllers/endpoints
 - [ ] Step 13 — Status enforcement

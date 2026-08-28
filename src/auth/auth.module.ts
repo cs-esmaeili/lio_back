@@ -10,6 +10,8 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { ConfigService } from '@nestjs/config';
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { ConfigService } from '@nestjs/config';
     CookieService,
     LocalStrategy,
     JwtStrategy,
+    JwtAuthGuard,
+    OptionalAuthGuard,
   ],
   exports: [
     AuthService,
@@ -43,6 +47,8 @@ import { ConfigService } from '@nestjs/config';
     TokenService,
     SessionService,
     CookieService,
+    JwtAuthGuard,
+    OptionalAuthGuard,
   ],
 })
 export class AuthModule {}

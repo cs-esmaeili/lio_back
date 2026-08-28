@@ -45,6 +45,10 @@ export class SessionService {
     return this.prisma.authSession.findUnique({ where: { id } });
   }
 
+  isActive(session: { revokedAt: Date | null; expiresAt: Date }): boolean {
+    return !session.revokedAt && session.expiresAt > DateTime.now().toJSDate();
+  }
+
   // Consume an old refresh token and issue its successor in the same family.
   // Any sign of reuse revokes the entire family.
   async rotate(

@@ -152,9 +152,14 @@ NestJS · Passport · PostgreSQL · Prisma · HttpOnly cookies · JWT (RS256) ·
   - Flags: `httpOnly`, `secure`, `sameSite`, `path=/`, `maxAge`. `__Host-` prefix when secure + no domain.
   - Refactor: `jwt.accessTtl` (string `15m`) → `jwt.accessTtlSeconds` (number `900`) — single source for JWT `expiresIn` and cookie `maxAge`; dropped `JwtSignOptions` cast.
 
+- [x] **Step 9 — JWT strategy rewrite**
+  - Extract JWT from HttpOnly cookie via `ExtractJwt.fromExtractors` + `cookie-parser` (in `main.ts`).
+  - Verify RS256 public key, then server-side: load user → `ACTIVE` check → load session by `sid` → `isActive` (not revoked, not expired).
+  - Returns `{ userId, phone, sessionId }` on `req.user`.
+  - Added `SessionService.isActive` helper. App boots clean.
+
 ### Remaining
 
-- [ ] Step 9 — JWT strategy rewrite
 - [ ] Step 10 — Guards
 - [ ] Step 11 — CSRF
 - [ ] Step 12 — Controllers/endpoints

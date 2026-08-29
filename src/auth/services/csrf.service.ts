@@ -13,7 +13,7 @@ export class CsrfService {
 
   // Generates a token and sets it in a NON-HttpOnly cookie so the frontend
   // can read it and echo it back in the X-CSRF-Token header.
-  issueToken(res: Response): string {
+  generateCsrfToken(res: Response): string {
     const token = randomBytes(32).toString('base64url');
     res.cookie(this.tokenName(), token, {
       httpOnly: false,

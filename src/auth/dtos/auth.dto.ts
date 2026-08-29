@@ -1,6 +1,3 @@
-export interface OtpRequestDto {
-  phone: string;
-}
 
 export interface OtpVerifyDto {
   phone: string;

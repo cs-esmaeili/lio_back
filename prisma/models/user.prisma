@@ -13,8 +13,12 @@ model User {
   username     String?       @unique
   passwordHash String?
   status       UserStatus    @default(ACTIVE)
+  roleId       Int?
+  role         Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
   addresses    Address[]
   sessions     AuthSession[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  @@index([roleId])
 }

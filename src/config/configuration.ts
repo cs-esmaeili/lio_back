@@ -27,10 +27,7 @@ export default () => ({
     length: parseInt(process.env.OTP_LENGTH ?? '6', 10),
     maxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS ?? '5', 10),
     maxRequests: parseInt(process.env.OTP_MAX_REQUESTS ?? '10', 10),
-    requestWindowSeconds: parseInt(
-      process.env.OTP_REQUEST_WINDOW_SECONDS ?? '900',
-      10,
-    ),
+    requestWindowSeconds: parseInt(process.env.OTP_REQUEST_WINDOW_SECONDS ?? '900', 10),
     secret: process.env.OTP_SECRET,
   },
 });

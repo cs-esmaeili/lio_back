@@ -36,11 +36,7 @@ export class OtpService {
     return code;
   }
 
-  async verify(
-    phone: string,
-    purpose: OtpPurpose,
-    code: string,
-  ): Promise<boolean> {
+  async verify(phone: string, purpose: OtpPurpose, code: string): Promise<boolean> {
     const otp = await this.prisma.otp.findFirst({
       where: {
         phone,
@@ -77,9 +73,7 @@ export class OtpService {
   }
 
   private async assertRequestAllowed(phone: string): Promise<void> {
-    const since = DateTime.now()
-      .minus({ seconds: this.requestWindowSeconds })
-      .toJSDate();
+    const since = DateTime.now().minus({ seconds: this.requestWindowSeconds }).toJSDate();
     const count = await this.prisma.otp.count({
       where: { phone, createdAt: { gte: since } },
     });
@@ -95,9 +89,7 @@ export class OtpService {
   }
 
   private hashCode(code: string): string {
-    return createHmac('sha256', this.config.getOrThrow<string>('otp.secret'))
-      .update(code)
-      .digest('hex');
+    return createHmac('sha256', this.config.getOrThrow<string>('otp.secret')).update(code).digest('hex');
   }
 
   private codesEqual(a: string, b: string): boolean {

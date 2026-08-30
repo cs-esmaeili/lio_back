@@ -31,11 +31,7 @@ export class CsrfService {
   validate(req: Request): void {
     const cookieToken = req.cookies?.[this.tokenName()];
     const headerToken = req.get('x-csrf-token');
-    if (
-      !cookieToken ||
-      !headerToken ||
-      !this.safeEqual(cookieToken, headerToken)
-    ) {
+    if (!cookieToken || !headerToken || !this.safeEqual(cookieToken, headerToken)) {
       throw new ForbiddenException('Invalid CSRF token');
     }
   }

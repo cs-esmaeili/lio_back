@@ -22,9 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly sessionService: SessionService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req) => req?.cookies?.[cookieService.accessTokenName()] ?? null,
-      ]),
+      jwtFromRequest: ExtractJwt.fromExtractors([(req) => req?.cookies?.[cookieService.accessTokenName()] ?? null]),
       ignoreExpiration: false,
       secretOrKey: config.getOrThrow<string>('jwt.publicKey'),
       algorithms: ['RS256'],

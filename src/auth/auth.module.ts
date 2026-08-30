@@ -46,17 +46,6 @@ import { ConfigService } from '@nestjs/config';
     OptionalAuthGuard,
     CsrfGuard,
   ],
-  exports: [
-    AuthService,
-    PasswordService,
-    OtpService,
-    TokenService,
-    SessionService,
-    CookieService,
-    CsrfService,
-    JwtAuthGuard,
-    OptionalAuthGuard,
-    CsrfGuard,
-  ],
+  exports: [AuthService, PasswordService, OtpService, TokenService, SessionService, CookieService, CsrfService, JwtAuthGuard, OptionalAuthGuard, CsrfGuard],
 })
 export class AuthModule {}

@@ -2,7 +2,13 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { DateTime } from 'luxon';
+import type { Request, Response } from 'express';
+import { UserStatus } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UsersService } from 'src/users/users.service';
+import { TokenService } from './token.service';
+import { CookieService } from './cookie.service';
+import { CsrfService } from './csrf.service';
 
 interface SessionRef {
   id: string;
@@ -12,19 +18,26 @@ interface SessionRef {
   expiresAt: Date;
 }
 
+export interface AuthUser {
+  id: number;
+  phone: string;
+  name: string | null;
+  lastName: string | null;
+  username: string | null;
+}
+
 @Injectable()
 export class SessionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly users: UsersService,
+    private readonly tokens: TokenService,
+    private readonly cookies: CookieService,
+    private readonly csrf: CsrfService,
   ) {}
 
-  create(input: {
-    userId: number;
-    refreshTokenHash: string;
-    ip?: string;
-    userAgent?: string;
-  }) {
+  create(input: { userId: number; refreshTokenHash: string; ip?: string; userAgent?: string }) {
     return this.prisma.authSession.create({
       data: {
         userId: input.userId,
@@ -35,6 +48,78 @@ export class SessionService {
         userAgent: input.userAgent,
       },
     });
+  }
+
+  // Full login handshake: mint a refresh token, persist the session, set auth
+  // cookies, rotate the CSRF token, and return the public user for the body.
+  async establishSession(user: AuthUser, req: Request, res: Response): Promise<AuthUser> {
+    const { raw, hash } = this.tokens.generateRefreshToken();
+    const session = await this.create({
+      userId: user.id,
+      refreshTokenHash: hash,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    const accessToken = this.tokens.signAccessToken({
+      sub: String(user.id),
+      sid: session.id,
+      jti: this.tokens.newJti(),
+    });
+    this.cookies.setAccessToken(res, accessToken);
+    this.cookies.setRefreshToken(res, raw);
+    this.csrf.generateCsrfToken(res); // fresh CSRF per session (anti-fixation)
+
+    return this.publicUser(user);
+  }
+
+  // Refresh: consume the refresh-token cookie, rotate the session within its
+  // family, reissue access/refresh cookies and CSRF, and return the user.
+  async refresh(req: Request, res: Response): Promise<AuthUser> {
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const raw = cookies?.[this.cookies.refreshTokenName()];
+    if (!raw) throw new UnauthorizedException('No refresh token');
+
+    const session = await this.findByRefreshHash(this.tokens.hashRefreshToken(raw));
+    if (!session) throw new UnauthorizedException('Invalid refresh token');
+
+    const user = await this.users.findById(session.userId);
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      await this.revokeAllForUser(session.userId);
+      throw new UnauthorizedException('Account not active');
+    }
+
+    const next = this.tokens.generateRefreshToken();
+    const newSession = await this.rotate(session, next.hash, req.ip, req.get('user-agent'));
+
+    const accessToken = this.tokens.signAccessToken({
+      sub: String(user.id),
+      sid: newSession.id,
+      jti: this.tokens.newJti(),
+    });
+    this.cookies.setAccessToken(res, accessToken);
+    this.cookies.setRefreshToken(res, next.raw);
+    this.csrf.generateCsrfToken(res);
+
+    return this.publicUser(user);
+  }
+
+  // Logout: revoke the current session (if any) and clear auth cookies.
+  async logout(sessionId: string | undefined, res: Response): Promise<void> {
+    if (sessionId) {
+      await this.revokeOne(sessionId);
+    }
+    this.cookies.clearAuthCookies(res);
+  }
+
+  private publicUser(user: AuthUser): AuthUser {
+    return {
+      id: user.id,
+      phone: user.phone,
+      name: user.name,
+      lastName: user.lastName,
+      username: user.username,
+    };
   }
 
   findByRefreshHash(refreshTokenHash: string) {
@@ -51,12 +136,7 @@ export class SessionService {
 
   // Consume an old refresh token and issue its successor in the same family.
   // Any sign of reuse revokes the entire family.
-  async rotate(
-    oldSession: SessionRef,
-    newHash: string,
-    ip?: string,
-    userAgent?: string,
-  ) {
+  async rotate(oldSession: SessionRef, newHash: string, ip?: string, userAgent?: string) {
     const now = DateTime.now().toJSDate();
     if (oldSession.revokedAt || oldSession.expiresAt <= now) {
       await this.revokeFamily(oldSession.familyId);

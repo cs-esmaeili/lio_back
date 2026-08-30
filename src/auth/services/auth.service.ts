@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { PasswordService } from './password.service';
+import { SessionService } from './session.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserStatus } from 'src/generated/prisma/client';
 
@@ -10,6 +11,7 @@ export class AuthService {
     private usersService: UsersService,
     private passwordService: PasswordService,
     private jwtService: JwtService,
+    private sessions: SessionService,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -30,5 +32,16 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async changePassword(userId: number, newPassword: string, sessionId: string): Promise<void> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const passwordHash = await this.passwordService.hash(newPassword);
+    await this.usersService.setPassword(userId, passwordHash);
+    await this.sessions.revokeAllForUserExcept(userId, sessionId);
   }
 }

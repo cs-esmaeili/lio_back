@@ -178,6 +178,13 @@ export class SessionService {
     });
   }
 
+  revokeAllForUserExcept(userId: number, exceptSessionId: string) {
+    return this.prisma.authSession.updateMany({
+      where: { userId, revokedAt: null, id: { not: exceptSessionId } },
+      data: { revokedAt: DateTime.now().toJSDate() },
+    });
+  }
+
   revokeFamily(familyId: string) {
     return this.prisma.authSession.updateMany({
       where: { familyId, revokedAt: null },

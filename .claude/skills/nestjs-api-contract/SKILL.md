@@ -1024,3 +1024,51 @@ Parameter Documentation
 ```
 
 A route without an accurate Swagger request/response contract is an **incomplete implementation**.
+
+---
+
+# 28. Decorator Ordering (Controller)
+
+Decorators on a controller method MUST be ordered from "furthest from the method" (API contract / documentation) to "closest to the method" (HTTP mechanics).
+
+Order, top to bottom:
+
+1. Swagger/OpenAPI contract decorators:
+   - `@ApiOperation({ summary })`
+   - `@ApiBody({ type })`
+   - `@ApiOkResponse` / `@ApiCreatedResponse` / `@ApiNoContentResponse`
+   - `@ApiBadRequestResponse`, `@ApiUnauthorizedResponse`, `@ApiNotFoundResponse`, ... (error responses)
+2. Access-control decorators:
+   - `@Public()` (or any auth-requirement decorator)
+3. Guards:
+   - `@UseGuards(...)`
+4. HTTP method + path + status, immediately above the method signature:
+   - `@Post('...')` / `@Get('...')` / ...
+   - `@HttpCode(...)` (if present)
+
+Correct:
+
+```ts
+@ApiOperation({ summary: 'Verify OTP and establish a session' })
+@ApiBody({ type: VerifyOtpRequestDto })
+@ApiOkResponse({ description: 'Authenticated user', type: VerifyOtpResponseDto })
+@ApiBadRequestResponse({ description: 'Invalid phone number' })
+@ApiUnauthorizedResponse({ description: 'Invalid or expired OTP, or inactive account' })
+@Public()
+@UseGuards(CsrfGuard)
+@Post('otp/verify')
+async verifyOtp(...) {}
+```
+
+Incorrect:
+
+```ts
+@Public()
+@UseGuards(CsrfGuard)
+@Post('otp/verify')
+@ApiOperation({ summary: 'Verify OTP and establish a session' })
+// ... Swagger decorators after the HTTP method
+async verifyOtp(...) {}
+```
+
+Rationale: the HTTP method, path, and guards are the most important reading for understanding what the route does — keep them closest to the method signature. Swagger decorators are contract metadata, so they sit above.

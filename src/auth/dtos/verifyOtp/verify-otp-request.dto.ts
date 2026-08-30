@@ -9,7 +9,7 @@ export class VerifyOtpRequestDto {
   @IsString()
   @IsNotEmpty()
   @Length(11, 11)
-  phone!: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Six-digit OTP code',

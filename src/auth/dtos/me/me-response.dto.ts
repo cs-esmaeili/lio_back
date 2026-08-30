@@ -4,8 +4,8 @@ export class MeUserDto {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: '09123456789' })
-  phone!: string;
+  @ApiProperty({ example: '09123456789', description: 'Phone number (login identifier)' })
+  username!: string;
 }
 
 export class MeResponseDto {

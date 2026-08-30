@@ -9,5 +9,5 @@ export class RequestOtpRequestDto {
   @IsString()
   @IsNotEmpty()
   @Length(11, 11)
-  phone!: string;
+  username!: string;
 }

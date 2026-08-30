@@ -5,16 +5,16 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByPhone(phone: string) {
-    return this.prisma.user.findUnique({ where: { phone } });
+  findByUsername(username: string) {
+    return this.prisma.user.findUnique({ where: { username } });
   }
 
   findById(id: number) {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  createByPhone(phone: string) {
-    return this.prisma.user.create({ data: { phone } });
+  createByUsername(username: string) {
+    return this.prisma.user.create({ data: { username } });
   }
 
   setPassword(userId: number, passwordHash: string) {

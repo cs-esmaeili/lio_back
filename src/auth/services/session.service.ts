@@ -20,10 +20,9 @@ interface SessionRef {
 
 export interface AuthUser {
   id: number;
-  phone: string;
+  username: string;
   name: string | null;
   lastName: string | null;
-  username: string | null;
 }
 
 @Injectable()
@@ -115,10 +114,9 @@ export class SessionService {
   private publicUser(user: AuthUser): AuthUser {
     return {
       id: user.id,
-      phone: user.phone,
+      username: user.username,
       name: user.name,
       lastName: user.lastName,
-      username: user.username,
     };
   }
 

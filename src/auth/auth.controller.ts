@@ -25,7 +25,7 @@ import { MeResponseDto } from './dtos/me/me-response.dto';
 
 interface JwtUser {
   userId: number;
-  phone: string;
+  username: string;
   sessionId: string;
 }
 
@@ -61,11 +61,11 @@ export class AuthController {
   @UseGuards(CsrfGuard)
   @Post('otp/request')
   async requestOtp(@Body() body: RequestOtpRequestDto): Promise<RequestOtpResponseDto> {
-    const phone = this.normalizePhone(body.phone);
-    const code = await this.otp.request(phone, OtpPurpose.LOGIN);
+    const username = this.normalizeUsername(body.username);
+    const code = await this.otp.request(username, OtpPurpose.LOGIN);
 
     // Dev delivery: no SMS yet. Log only, never in response body.
-    this.logger.log(`OTP for ${phone}: ${code}`);
+    this.logger.log(`OTP for ${username}: ${code}`);
 
     return { ttlSeconds: this.config.getOrThrow<number>('otp.ttlSeconds') };
   }
@@ -84,12 +84,12 @@ export class AuthController {
   @UseGuards(CsrfGuard)
   @Post('otp/verify')
   async verifyOtp(@Body() body: VerifyOtpRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<VerifyOtpResponseDto> {
-    const phone = this.normalizePhone(body.phone);
-    const ok = await this.otp.verify(phone, OtpPurpose.LOGIN, body.code);
+    const username = this.normalizeUsername(body.username);
+    const ok = await this.otp.verify(username, OtpPurpose.LOGIN, body.code);
     if (!ok) throw new UnauthorizedException('Invalid or expired OTP');
 
-    const existing = await this.users.findByPhone(phone);
-    const user = existing ?? (await this.users.createByPhone(phone));
+    const existing = await this.users.findByUsername(username);
+    const user = existing ?? (await this.users.createByUsername(username));
     if (user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('Account not active');
     }
@@ -97,7 +97,7 @@ export class AuthController {
     return this.sessions.establishSession(user, req, res);
   }
 
-  @ApiOperation({ summary: 'Login with phone and password' })
+  @ApiOperation({ summary: 'Login with username and password' })
   @ApiBody({ type: LoginRequestDto })
   @ApiOkResponse({ description: 'Authenticated user', type: LoginResponseDto })
   @ApiUnauthorizedResponse({
@@ -153,14 +153,14 @@ export class AuthController {
     }
     return {
       authenticated: true,
-      user: { id: user.userId, phone: user.phone },
+      user: { id: user.userId, username: user.username },
       loading: false,
     };
   }
 
-  private normalizePhone(phone: string): string {
+  private normalizeUsername(username: string): string {
     const PHONE_RE = /^09\d{9}$/;
-    const p = (phone ?? '').trim();
+    const p = (username ?? '').trim();
     if (!PHONE_RE.test(p)) {
       throw new BadRequestException('Invalid phone number');
     }

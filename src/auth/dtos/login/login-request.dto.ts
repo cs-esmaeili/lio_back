@@ -9,7 +9,7 @@ export class LoginRequestDto {
   @IsString()
   @IsNotEmpty()
   @Length(11, 11)
-  phone!: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Account password',

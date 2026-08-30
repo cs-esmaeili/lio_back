@@ -11,6 +11,7 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { OtpService } from './services/otp.service';
@@ -23,10 +24,12 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
 import { Public } from './decorators/public.decorator';
-import type { LoginDto, OtpVerifyDto } from './dtos/auth.dto';
+import type { LoginDto } from './dtos/auth.dto';
 import { OtpPurpose, UserStatus } from 'src/generated/prisma/client';
 import type { OtpRequestDto } from './dtos/requestOtp/otp-request-request.dto';
 import { OtpRequestResponseDto } from './dtos/requestOtp/otp-request-response.dto';
+import { VerifyOtpRequestDto } from './dtos/verifyOtp/verify-otp-request.dto';
+import { VerifyOtpResponseDto } from './dtos/verifyOtp/verify-otp-response.dto';
 
 interface JwtUser {
   userId: number;
@@ -58,9 +61,7 @@ export class AuthController {
   @Public()
   @UseGuards(CsrfGuard)
   @Post('otp/request')
-  async requestOtp(
-    @Body() otpRequestDto: OtpRequestDto,
-  ): Promise<OtpRequestResponseDto> {
+  async requestOtp(@Body() otpRequestDto: OtpRequestDto): Promise<OtpRequestResponseDto> {
     const phone = this.normalizePhone(otpRequestDto.phone);
     const code = await this.otp.request(phone, OtpPurpose.LOGIN);
 
@@ -70,26 +71,36 @@ export class AuthController {
     return { ttlSeconds: this.config.getOrThrow<number>('otp.ttlSeconds') };
   }
 
-  //   @Public()
-  //   @UseGuards(CsrfGuard)
-  //   @Post('otp/verify')
-  //   async verifyOtp(
-  //     @Body() body: OtpVerifyDto,
-  //     @Req() req: Request,
-  //     @Res({ passthrough: true }) res: Response,
-  //   ) {
-  //     const phone = this.normalizePhone(body.phone);
-  //     const ok = await this.otp.verify(phone, OtpPurpose.LOGIN, body.code);
-  //     if (!ok) throw new UnauthorizedException('Invalid or expired OTP');
+  @Public()
+  @UseGuards(CsrfGuard)
+  @Post('otp/verify')
+  @ApiOperation({ summary: 'Verify OTP and establish a session' })
+  @ApiBody({ type: VerifyOtpRequestDto })
+  @ApiOkResponse({
+    description: 'Authenticated user',
+    type: VerifyOtpResponseDto,
+  })
+  @ApiBadRequestResponse({ description: 'Invalid phone number' })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired OTP, or inactive account',
+  })
+  async verifyOtp(
+    @Body() body: VerifyOtpRequestDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<VerifyOtpResponseDto> {
+    const phone = this.normalizePhone(body.phone);
+    const ok = await this.otp.verify(phone, OtpPurpose.LOGIN, body.code);
+    if (!ok) throw new UnauthorizedException('Invalid or expired OTP');
 
-  //     const existing = await this.users.findByPhone(phone);
-  //     const user = existing ?? (await this.users.createByPhone(phone));
-  //     if (user.status !== UserStatus.ACTIVE) {
-  //       throw new UnauthorizedException('Account not active');
-  //     }
+    const existing = await this.users.findByPhone(phone);
+    const user = existing ?? (await this.users.createByPhone(phone));
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Account not active');
+    }
 
-  //     return this.establishSession(user, req, res);
-  //   }
+    return this.establishSession(user, req, res);
+  }
 
   //   @Public()
   //   @UseGuards(LocalAuthGuard, CsrfGuard)

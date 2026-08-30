@@ -1,15 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { CreatePermissionRequestDto } from '../createPermission/create-permission-request.dto';
 
-export class UpdatePermissionRequestDto {
-  @ApiPropertyOptional({ description: 'Permission key', example: 'product:write' })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  name?: string;
-
-  @ApiPropertyOptional({ description: 'Permission description', example: 'Create and edit products' })
-  @IsOptional()
-  @IsString()
-  description?: string;
-}
+export class UpdatePermissionRequestDto extends PartialType(CreatePermissionRequestDto) {}

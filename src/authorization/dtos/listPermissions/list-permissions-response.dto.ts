@@ -4,9 +4,9 @@ export class ListPermissionsResponseDto {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: 'role:read' })
+  @ApiProperty({ example: 'product:write' })
   name!: string;
 
-  @ApiProperty({ example: 'List roles', nullable: true })
+  @ApiProperty({ example: 'Create and edit products', nullable: true })
   description!: string | null;
 }

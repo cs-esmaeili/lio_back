@@ -15,6 +15,7 @@ model User {
   roleId       Int?
   role         Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
   addresses    Address[]
+  files        File[]
   sessions     AuthSession[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt

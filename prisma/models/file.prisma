@@ -5,10 +5,12 @@ model File {
   path         String
   mimeType     String
   size         Int
-  uploaderId   Int?
-  uploader     User?    @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  uploaderId      Int?
+  uploader        User?      @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  categoryImages  Category[]
+  tagImages       Tag[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   @@index([uploaderId])
 }

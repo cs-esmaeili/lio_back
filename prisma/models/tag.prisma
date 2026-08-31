@@ -4,7 +4,6 @@ model Tag {
   parent    Tag?         @relation("TagTree", fields: [parentId], references: [id], onDelete: SetNull)
   children  Tag[]        @relation("TagTree")
   name      String
-  slug      String       @unique
   imageId   Int?
   image     File?        @relation(fields: [imageId], references: [id], onDelete: SetNull)
   products  ProductTag[]

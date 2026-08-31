@@ -1,6 +1,7 @@
 enum entityType {
   PRODUCT
   CATEGORY
+  TAG
   POST
   BRAND
   PAGE

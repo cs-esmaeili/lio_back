@@ -1,0 +1,17 @@
+enum AttributeType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  SELECT
+}
+
+model Attribute {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  type               AttributeType       @default(TEXT)
+  categoryAttributes CategoryAttribute[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([name])
+}

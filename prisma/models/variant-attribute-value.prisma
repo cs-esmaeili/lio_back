@@ -1,0 +1,9 @@
+model VariantAttributeValue {
+  variantId               Int
+  productAttributeValueId Int
+  variant                 ProductVariant        @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  productAttributeValue   ProductAttributeValue @relation(fields: [productAttributeValueId], references: [id], onDelete: Cascade)
+
+  @@id([variantId, productAttributeValueId])
+  @@index([productAttributeValueId])
+}

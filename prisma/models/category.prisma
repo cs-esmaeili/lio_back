@@ -1,14 +1,15 @@
 model Category {
-  id        Int        @id @default(autoincrement())
-  parentId  Int?
-  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children  Category[] @relation("CategoryTree")
-  name      String
-  imageId   Int?
-  image     File?      @relation(fields: [imageId], references: [id], onDelete: SetNull)
-  products  Product[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                 Int                 @id @default(autoincrement())
+  parentId           Int?
+  parent             Category?           @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children           Category[]          @relation("CategoryTree")
+  name               String
+  imageId            Int?
+  image              File?               @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  products           ProductCategory[]
+  categoryAttributes CategoryAttribute[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   @@index([parentId])
   @@index([imageId])

@@ -1,0 +1,13 @@
+model HomeSection {
+  id        Int      @id @default(autoincrement())
+  type      String
+  title     String?
+  sortOrder Int
+  isActive  Boolean  @default(true)
+  data      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([type])
+}

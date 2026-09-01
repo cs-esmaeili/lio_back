@@ -1,16 +1,16 @@
 model File {
-  id           Int      @id @default(autoincrement())
-  originalName String
-  storedName   String   @unique
-  path         String
-  mimeType     String
-  size         Int
-  uploaderId      Int?
-  uploader        User?      @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
-  categoryImages  Category[]
-  tagImages       Tag[]
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  id             Int        @id @default(autoincrement())
+  originalName   String
+  storedName     String     @unique
+  path           String
+  mimeType       String
+  size           Int
+  uploaderId     Int?
+  uploader       User?      @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  categoryImages Category[]
+  tagImages      Tag[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([uploaderId])
 }

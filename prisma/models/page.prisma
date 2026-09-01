@@ -8,22 +8,22 @@ enum entityType {
 }
 
 model Page {
-  id              Int          @id @default(autoincrement())
+  id              Int        @id @default(autoincrement())
   entityType      entityType
   entityId        Int?
-  slug            String       @unique
+  slug            String     @unique
   metaTitle       String?
-  metaDescription String?      @db.Text
+  metaDescription String?    @db.Text
   canonicalUrl    String?
-  robotsIndex     Boolean      @default(true)
-  robotsFollow    Boolean      @default(true)
+  robotsIndex     Boolean    @default(true)
+  robotsFollow    Boolean    @default(true)
   ogTitle         String?
-  ogDescription   String?      @db.Text
-  ogType          String       @default("website")
+  ogDescription   String?    @db.Text
+  ogType          String     @default("website")
   ogImage         String?
   twitterCard     String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   @@unique([entityType, entityId])
 }

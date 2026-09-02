@@ -11,6 +11,10 @@ export default () => ({
     port: parseInt(process.env.PORT ?? '3000', 10),
     origin: process.env.APP_ORIGIN ?? 'http://localhost:3000',
   },
+  uploads: {
+    publicDir: join(process.cwd(), 'public'),
+    uploadsDir: process.env.UPLOADS_DIR ?? join(process.cwd(), 'public', 'uploads'),
+  },
   jwt: {
     privateKey: loadKey(process.env.JWT_PRIVATE_KEY_PATH, 'keys/jwt-private.pem'),
     publicKey: loadKey(process.env.JWT_PUBLIC_KEY_PATH, 'keys/jwt-public.pem'),

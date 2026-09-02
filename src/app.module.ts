@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AuthorizationModule } from './authorization/authorization.module';
+import { FileManagerModule } from './file-manager/file-manager.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -21,6 +22,7 @@ import configuration from './config/configuration';
     AuthModule,
     UsersModule,
     AuthorizationModule,
+    FileManagerModule,
   ],
   controllers: [AppController],
 })

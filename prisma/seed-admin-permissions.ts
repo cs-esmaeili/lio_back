@@ -29,21 +29,14 @@ async function main() {
     create: { name: 'admin', description: 'Full access' },
     update: {},
   });
-  const allPermissions = await prisma.permission.findMany();
+
+  const permissions = await prisma.permission.findMany();
   await prisma.rolePermission.deleteMany({ where: { roleId: admin.id } });
   await prisma.rolePermission.createMany({
-    data: allPermissions.map((permission) => ({ roleId: admin.id, permissionId: permission.id })),
+    data: permissions.map((permission) => ({ roleId: admin.id, permissionId: permission.id })),
   });
 
-  const user = await prisma.role.upsert({
-    where: { name: 'user' },
-    create: { name: 'user', description: 'Default authenticated user' },
-    update: {},
-  });
-
-  await prisma.user.updateMany({ where: { roleId: null }, data: { roleId: user.id } });
-
-  console.log('Seed complete: roles and permissions created, users backfilled.');
+  console.log(`Granted ${permissions.length} permissions to admin role.`);
 }
 
 main()

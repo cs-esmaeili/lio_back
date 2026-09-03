@@ -1,49 +1,39 @@
 import 'dotenv/config';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { seedPermissions } from './seeds/permissions';
+import { seedAdminRole, seedUserRole } from './seeds/roles';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
 
-const PERMISSIONS: Array<{ name: string; description: string }> = [
-  { name: 'role:read', description: 'List and view roles' },
-  { name: 'role:write', description: 'Create, update, and delete roles' },
-  { name: 'permission:read', description: 'List permissions' },
-  { name: 'permission:write', description: 'Create, update, and delete permissions' },
-  { name: 'user:role:manage', description: 'Assign and remove roles on users' },
-  { name: 'file:manage', description: 'Manage files and folders' },
-];
+const SEEDS = {
+  permissions: seedPermissions,
+  'admin-role': seedAdminRole,
+  'user-role': seedUserRole,
+} as const;
+
+type SeedName = keyof typeof SEEDS;
 
 async function main() {
-  for (const permission of PERMISSIONS) {
-    await prisma.permission.upsert({
-      where: { name: permission.name },
-      create: permission,
-      update: { description: permission.description },
-    });
+  const targets = process.argv.slice(2) as SeedName[];
+
+  const unknown = targets.filter((target) => !(target in SEEDS));
+  if (unknown.length) {
+    throw new Error(
+      `Unknown seed(s): ${unknown.join(', ')}. Available: ${Object.keys(SEEDS).join(', ')}`,
+    );
   }
 
-  const admin = await prisma.role.upsert({
-    where: { name: 'admin' },
-    create: { name: 'admin', description: 'Full access' },
-    update: {},
-  });
-  const allPermissions = await prisma.permission.findMany();
-  await prisma.rolePermission.deleteMany({ where: { roleId: admin.id } });
-  await prisma.rolePermission.createMany({
-    data: allPermissions.map((permission) => ({ roleId: admin.id, permissionId: permission.id })),
-  });
+  const seeds: SeedName[] = targets.length ? targets : (Object.keys(SEEDS) as SeedName[]);
 
-  const user = await prisma.role.upsert({
-    where: { name: 'user' },
-    create: { name: 'user', description: 'Default authenticated user' },
-    update: {},
-  });
+  for (const name of seeds) {
+    await SEEDS[name](prisma);
+    console.log(`Seeded: ${name}`);
+  }
 
-  await prisma.user.updateMany({ where: { roleId: null }, data: { roleId: user.id } });
-
-  console.log('Seed complete: roles and permissions created, users backfilled.');
+  console.log('Seed complete.');
 }
 
 main()

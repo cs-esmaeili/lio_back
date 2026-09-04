@@ -1,9 +1,10 @@
 model RolePermission {
-  roleId       Int
-  permissionId Int
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
-  @@id([roleId, permissionId])
-  @@index([permissionId])
+  @@id([roleId, permissionId], map: "role_permissions_pkey")
+  @@index([permissionId], map: "role_permissions_permission_id_idx")
+  @@map("role_permissions")
 }

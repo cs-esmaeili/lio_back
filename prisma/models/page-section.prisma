@@ -1,14 +1,15 @@
 model PageSection {
   id        Int      @id @default(autoincrement())
-  pageId    Int
+  pageId    Int      @map("page_id")
   page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
   type      String
   title     String?
-  sortOrder Int
-  isActive  Boolean  @default(true)
+  sortOrder Int      @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
   data      Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([pageId, isActive, sortOrder])
+  @@index([pageId, isActive, sortOrder], map: "page_sections_page_id_is_active_sort_order_idx")
+  @@map("page_sections")
 }

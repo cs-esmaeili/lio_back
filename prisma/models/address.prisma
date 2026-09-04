@@ -1,15 +1,16 @@
 model Address {
   id         Int      @id @default(autoincrement())
   title      String
-  postalCode String
-  isMain     Boolean  @default(false)
-  userId     Int
-  locationId Int
+  postalCode String   @map("postal_code")
+  isMain     Boolean  @default(false) @map("is_main")
+  userId     Int      @map("user_id")
+  locationId Int      @map("location_id")
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   location   Location @relation(fields: [locationId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  @@index([userId])
-  @@index([locationId])
+  @@index([userId], map: "addresses_user_id_idx")
+  @@index([locationId], map: "addresses_location_id_idx")
+  @@map("addresses")
 }

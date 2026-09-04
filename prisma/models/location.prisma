@@ -3,8 +3,9 @@ model Location {
   province  String
   city      String
   addresses Address[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  @@index([province, city])
+  @@index([province, city], map: "locations_province_city_idx")
+  @@map("locations")
 }

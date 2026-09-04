@@ -1,14 +1,15 @@
 model ProductAttributeValue {
   id                     Int                     @id @default(autoincrement())
-  productId              Int
-  categoryAttributeId    Int
+  productId              Int                     @map("product_id")
+  categoryAttributeId    Int                     @map("category_attribute_id")
   value                  String
   product                Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
   categoryAttribute      CategoryAttribute       @relation(fields: [categoryAttributeId], references: [id], onDelete: Cascade)
   variantAttributeValues VariantAttributeValue[]
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
 
-  @@unique([productId, categoryAttributeId])
-  @@index([categoryAttributeId])
+  @@unique([productId, categoryAttributeId], map: "product_attribute_values_product_id_category_attribute_id_key")
+  @@index([categoryAttributeId], map: "product_attribute_values_category_attribute_id_idx")
+  @@map("product_attribute_values")
 }

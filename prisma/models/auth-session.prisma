@@ -1,17 +1,18 @@
 model AuthSession {
   id               String    @id @default(uuid(7))
-  userId           Int
+  userId           Int       @map("user_id")
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  refreshTokenHash String    @unique
-  familyId         String
-  expiresAt        DateTime
-  revokedAt        DateTime?
-  replacedById     String?
-  lastUsedAt       DateTime?
+  refreshTokenHash String    @unique(map: "auth_sessions_refresh_token_hash_key") @map("refresh_token_hash")
+  familyId         String    @map("family_id")
+  expiresAt        DateTime  @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  replacedById     String?   @map("replaced_by_id")
+  lastUsedAt       DateTime? @map("last_used_at")
   ip               String?
-  userAgent        String?
-  createdAt        DateTime  @default(now())
+  userAgent        String?   @map("user_agent")
+  createdAt        DateTime  @default(now()) @map("created_at")
 
-  @@index([userId])
-  @@index([familyId])
+  @@index([userId], map: "auth_sessions_user_id_idx")
+  @@index([familyId], map: "auth_sessions_family_id_idx")
+  @@map("auth_sessions")
 }

@@ -1,9 +1,10 @@
 model ProductCategory {
-  productId  Int
-  categoryId Int
+  productId  Int      @map("product_id")
+  categoryId Int      @map("category_id")
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@id([productId, categoryId])
-  @@index([categoryId])
+  @@id([productId, categoryId], map: "product_categories_pkey")
+  @@index([categoryId], map: "product_categories_category_id_idx")
+  @@map("product_categories")
 }

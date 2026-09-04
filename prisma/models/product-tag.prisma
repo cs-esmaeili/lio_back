@@ -1,9 +1,10 @@
 model ProductTag {
-  productId Int
-  tagId     Int
+  productId Int     @map("product_id")
+  tagId     Int     @map("tag_id")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-  @@id([productId, tagId])
-  @@index([tagId])
+  @@id([productId, tagId], map: "product_tags_pkey")
+  @@index([tagId], map: "product_tags_tag_id_idx")
+  @@map("product_tags")
 }

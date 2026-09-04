@@ -6,13 +6,14 @@ enum OtpPurpose {
 model Otp {
   id        Int        @id @default(autoincrement())
   phone     String
-  codeHash  String
+  codeHash  String     @map("code_hash")
   purpose   OtpPurpose @default(LOGIN)
-  expiresAt DateTime
-  usedAt    DateTime?
+  expiresAt DateTime   @map("expires_at")
+  usedAt    DateTime?  @map("used_at")
   attempts  Int        @default(0)
-  createdAt DateTime   @default(now())
+  createdAt DateTime   @default(now()) @map("created_at")
 
-  @@index([phone, createdAt])
-  @@index([phone, purpose])
+  @@index([phone, createdAt], map: "otps_phone_created_at_idx")
+  @@index([phone, purpose], map: "otps_phone_purpose_idx")
+  @@map("otps")
 }

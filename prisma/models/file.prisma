@@ -1,16 +1,17 @@
 model File {
   id             Int        @id @default(autoincrement())
-  originalName   String
-  storedName     String     @unique
+  originalName   String     @map("original_name")
+  storedName     String     @unique(map: "files_stored_name_key") @map("stored_name")
   path           String
-  mimeType       String
+  mimeType       String     @map("mime_type")
   size           Int
-  uploaderId     Int?
+  uploaderId     Int?       @map("uploader_id")
   uploader       User?      @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   categoryImages Category[]
   tagImages      Tag[]
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
 
-  @@index([uploaderId])
+  @@index([uploaderId], map: "files_uploader_id_idx")
+  @@map("files")
 }

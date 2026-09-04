@@ -1,4 +1,4 @@
-enum entityType {
+enum EntityType {
   PRODUCT
   CATEGORY
   TAG
@@ -8,23 +8,24 @@ enum entityType {
 }
 
 model Page {
-  id              Int        @id @default(autoincrement())
-  entityType      entityType
-  entityId        Int?
-  slug            String     @unique
-  metaTitle       String?
-  metaDescription String?    @db.Text
-  canonicalUrl    String?
-  robotsIndex     Boolean    @default(true)
-  robotsFollow    Boolean    @default(true)
-  ogTitle         String?
-  ogDescription   String?    @db.Text
-  ogType          String     @default("website")
-  ogImage         String?
-  twitterCard     String?
+  id              Int           @id @default(autoincrement())
+  entityType      EntityType    @map("entity_type")
+  entityId        Int?          @map("entity_id")
+  slug            String        @unique(map: "pages_slug_key")
+  metaTitle       String?       @map("meta_title")
+  metaDescription String?       @map("meta_description") @db.Text
+  canonicalUrl    String?       @map("canonical_url")
+  robotsIndex     Boolean       @default(true) @map("robots_index")
+  robotsFollow    Boolean       @default(true) @map("robots_follow")
+  ogTitle         String?       @map("og_title")
+  ogDescription   String?       @map("og_description") @db.Text
+  ogType          String        @default("website") @map("og_type")
+  ogImage         String?       @map("og_image")
+  twitterCard     String?       @map("twitter_card")
   sections        PageSection[]
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  @@unique([entityType, entityId])
+  @@unique([entityType, entityId], map: "pages_entity_type_entity_id_key")
+  @@map("pages")
 }

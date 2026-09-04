@@ -1,8 +1,10 @@
 model Permission {
   id          Int              @id @default(autoincrement())
-  name        String           @unique
+  name        String           @unique(map: "permissions_name_key")
   description String?
   roles       RolePermission[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@map("permissions")
 }

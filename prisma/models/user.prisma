@@ -6,19 +6,20 @@ enum UserStatus {
 
 model User {
   id           Int           @id @default(autoincrement())
-  username     String        @unique
-  nationalCode String?       @unique
+  username     String        @unique(map: "users_username_key")
+  nationalCode String?       @unique(map: "users_national_code_key") @map("national_code")
   name         String?
-  lastName     String?
-  passwordHash String?
+  lastName     String?       @map("last_name")
+  passwordHash String?       @map("password_hash")
   status       UserStatus    @default(ACTIVE)
-  roleId       Int?
+  roleId       Int?          @map("role_id")
   role         Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
   addresses    Address[]
   files        File[]
   sessions     AuthSession[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  @@index([roleId])
+  @@index([roleId], map: "users_role_id_idx")
+  @@map("users")
 }

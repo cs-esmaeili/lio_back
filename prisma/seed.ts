@@ -3,6 +3,8 @@ import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { seedPermissions } from './seeds/permissions';
 import { seedAdminRole, seedUserRole } from './seeds/roles';
+import { seedHomePage } from './seeds/pages';
+import { seedTestUser } from './seeds/users';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -12,6 +14,8 @@ const SEEDS = {
   permissions: seedPermissions,
   'admin-role': seedAdminRole,
   'user-role': seedUserRole,
+  'home-page': seedHomePage,
+  'test-user': seedTestUser,
 } as const;
 
 type SeedName = keyof typeof SEEDS;

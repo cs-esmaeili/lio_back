@@ -5,6 +5,7 @@ enum EntityType {
   POST
   BRAND
   PAGE
+  HOME
 }
 
 model Page {

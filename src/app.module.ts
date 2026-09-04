@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AuthorizationModule } from './authorization/authorization.module';
 import { FileManagerModule } from './file-manager/file-manager.module';
+import { SiteSettingModule } from './site-setting/site-setting.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import configuration from './config/configuration';
@@ -26,6 +27,7 @@ import configuration from './config/configuration';
     UsersModule,
     AuthorizationModule,
     FileManagerModule,
+    SiteSettingModule,
   ],
   controllers: [AppController],
   providers: [

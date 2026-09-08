@@ -8,6 +8,7 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'user:role:manage', description: 'Assign and remove roles on users' },
   { name: 'file:manage', description: 'Manage files and folders' },
   { name: 'site:manage', description: 'Manage site settings (header, footer, etc.)' },
+  { name: 'page:manage', description: 'Manage page sections and their content' },
 ];
 
 export async function seedPermissions(prisma: PrismaClient): Promise<number> {

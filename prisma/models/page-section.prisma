@@ -1,15 +1,23 @@
-model PageSection {
-  id        Int      @id @default(autoincrement())
-  pageId    Int      @map("page_id")
-  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  type      String
-  title     String?
-  sortOrder Int      @map("sort_order")
-  isActive  Boolean  @default(true) @map("is_active")
-  data      Json?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+enum PageSectionType {
+  SLIDER
+}
 
-  @@index([pageId, isActive, sortOrder], map: "page_sections_page_id_is_active_sort_order_idx")
+enum PageSectionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model PageSection {
+  id        Int               @id @default(autoincrement())
+  pageId    Int               @map("page_id")
+  page      Page              @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type      PageSectionType
+  sortOrder Int               @map("sort_order")
+  status    PageSectionStatus @default(ACTIVE)
+  slider    SliderSection?
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  @@index([pageId, status, sortOrder], map: "page_sections_page_id_status_sort_order_idx")
   @@map("page_sections")
 }

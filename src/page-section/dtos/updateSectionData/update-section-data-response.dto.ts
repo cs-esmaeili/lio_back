@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
 
 export class SliderSlideDto {
@@ -23,6 +23,28 @@ export class SliderSectionDataDto {
   slides!: SliderSlideDto[];
 }
 
+export class ProductListItemDto {
+  @ApiProperty({ example: 11 })
+  id!: number;
+
+  @ApiProperty({ example: 0 })
+  sortOrder!: number;
+
+  @ApiProperty({ example: 42 })
+  productId!: number;
+
+  @ApiProperty({ example: 'Product name' })
+  productName!: string;
+
+  @ApiProperty({ example: 'product-name' })
+  productSlug!: string;
+}
+
+export class ProductListSectionDataDto {
+  @ApiProperty({ type: ProductListItemDto, isArray: true })
+  products!: ProductListItemDto[];
+}
+
 export class UpdateSectionDataResponseDto {
   @ApiProperty({ example: 50 })
   id!: number;
@@ -39,6 +61,9 @@ export class UpdateSectionDataResponseDto {
   @ApiProperty({ enum: PageSectionStatus, enumName: 'PageSectionStatus', example: PageSectionStatus.ACTIVE })
   status!: PageSectionStatus;
 
-  @ApiProperty({ type: SliderSectionDataDto })
-  data!: SliderSectionDataDto;
+  @ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto)
+  @ApiProperty({
+    oneOf: [{ $ref: getSchemaPath(SliderSectionDataDto) }, { $ref: getSchemaPath(ProductListSectionDataDto) }],
+  })
+  data!: SliderSectionDataDto | ProductListSectionDataDto;
 }

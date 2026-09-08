@@ -6,8 +6,9 @@ model Product {
   categories      ProductCategory[]
   tags            ProductTag[]
   attributeValues ProductAttributeValue[]
-  variants        ProductVariant[]
-  createdAt       DateTime                @default(now()) @map("created_at")
+  variants           ProductVariant[]
+  productListSections ProductListSection[]
+  createdAt          DateTime                @default(now()) @map("created_at")
   updatedAt       DateTime                @updatedAt @map("updated_at")
 
   @@index([name], map: "products_name_idx")

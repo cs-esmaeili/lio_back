@@ -3,15 +3,18 @@ import { PageSectionStatus, PageSectionType } from 'src/generated/prisma/client'
 import type { PageSection } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SliderSectionService } from './slider-section.service';
+import { ProductListSectionService } from './product-list-section.service';
 import type { SliderSectionData } from './slider-section.service';
+import type { ProductListSectionData } from './product-list-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
-import type { UpdatePageSectionDataDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type { UpdatePageSectionDataDto, UpdateProductListDto, UpdateSliderSlideDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
 @Injectable()
 export class PageSectionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sliderSectionService: SliderSectionService,
+    private readonly productListSectionService: ProductListSectionService,
   ) {}
 
   async createSection(dto: CreateSectionRequestDto) {
@@ -33,6 +36,8 @@ export class PageSectionService {
     switch (section.type) {
       case PageSectionType.SLIDER:
         return this.toResponse(section, await this.sliderSectionService.list(section.id));
+      case PageSectionType.PRODUCT_LIST:
+        return this.toResponse(section, await this.productListSectionService.list(section.id));
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -43,7 +48,9 @@ export class PageSectionService {
 
     switch (section.type) {
       case PageSectionType.SLIDER:
-        return this.toResponse(section, await this.sliderSectionService.update(section.id, dto.data));
+        return this.toResponse(section, await this.sliderSectionService.update(section.id, dto.data as UpdateSliderSlideDto));
+      case PageSectionType.PRODUCT_LIST:
+        return this.toResponse(section, await this.productListSectionService.update(section.id, dto.data as UpdateProductListDto));
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -57,7 +64,7 @@ export class PageSectionService {
     return section;
   }
 
-  private toResponse(section: PageSection, data: SliderSectionData) {
+  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData) {
     return {
       id: section.id,
       pageId: section.pageId,

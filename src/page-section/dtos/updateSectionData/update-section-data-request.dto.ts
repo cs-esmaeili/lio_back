@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDefined, IsEnum, IsInt, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { PageSectionType } from 'src/generated/prisma/client';
@@ -26,15 +26,33 @@ export class UpdateSliderSlideDto {
   url?: string | null;
 }
 
+export class UpdateProductListDto {
+  @ApiProperty({ example: 11 })
+  @IsInt()
+  id!: number;
+
+  @ApiProperty({ example: 42 })
+  @IsInt()
+  productId!: number;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @IsInt()
+  sortOrder?: number;
+}
+
 export class UpdatePageSectionDataDto {
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)
   type!: PageSectionType;
 
-  @ApiProperty({ type: UpdateSliderSlideDto })
+  @ApiProperty({
+    oneOf: [{ $ref: getSchemaPath(UpdateSliderSlideDto) }, { $ref: getSchemaPath(UpdateProductListDto) }],
+  })
+  @ApiExtraModels(UpdateSliderSlideDto, UpdateProductListDto)
   @IsDefined()
   @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => UpdateSliderSlideDto)
-  data!: UpdateSliderSlideDto;
+  @Type((obj) => (obj?.object?.type === PageSectionType.PRODUCT_LIST ? UpdateProductListDto : UpdateSliderSlideDto))
+  data!: UpdateSliderSlideDto | UpdateProductListDto;
 }

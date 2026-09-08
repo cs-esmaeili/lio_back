@@ -13,9 +13,9 @@ model PageSection {
   page      Page              @relation(fields: [pageId], references: [id], onDelete: Cascade)
   type      PageSectionType
   sortOrder Int               @map("sort_order")
-  status    PageSectionStatus @default(ACTIVE)
-  slider    SliderSection?
-  createdAt DateTime          @default(now()) @map("created_at")
+  status         PageSectionStatus @default(ACTIVE)
+  sliderSections SliderSection[]
+  createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 
   @@index([pageId, status, sortOrder], map: "page_sections_page_id_status_sort_order_idx")

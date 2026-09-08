@@ -1,15 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
 
+export class SliderSlideDto {
+  @ApiProperty({ example: 11 })
+  id!: number;
+
+  @ApiProperty({ example: null, nullable: true })
+  desktopFileUrl!: string | null;
+
+  @ApiProperty({ example: null, nullable: true })
+  tabletFileUrl!: string | null;
+
+  @ApiProperty({ example: null, nullable: true })
+  mobileFileUrl!: string | null;
+
+  @ApiProperty({ example: null, nullable: true })
+  url!: string | null;
+}
+
 export class SliderSectionDataDto {
-  @ApiProperty({ example: null, nullable: true })
-  desktopFileId!: number | null;
-
-  @ApiProperty({ example: null, nullable: true })
-  tabletFileId!: number | null;
-
-  @ApiProperty({ example: null, nullable: true })
-  mobileFileId!: number | null;
+  @ApiProperty({ type: SliderSlideDto, isArray: true })
+  slides!: SliderSlideDto[];
 }
 
 export class CreateSectionResponseDto {

@@ -1,23 +1,29 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDefined, IsEnum, IsInt, IsNotEmptyObject, IsOptional, ValidateNested } from 'class-validator';
+import { IsDefined, IsEnum, IsInt, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { PageSectionType } from 'src/generated/prisma/client';
 
-export class UpdateSliderSectionDto {
-  @ApiPropertyOptional({ example: 101, nullable: true })
-  @IsOptional()
+export class UpdateSliderSlideDto {
+  @ApiProperty({ example: 11 })
   @IsInt()
-  desktopFileId?: number | null;
+  id!: number;
 
-  @ApiPropertyOptional({ example: 102, nullable: true })
-  @IsOptional()
+  @ApiProperty({ example: 101 })
   @IsInt()
-  tabletFileId?: number | null;
+  desktopFileId!: number;
 
-  @ApiPropertyOptional({ example: 103, nullable: true })
-  @IsOptional()
+  @ApiProperty({ example: 102 })
   @IsInt()
-  mobileFileId?: number | null;
+  tabletFileId!: number;
+
+  @ApiProperty({ example: 103 })
+  @IsInt()
+  mobileFileId!: number;
+
+  @ApiPropertyOptional({ example: '/products/sale', nullable: true, description: 'Relative link target for the slide' })
+  @IsOptional()
+  @IsString()
+  url?: string | null;
 }
 
 export class UpdatePageSectionDataDto {
@@ -25,10 +31,10 @@ export class UpdatePageSectionDataDto {
   @IsEnum(PageSectionType)
   type!: PageSectionType;
 
-  @ApiProperty({ type: UpdateSliderSectionDto })
+  @ApiProperty({ type: UpdateSliderSlideDto })
   @IsDefined()
   @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => UpdateSliderSectionDto)
-  data!: UpdateSliderSectionDto;
+  @Type(() => UpdateSliderSlideDto)
+  data!: UpdateSliderSlideDto;
 }

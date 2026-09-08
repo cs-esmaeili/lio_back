@@ -14,6 +14,7 @@ export default () => ({
   uploads: {
     publicDir: join(process.cwd(), 'public'),
     uploadsDir: process.env.UPLOADS_DIR ?? join(process.cwd(), 'public', 'uploads'),
+    urlPrefix: process.env.UPLOADS_URL_PREFIX ?? '/uploads/',
   },
   jwt: {
     privateKey: loadKey(process.env.JWT_PRIVATE_KEY_PATH, 'keys/jwt-private.pem'),

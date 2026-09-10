@@ -23,6 +23,23 @@ export class SliderSectionDataDto {
   slides!: SliderSlideDto[];
 }
 
+export class ProductImageDto {
+  @ApiProperty({ example: 7 })
+  id!: number;
+
+  @ApiProperty({ example: '/uploads/images/product-1.png', nullable: true })
+  url!: string | null;
+
+  @ApiProperty({ example: true })
+  isPrimary!: boolean;
+
+  @ApiProperty({ example: false })
+  isThumbnail!: boolean;
+
+  @ApiProperty({ example: 0 })
+  sortOrder!: number;
+}
+
 export class ProductListItemDto {
   @ApiProperty({ example: 11 })
   id!: number;
@@ -38,6 +55,9 @@ export class ProductListItemDto {
 
   @ApiProperty({ example: 'product-name' })
   productSlug!: string;
+
+  @ApiProperty({ type: ProductImageDto, isArray: true })
+  images!: ProductImageDto[];
 }
 
 export class ProductListSectionDataDto {

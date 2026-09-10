@@ -2,6 +2,7 @@ enum PageSectionType {
   SLIDER
   PRODUCT_LIST
   BANNER
+  INTRODUCTION
 }
 
 enum PageSectionStatus {
@@ -19,6 +20,7 @@ model PageSection {
   sliderSections      SliderSection[]
   productListSections ProductListSection[]
   bannerSections      BannerSection[]
+  introductionSection IntroductionSection?
   createdAt           DateTime           @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 

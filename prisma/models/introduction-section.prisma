@@ -1,0 +1,16 @@
+model IntroductionSection {
+  id            Int         @id @default(autoincrement())
+  sectionId     Int         @unique(map: "introduction_sections_section_id_key") @map("section_id")
+  section       PageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  titles        Json        @default("{}") @db.JsonB
+  desktopFileId Int         @map("desktop_file_id")
+  tabletFileId  Int?        @map("tablet_file_id")
+  mobileFileId  Int?        @map("mobile_file_id")
+  desktopFile   File        @relation("IntroductionDesktopFile", fields: [desktopFileId], references: [id], onDelete: Restrict)
+  tabletFile    File?       @relation("IntroductionTabletFile", fields: [tabletFileId], references: [id], onDelete: Restrict)
+  mobileFile    File?       @relation("IntroductionMobileFile", fields: [mobileFileId], references: [id], onDelete: Restrict)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@map("introduction_sections")
+}

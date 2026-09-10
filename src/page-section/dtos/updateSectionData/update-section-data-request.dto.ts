@@ -1,6 +1,6 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { PageSectionType } from 'src/generated/prisma/client';
 
 export class UpdateSliderSlideDto {
@@ -79,15 +79,44 @@ export class UpdateBannerDto {
   mobileFileId!: number;
 }
 
+export class UpdateIntroductionDto {
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'string' },
+    example: { title: 'عنوان اصلی', subtitle: 'توضیح کوتاه' },
+  })
+  @IsObject()
+  titles!: Record<string, string>;
+
+  @ApiProperty({ example: 101 })
+  @IsInt()
+  desktopFileId!: number;
+
+  @ApiPropertyOptional({ example: 102, nullable: true })
+  @IsOptional()
+  @IsInt()
+  tabletFileId?: number | null;
+
+  @ApiPropertyOptional({ example: 103, nullable: true })
+  @IsOptional()
+  @IsInt()
+  mobileFileId?: number | null;
+}
+
+@ApiExtraModels(UpdateSliderSlideDto, UpdateProductListDto, UpdateBannerDto, UpdateIntroductionDto)
 export class UpdatePageSectionDataDto {
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)
   type!: PageSectionType;
 
   @ApiProperty({
-    oneOf: [{ $ref: getSchemaPath(UpdateSliderSlideDto) }, { $ref: getSchemaPath(UpdateProductListDto) }, { $ref: getSchemaPath(UpdateBannerDto) }],
+    oneOf: [
+      { $ref: getSchemaPath(UpdateSliderSlideDto) },
+      { $ref: getSchemaPath(UpdateProductListDto) },
+      { $ref: getSchemaPath(UpdateBannerDto) },
+      { $ref: getSchemaPath(UpdateIntroductionDto) },
+    ],
   })
-  @ApiExtraModels(UpdateSliderSlideDto, UpdateProductListDto, UpdateBannerDto)
   @IsDefined()
   @IsNotEmptyObject()
   @ValidateNested()
@@ -97,9 +126,11 @@ export class UpdatePageSectionDataDto {
         return UpdateProductListDto;
       case PageSectionType.BANNER:
         return UpdateBannerDto;
+      case PageSectionType.INTRODUCTION:
+        return UpdateIntroductionDto;
       default:
         return UpdateSliderSlideDto;
     }
   })
-  data!: UpdateSliderSlideDto | UpdateProductListDto | UpdateBannerDto;
+  data!: UpdateSliderSlideDto | UpdateProductListDto | UpdateBannerDto | UpdateIntroductionDto;
 }

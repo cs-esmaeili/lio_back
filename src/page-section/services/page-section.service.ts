@@ -5,11 +5,19 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SliderSectionService } from './slider-section.service';
 import { ProductListSectionService } from './product-list-section.service';
 import { BannerSectionService } from './banner-section.service';
+import { IntroductionSectionService } from './introduction-section.service';
 import type { SliderSectionData } from './slider-section.service';
 import type { ProductListSectionData } from './product-list-section.service';
 import type { BannerSectionData } from './banner-section.service';
+import type { IntroductionSectionData } from './introduction-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
-import type { UpdateBannerDto, UpdatePageSectionDataDto, UpdateProductListDto, UpdateSliderSlideDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type {
+  UpdateBannerDto,
+  UpdateIntroductionDto,
+  UpdatePageSectionDataDto,
+  UpdateProductListDto,
+  UpdateSliderSlideDto,
+} from '../dtos/updateSectionData/update-section-data-request.dto';
 
 @Injectable()
 export class PageSectionService {
@@ -18,6 +26,7 @@ export class PageSectionService {
     private readonly sliderSectionService: SliderSectionService,
     private readonly productListSectionService: ProductListSectionService,
     private readonly bannerSectionService: BannerSectionService,
+    private readonly introductionSectionService: IntroductionSectionService,
   ) {}
 
   async createSection(dto: CreateSectionRequestDto) {
@@ -43,6 +52,8 @@ export class PageSectionService {
         return this.toResponse(section, await this.productListSectionService.list(section.id));
       case PageSectionType.BANNER:
         return this.toResponse(section, await this.bannerSectionService.list(section.id));
+      case PageSectionType.INTRODUCTION:
+        return this.toResponse(section, await this.introductionSectionService.list(section.id));
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -58,6 +69,8 @@ export class PageSectionService {
         return this.toResponse(section, await this.productListSectionService.update(section.id, dto.data as UpdateProductListDto));
       case PageSectionType.BANNER:
         return this.toResponse(section, await this.bannerSectionService.update(section.id, dto.data as UpdateBannerDto));
+      case PageSectionType.INTRODUCTION:
+        return this.toResponse(section, await this.introductionSectionService.update(section.id, dto.data as UpdateIntroductionDto));
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -71,7 +84,7 @@ export class PageSectionService {
     return section;
   }
 
-  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData) {
+  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData) {
     return {
       id: section.id,
       pageId: section.pageId,

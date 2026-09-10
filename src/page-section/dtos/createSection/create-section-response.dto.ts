@@ -99,6 +99,25 @@ export class BannerSectionDataDto {
   banners!: BannerItemDto[];
 }
 
+export class IntroductionSectionDataDto {
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'string' },
+    example: { title: 'عنوان اصلی', subtitle: 'توضیح کوتاه' },
+  })
+  titles!: Record<string, string>;
+
+  @ApiProperty({ example: '/uploads/images/intro-desktop.png', nullable: true })
+  desktopFileUrl!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/intro-tablet.png', nullable: true })
+  tabletFileUrl!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/intro-mobile.png', nullable: true })
+  mobileFileUrl!: string | null;
+}
+
+@ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto, IntroductionSectionDataDto)
 export class CreateSectionResponseDto {
   @ApiProperty({ example: 50 })
   id!: number;
@@ -115,9 +134,13 @@ export class CreateSectionResponseDto {
   @ApiProperty({ enum: PageSectionStatus, enumName: 'PageSectionStatus', example: PageSectionStatus.ACTIVE })
   status!: PageSectionStatus;
 
-  @ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto)
   @ApiProperty({
-    oneOf: [{ $ref: getSchemaPath(SliderSectionDataDto) }, { $ref: getSchemaPath(ProductListSectionDataDto) }, { $ref: getSchemaPath(BannerSectionDataDto) }],
+    oneOf: [
+      { $ref: getSchemaPath(SliderSectionDataDto) },
+      { $ref: getSchemaPath(ProductListSectionDataDto) },
+      { $ref: getSchemaPath(BannerSectionDataDto) },
+      { $ref: getSchemaPath(IntroductionSectionDataDto) },
+    ],
   })
-  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto;
+  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto;
 }

@@ -16,6 +16,9 @@ model File {
   bannerDesktopSections BannerSection[] @relation("BannerDesktopFile")
   bannerTabletSections  BannerSection[] @relation("BannerTabletFile")
   bannerMobileSections  BannerSection[] @relation("BannerMobileFile")
+  introductionDesktopSections IntroductionSection[] @relation("IntroductionDesktopFile")
+  introductionTabletSections  IntroductionSection[] @relation("IntroductionTabletFile")
+  introductionMobileSections  IntroductionSection[] @relation("IntroductionMobileFile")
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
 

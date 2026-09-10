@@ -22,6 +22,9 @@ export default () => ({
     accessTtlSeconds: parseInt(process.env.JWT_ACCESS_TTL_SECONDS ?? '900', 10),
     refreshTtlDays: parseInt(process.env.JWT_REFRESH_TTL_DAYS ?? '30', 10),
   },
+  devAuth: {
+    enabled: process.env.DEV_AUTH === 'true',
+  },
   cookie: {
     secure: process.env.COOKIE_SECURE === 'true',
     sameSite: (process.env.COOKIE_SAME_SITE ?? 'lax') as 'lax' | 'strict' | 'none',

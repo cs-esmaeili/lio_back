@@ -13,6 +13,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
+import { DevAuthGuard } from './guards/dev-auth.guard';
 import { Public } from './decorators/public.decorator';
 import { OtpPurpose, UserStatus } from 'src/generated/prisma/client';
 import { RequestOtpRequestDto } from './dtos/requestOtp/request-otp-request.dto';
@@ -29,6 +30,8 @@ import { ChangePasswordRequestDto } from './dtos/changePassword/change-password-
 import { ChangePasswordResponseDto } from './dtos/changePassword/change-password-response.dto';
 import { HashPasswordRequestDto } from './dtos/hashPassword/hash-password-request.dto';
 import { HashPasswordResponseDto } from './dtos/hashPassword/hash-password-response.dto';
+import { DevLoginRequestDto } from './dtos/devLogin/dev-login-request.dto';
+import { DevLoginResponseDto } from './dtos/devLogin/dev-login-response.dto';
 
 const CSRF_HEADER = {
   name: 'X-CSRF-Token',
@@ -189,6 +192,28 @@ export class AuthController {
       user: { id: user.userId, username: user.username },
       loading: false,
     };
+  }
+
+  @ApiOperation({
+    summary: 'Dev only: establish a session and return a CSRF token in one call (requires DEV_AUTH=true)',
+  })
+  @ApiBody({ type: DevLoginRequestDto })
+  @ApiOkResponse({
+    description: 'Session established and CSRF token issued',
+    type: DevLoginResponseDto,
+  })
+  @Public()
+  @UseGuards(DevAuthGuard)
+  @Post('dev/login')
+  async devLogin(@Body() body: DevLoginRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<DevLoginResponseDto> {
+    const username = this.normalizeUsername(body.username);
+    const existing = await this.users.findByUsername(username);
+    const user = existing ?? (await this.users.createByUsername(username));
+
+    const authUser = await this.sessions.establishSession(user, req, res);
+    const csrfToken = this.csrfService.generateCsrfToken(res);
+
+    return { csrfToken, user: authUser };
   }
 
   @ApiOperation({ summary: 'Hash a plain password (test/dev only)' })

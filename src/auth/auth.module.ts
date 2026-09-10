@@ -13,6 +13,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
+import { DevAuthGuard } from './guards/dev-auth.guard';
 import { CsrfService } from './services/csrf.service';
 import { AuthController } from './auth.controller';
 import { ConfigService } from '@nestjs/config';
@@ -45,7 +46,8 @@ import { ConfigService } from '@nestjs/config';
     JwtAuthGuard,
     OptionalAuthGuard,
     CsrfGuard,
+    DevAuthGuard,
   ],
-  exports: [AuthService, PasswordService, OtpService, TokenService, SessionService, CookieService, CsrfService, JwtAuthGuard, OptionalAuthGuard, CsrfGuard],
+  exports: [AuthService, PasswordService, OtpService, TokenService, SessionService, CookieService, CsrfService, JwtAuthGuard, OptionalAuthGuard, CsrfGuard, DevAuthGuard],
 })
 export class AuthModule {}

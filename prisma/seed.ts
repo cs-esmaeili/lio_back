@@ -5,6 +5,7 @@ import { seedPermissions } from './seeds/permissions';
 import { seedAdminRole, seedUserRole } from './seeds/roles';
 import { seedProducts } from './seeds/products';
 import { seedProductListSections } from './seeds/product-list-sections';
+import { seedProductImages } from './seeds/product-images';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -16,6 +17,7 @@ const SEEDS = {
   'user-role': seedUserRole,
   products: seedProducts,
   'product-list-sections': seedProductListSections,
+  'product-images': seedProductImages,
 } as const;
 
 type SeedName = keyof typeof SEEDS;

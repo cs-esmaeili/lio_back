@@ -13,6 +13,9 @@ model File {
   sliderDesktopSections SliderSection[] @relation("SliderDesktopFile")
   sliderTabletSections  SliderSection[] @relation("SliderTabletFile")
   sliderMobileSections  SliderSection[] @relation("SliderMobileFile")
+  bannerDesktopSections BannerSection[] @relation("BannerDesktopFile")
+  bannerTabletSections  BannerSection[] @relation("BannerTabletFile")
+  bannerMobileSections  BannerSection[] @relation("BannerMobileFile")
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
 

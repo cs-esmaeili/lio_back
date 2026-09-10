@@ -65,6 +65,40 @@ export class ProductListSectionDataDto {
   products!: ProductListItemDto[];
 }
 
+export class BannerItemDto {
+  @ApiProperty({ example: 11 })
+  id!: number;
+
+  @ApiProperty({ example: 0 })
+  sortOrder!: number;
+
+  @ApiProperty({ example: 'Summer sale' })
+  title!: string;
+
+  @ApiProperty({ example: 'Up to 50% off selected items', nullable: true })
+  subtitle!: string | null;
+
+  @ApiProperty({ example: 'Shop now', nullable: true })
+  buttonTitle!: string | null;
+
+  @ApiProperty({ example: '/products/sale', nullable: true })
+  buttonUrl!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/banner-desktop.png', nullable: true })
+  desktopFileUrl!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/banner-tablet.png', nullable: true })
+  tabletFileUrl!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/banner-mobile.png', nullable: true })
+  mobileFileUrl!: string | null;
+}
+
+export class BannerSectionDataDto {
+  @ApiProperty({ type: BannerItemDto, isArray: true })
+  banners!: BannerItemDto[];
+}
+
 export class UpdateSectionDataResponseDto {
   @ApiProperty({ example: 50 })
   id!: number;
@@ -81,9 +115,9 @@ export class UpdateSectionDataResponseDto {
   @ApiProperty({ enum: PageSectionStatus, enumName: 'PageSectionStatus', example: PageSectionStatus.ACTIVE })
   status!: PageSectionStatus;
 
-  @ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto)
+  @ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto)
   @ApiProperty({
-    oneOf: [{ $ref: getSchemaPath(SliderSectionDataDto) }, { $ref: getSchemaPath(ProductListSectionDataDto) }],
+    oneOf: [{ $ref: getSchemaPath(SliderSectionDataDto) }, { $ref: getSchemaPath(ProductListSectionDataDto) }, { $ref: getSchemaPath(BannerSectionDataDto) }],
   })
-  data!: SliderSectionDataDto | ProductListSectionDataDto;
+  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto;
 }

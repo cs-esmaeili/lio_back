@@ -1,0 +1,21 @@
+model BannerSection {
+  id            Int         @id @default(autoincrement())
+  sectionId     Int         @map("section_id")
+  section       PageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sortOrder     Int         @default(0) @map("sort_order")
+  title         String
+  subtitle      String?     @map("subtitle")
+  buttonTitle   String?     @map("button_title")
+  buttonUrl     String?     @map("button_url")
+  desktopFileId Int         @map("desktop_file_id")
+  tabletFileId  Int         @map("tablet_file_id")
+  mobileFileId  Int         @map("mobile_file_id")
+  desktopFile   File        @relation("BannerDesktopFile", fields: [desktopFileId], references: [id], onDelete: Restrict)
+  tabletFile    File        @relation("BannerTabletFile", fields: [tabletFileId], references: [id], onDelete: Restrict)
+  mobileFile    File        @relation("BannerMobileFile", fields: [mobileFileId], references: [id], onDelete: Restrict)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@index([sectionId, sortOrder], map: "banner_sections_section_id_sort_order_idx")
+  @@map("banner_sections")
+}

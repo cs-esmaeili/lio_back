@@ -5,10 +5,11 @@ import { PageSectionController } from './page-section.controller';
 import { PageSectionService } from './services/page-section.service';
 import { SliderSectionService } from './services/slider-section.service';
 import { ProductListSectionService } from './services/product-list-section.service';
+import { BannerSectionService } from './services/banner-section.service';
 
 @Module({
   imports: [AuthModule, AuthorizationModule],
   controllers: [PageSectionController],
-  providers: [PageSectionService, SliderSectionService, ProductListSectionService],
+  providers: [PageSectionService, SliderSectionService, ProductListSectionService, BannerSectionService],
 })
 export class PageSectionModule {}

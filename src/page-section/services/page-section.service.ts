@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
-import type { PageSection } from 'src/generated/prisma/client';
+import type { Page, PageSection } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SliderSectionService } from './slider-section.service';
 import { ProductListSectionService } from './product-list-section.service';
@@ -11,6 +11,7 @@ import type { ProductListSectionData } from './product-list-section.service';
 import type { BannerSectionData } from './banner-section.service';
 import type { IntroductionSectionData } from './introduction-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
+import type { GetPageSectionsQueryDto } from '../dtos/getPageSections/get-page-sections-query.dto';
 import type {
   UpdateBannerDto,
   UpdateIntroductionDto,
@@ -45,18 +46,23 @@ export class PageSectionService {
   async getSection(id: number) {
     const section = await this.findSection(id);
 
-    switch (section.type) {
-      case PageSectionType.SLIDER:
-        return this.toResponse(section, await this.sliderSectionService.list(section.id));
-      case PageSectionType.PRODUCT_LIST:
-        return this.toResponse(section, await this.productListSectionService.list(section.id));
-      case PageSectionType.BANNER:
-        return this.toResponse(section, await this.bannerSectionService.list(section.id));
-      case PageSectionType.INTRODUCTION:
-        return this.toResponse(section, await this.introductionSectionService.list(section.id));
-      default:
-        throw new BadRequestException('Unsupported section type');
-    }
+    return this.toResponse(section, await this.getSectionData(section));
+  }
+
+  async getPageSections(query: GetPageSectionsQueryDto) {
+    const page = await this.findPage(query);
+
+    const sections = await this.prisma.pageSection.findMany({
+      where: { pageId: page.id, status: PageSectionStatus.ACTIVE },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    });
+
+    const data = await Promise.all(sections.map(async (section) => this.toResponse(section, await this.getSectionData(section))));
+
+    return {
+      page: { id: page.id, entityType: page.entityType, entityId: page.entityId, slug: page.slug },
+      sections: data,
+    };
   }
 
   async updateSectionData(id: number, dto: UpdatePageSectionDataDto) {
@@ -82,6 +88,43 @@ export class PageSectionService {
       throw new NotFoundException('Section not found');
     }
     return section;
+  }
+
+  private async findPage(query: GetPageSectionsQueryDto): Promise<Page> {
+    if (query.id !== undefined) {
+      const page = await this.prisma.page.findUnique({ where: { id: query.id } });
+      if (!page) {
+        throw new NotFoundException('Page not found');
+      }
+      return page;
+    }
+
+    if (query.entityType !== undefined) {
+      const page = await this.prisma.page.findFirst({
+        where: { entityType: query.entityType, entityId: query.entityId ?? null },
+      });
+      if (!page) {
+        throw new NotFoundException('Page not found');
+      }
+      return page;
+    }
+
+    throw new BadRequestException('Provide either id or entityType');
+  }
+
+  private getSectionData(section: PageSection) {
+    switch (section.type) {
+      case PageSectionType.SLIDER:
+        return this.sliderSectionService.list(section.id);
+      case PageSectionType.PRODUCT_LIST:
+        return this.productListSectionService.list(section.id);
+      case PageSectionType.BANNER:
+        return this.bannerSectionService.list(section.id);
+      case PageSectionType.INTRODUCTION:
+        return this.introductionSectionService.list(section.id);
+      default:
+        throw new BadRequestException('Unsupported section type');
+    }
   }
 
   private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData) {

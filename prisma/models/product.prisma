@@ -6,6 +6,7 @@ model Product {
   categories      ProductCategory[]
   tags            ProductTag[]
   attributeValues ProductAttributeValue[]
+  images          ProductImage[]
   variants           ProductVariant[]
   productListSections ProductListSection[]
   createdAt          DateTime                @default(now()) @map("created_at")

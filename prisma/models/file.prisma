@@ -9,6 +9,7 @@ model File {
   uploader              User?           @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   categoryImages        Category[]
   tagImages             Tag[]
+  productImages         ProductImage[]
   sliderDesktopSections SliderSection[] @relation("SliderDesktopFile")
   sliderTabletSections  SliderSection[] @relation("SliderTabletFile")
   sliderMobileSections  SliderSection[] @relation("SliderMobileFile")

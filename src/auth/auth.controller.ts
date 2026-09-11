@@ -7,6 +7,7 @@ import { OtpService } from './services/otp.service';
 import { SessionService } from './services/session.service';
 import type { AuthUser } from './services/session.service';
 import { CsrfService } from './services/csrf.service';
+import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { PasswordService } from './services/password.service';
 import { UsersService } from 'src/users/users.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -32,12 +33,6 @@ import { HashPasswordRequestDto } from './dtos/hashPassword/hash-password-reques
 import { HashPasswordResponseDto } from './dtos/hashPassword/hash-password-response.dto';
 import { DevLoginRequestDto } from './dtos/devLogin/dev-login-request.dto';
 import { DevLoginResponseDto } from './dtos/devLogin/dev-login-response.dto';
-
-const CSRF_HEADER = {
-  name: 'X-CSRF-Token',
-  required: true,
-  description: 'CSRF token from GET /auth/csrf — copy the csrfToken field into this header.',
-};
 
 interface JwtUser {
   userId: number;

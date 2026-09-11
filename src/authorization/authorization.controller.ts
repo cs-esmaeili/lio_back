@@ -5,12 +5,15 @@ import {
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiHeader,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CsrfGuard } from 'src/auth/guards/csrf.guard';
+import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { Permissions } from './decorators/permissions.decorator';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { AuthorizationService } from './services/authorization.service';
@@ -30,6 +33,7 @@ import { DeletePermissionResponseDto } from './dtos/deletePermission/delete-perm
 import { AssignRoleRequestDto } from './dtos/assignRole/assign-role-request.dto';
 import { AssignRoleResponseDto } from './dtos/assignRole/assign-role-response.dto';
 
+@UseGuards(JwtAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('admin')
 export class AuthorizationController {
   constructor(private readonly authorization: AuthorizationService) {}
@@ -39,7 +43,6 @@ export class AuthorizationController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:read')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Get('roles')
   async listRoles(): Promise<ListRolesResponseDto[]> {
     const roles = await this.authorization.listRoles();
@@ -53,7 +56,6 @@ export class AuthorizationController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:read')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Get('roles/:id')
   async getRole(@Param('id', ParseIntPipe) id: number): Promise<GetRoleResponseDto> {
     const role = await this.authorization.getRole(id);
@@ -61,13 +63,13 @@ export class AuthorizationController {
   }
 
   @ApiOperation({ summary: 'Create a role' })
+  @ApiHeader(CSRF_HEADER)
   @ApiBody({ type: CreateRoleRequestDto })
   @ApiCreatedResponse({ description: 'Created role', type: CreateRoleResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Post('roles')
   async createRole(@Body() body: CreateRoleRequestDto): Promise<CreateRoleResponseDto> {
     const role = await this.authorization.createRole(body);
@@ -75,6 +77,7 @@ export class AuthorizationController {
   }
 
   @ApiOperation({ summary: 'Update a role' })
+  @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiBody({ type: UpdateRoleRequestDto })
   @ApiOkResponse({ description: 'Updated role', type: UpdateRoleResponseDto })
@@ -82,7 +85,6 @@ export class AuthorizationController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Patch('roles/:id')
   async updateRole(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRoleRequestDto): Promise<UpdateRoleResponseDto> {
     const role = await this.authorization.updateRole(id, body);
@@ -90,13 +92,13 @@ export class AuthorizationController {
   }
 
   @ApiOperation({ summary: 'Delete a role' })
+  @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'Role deleted', type: DeleteRoleResponseDto })
   @ApiNotFoundResponse({ description: 'Role not found' })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Delete('roles/:id')
   deleteRole(@Param('id', ParseIntPipe) id: number): Promise<DeleteRoleResponseDto> {
     return this.authorization.deleteRole(id);
@@ -107,7 +109,6 @@ export class AuthorizationController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:read')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Get('permissions')
   async listPermissions(): Promise<ListPermissionsResponseDto[]> {
     const permissions = await this.authorization.listPermissions();
@@ -115,13 +116,13 @@ export class AuthorizationController {
   }
 
   @ApiOperation({ summary: 'Create a permission' })
+  @ApiHeader(CSRF_HEADER)
   @ApiBody({ type: CreatePermissionRequestDto })
   @ApiCreatedResponse({ description: 'Created permission', type: CreatePermissionResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:write')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Post('permissions')
   async createPermission(@Body() body: CreatePermissionRequestDto): Promise<CreatePermissionResponseDto> {
     const permission = await this.authorization.createPermission(body);
@@ -129,6 +130,7 @@ export class AuthorizationController {
   }
 
   @ApiOperation({ summary: 'Update a permission' })
+  @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiBody({ type: UpdatePermissionRequestDto })
   @ApiOkResponse({ description: 'Updated permission', type: UpdatePermissionResponseDto })
@@ -136,7 +138,6 @@ export class AuthorizationController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:write')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Patch('permissions/:id')
   async updatePermission(@Param('id', ParseIntPipe) id: number, @Body() body: UpdatePermissionRequestDto): Promise<UpdatePermissionResponseDto> {
     const permission = await this.authorization.updatePermission(id, body);
@@ -144,19 +145,20 @@ export class AuthorizationController {
   }
 
   @ApiOperation({ summary: 'Delete a permission' })
+  @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'Permission deleted', type: DeletePermissionResponseDto })
   @ApiNotFoundResponse({ description: 'Permission not found' })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:write')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Delete('permissions/:id')
   deletePermission(@Param('id', ParseIntPipe) id: number): Promise<DeletePermissionResponseDto> {
     return this.authorization.deletePermission(id);
   }
 
   @ApiOperation({ summary: 'Assign or remove a role on a user' })
+  @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'userId', type: Number, example: 1 })
   @ApiBody({ type: AssignRoleRequestDto })
   @ApiOkResponse({ description: 'Role assigned', type: AssignRoleResponseDto })
@@ -164,7 +166,6 @@ export class AuthorizationController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('user:role:manage')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Patch('users/:userId/role')
   assignRole(@Param('userId', ParseIntPipe) userId: number, @Body() body: AssignRoleRequestDto): Promise<AssignRoleResponseDto> {
     return this.authorization.assignRole(userId, body.roleId);

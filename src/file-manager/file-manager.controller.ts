@@ -1,9 +1,22 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ApiBody, ApiConsumes, ApiCookieAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiHeader,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CsrfGuard } from 'src/auth/guards/csrf.guard';
+import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { Permissions } from 'src/authorization/decorators/permissions.decorator';
 import { PermissionsGuard } from 'src/authorization/guards/permissions.guard';
 import { FileManagerService } from './services/file-manager.service';
@@ -27,6 +40,7 @@ interface JwtUser {
   sessionId: string;
 }
 
+@UseGuards(JwtAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('files')
 export class FileManagerController {
   constructor(private readonly fileManager: FileManagerService) {}
@@ -37,13 +51,13 @@ export class FileManagerController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Get()
   listFiles(@Query() query: ListFilesRequestDto): Promise<ListFilesResponseDto> {
     return this.fileManager.listFiles(query.path ?? '');
   }
 
   @ApiOperation({ summary: 'Upload one or more files' })
+  @ApiHeader(CSRF_HEADER)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -58,7 +72,6 @@ export class FileManagerController {
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @UseInterceptors(
     FilesInterceptor('files', MAX_FILES, {
       storage: memoryStorage(),
@@ -73,36 +86,36 @@ export class FileManagerController {
   }
 
   @ApiOperation({ summary: 'Create a folder' })
+  @ApiHeader(CSRF_HEADER)
   @ApiBody({ type: CreateFolderRequestDto })
   @ApiCreatedResponse({ description: 'Folder created', type: CreateFolderResponseDto })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Post('folders')
   createFolder(@Body() body: CreateFolderRequestDto): Promise<CreateFolderResponseDto> {
     return this.fileManager.createFolder(body.path);
   }
 
   @ApiOperation({ summary: 'Delete a folder and its contents' })
+  @ApiHeader(CSRF_HEADER)
   @ApiOkResponse({ description: 'Folder deleted', type: DeleteFolderResponseDto })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Delete('folders')
   deleteFolder(@Query() query: DeleteFolderRequestDto): Promise<DeleteFolderResponseDto> {
     return this.fileManager.deleteFolder(query.path);
   }
 
   @ApiOperation({ summary: 'Delete a file by id' })
+  @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'File deleted', type: DeleteFileResponseDto })
   @ApiNotFoundResponse({ description: 'File not found' })
   @ApiCookieAuth('access_token')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Delete(':id')
   deleteFile(@Param('id', ParseIntPipe) id: number): Promise<DeleteFileResponseDto> {
     return this.fileManager.deleteFile(id);

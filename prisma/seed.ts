@@ -2,12 +2,8 @@ import 'dotenv/config';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { seedPermissions } from './seeds/permissions';
-import { seedAdminRole, seedUserRole } from './seeds/roles';
-import { seedProducts } from './seeds/products';
-import { seedProductListSections } from './seeds/product-list-sections';
-import { seedProductImages } from './seeds/product-images';
-import { seedBanners } from './seeds/banners';
-import { seedIntroduction } from './seeds/introduction';
+import { seedRole } from './seeds/role';
+import { seedAdmin } from './seeds/admin';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -15,13 +11,8 @@ const prisma = new PrismaClient({
 
 const SEEDS = {
   permissions: seedPermissions,
-  'admin-role': seedAdminRole,
-  'user-role': seedUserRole,
-  products: seedProducts,
-  'product-list-sections': seedProductListSections,
-  'product-images': seedProductImages,
-  banners: seedBanners,
-  introduction: seedIntroduction,
+  role: seedRole,
+  admin: seedAdmin,
 } as const;
 
 type SeedName = keyof typeof SEEDS;

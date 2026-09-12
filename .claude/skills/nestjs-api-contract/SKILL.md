@@ -64,7 +64,7 @@ Example:
 export class CreateUserDto {
   @ApiProperty({
     description: 'User phone number',
-    example: '+989121234567',
+    example: '09123456789',
     required: true,
   })
   @IsPhoneNumber('IR')
@@ -193,7 +193,7 @@ export class UserResponseDto {
   name: string;
 
   @ApiProperty({
-    example: '+989121234567',
+    example: '09123456789',
   })
   phone: string;
 

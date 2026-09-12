@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { toFileUrl } from 'src/common/utils/file-url';
+import { FileUrlService } from 'src/common/services/file-url.service';
 import type { BannerSection } from 'src/generated/prisma/client';
 import type { UpdateBannerDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
@@ -27,14 +26,10 @@ type BannerRow = BannerSection & {
 
 @Injectable()
 export class BannerSectionService {
-  private readonly urlPrefix: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    config: ConfigService,
-  ) {
-    this.urlPrefix = config.getOrThrow<string>('uploads.urlPrefix');
-  }
+    private readonly fileUrl: FileUrlService,
+  ) {}
 
   async list(sectionId: number): Promise<BannerSectionData> {
     const rows = await this.prisma.bannerSection.findMany({
@@ -85,7 +80,7 @@ export class BannerSectionService {
   }
 
   private toBanners(rows: BannerRow[]): BannerItem[] {
-    const toUrl = (file: { path: string } | null) => toFileUrl(file?.path ?? null, this.urlPrefix);
+    const toUrl = (file: { path: string } | null) => this.fileUrl.toUrl(file?.path ?? null);
 
     return rows.map((banner) => ({
       id: banner.id,

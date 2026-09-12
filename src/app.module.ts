@@ -4,6 +4,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
 import { PrismaModule } from './prisma/prisma.module';
+import { CommonModule } from './common/common.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -24,6 +25,7 @@ import configuration from './config/configuration';
       serveStaticOptions: { index: false },
     }),
     PrismaModule,
+    CommonModule,
     AuthModule,
     UsersModule,
     AuthorizationModule,

@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { toFileUrl } from 'src/common/utils/file-url';
+import { FileUrlService } from 'src/common/services/file-url.service';
 import type { ProductListSection } from 'src/generated/prisma/client';
 import type { UpdateProductListDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
@@ -41,14 +40,10 @@ type ProductRow = ProductListSection & {
 
 @Injectable()
 export class ProductListSectionService {
-  private readonly urlPrefix: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    config: ConfigService,
-  ) {
-    this.urlPrefix = config.getOrThrow<string>('uploads.urlPrefix');
-  }
+    private readonly fileUrl: FileUrlService,
+  ) {}
 
   async list(sectionId: number): Promise<ProductListSectionData> {
     const rows = await this.prisma.productListSection.findMany({
@@ -113,7 +108,7 @@ export class ProductListSectionService {
       productSlug: row.product?.slug ?? '',
       images: (row.product?.images ?? []).map((image) => ({
         id: image.id,
-        url: toFileUrl(image.file.path, this.urlPrefix),
+        url: this.fileUrl.toUrl(image.file.path),
         isPrimary: image.isPrimary,
         isThumbnail: image.isThumbnail,
         sortOrder: image.sortOrder,

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { toFileUrl } from 'src/common/utils/file-url';
+import { FileUrlService } from 'src/common/services/file-url.service';
 import { createHash, randomBytes } from 'node:crypto';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
@@ -50,14 +50,13 @@ export interface DirectoryListing {
 @Injectable()
 export class FileManagerService {
   private readonly uploadsDir: string;
-  private readonly urlPrefix: string;
 
   constructor(
     private readonly prisma: PrismaService,
     config: ConfigService,
+    private readonly fileUrl: FileUrlService,
   ) {
     this.uploadsDir = config.getOrThrow<string>('uploads.uploadsDir');
-    this.urlPrefix = config.getOrThrow<string>('uploads.urlPrefix');
   }
 
   async listFiles(relativePath: string): Promise<DirectoryListing> {
@@ -101,7 +100,7 @@ export class FileManagerService {
         id: record?.id,
         size: record?.size,
         mimeType: record?.mimeType,
-        url: toFileUrl(file.path, this.urlPrefix) ?? '',
+        url: this.fileUrl.toUrl(file.path) ?? '',
         createdAt: record?.createdAt.toISOString(),
       };
     });

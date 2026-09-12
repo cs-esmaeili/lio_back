@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { toFileUrl } from 'src/common/utils/file-url';
+import { FileUrlService } from 'src/common/services/file-url.service';
 import type { IntroductionSection } from 'src/generated/prisma/client';
 import type { UpdateIntroductionDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
@@ -20,14 +19,10 @@ type IntroductionRow = IntroductionSection & {
 
 @Injectable()
 export class IntroductionSectionService {
-  private readonly urlPrefix: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    config: ConfigService,
-  ) {
-    this.urlPrefix = config.getOrThrow<string>('uploads.urlPrefix');
-  }
+    private readonly fileUrl: FileUrlService,
+  ) {}
 
   async list(sectionId: number): Promise<IntroductionSectionData> {
     const row = await this.prisma.introductionSection.findUnique({
@@ -72,9 +67,9 @@ export class IntroductionSectionService {
   private toData(row: IntroductionRow): IntroductionSectionData {
     return {
       titles: (row.titles ?? {}) as Record<string, string>,
-      desktopFileUrl: toFileUrl(row.desktopFile?.path ?? null, this.urlPrefix),
-      tabletFileUrl: toFileUrl(row.tabletFile?.path ?? null, this.urlPrefix),
-      mobileFileUrl: toFileUrl(row.mobileFile?.path ?? null, this.urlPrefix),
+      desktopFileUrl: this.fileUrl.toUrl(row.desktopFile?.path ?? null),
+      tabletFileUrl: this.fileUrl.toUrl(row.tabletFile?.path ?? null),
+      mobileFileUrl: this.fileUrl.toUrl(row.mobileFile?.path ?? null),
     };
   }
 

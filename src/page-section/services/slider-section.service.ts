@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { toFileUrl } from 'src/common/utils/file-url';
+import { FileUrlService } from 'src/common/services/file-url.service';
 import type { SliderSection } from 'src/generated/prisma/client';
 import type { UpdateSliderSlideDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
@@ -23,14 +22,10 @@ type SlideRow = SliderSection & {
 
 @Injectable()
 export class SliderSectionService {
-  private readonly urlPrefix: string;
-
   constructor(
     private readonly prisma: PrismaService,
-    config: ConfigService,
-  ) {
-    this.urlPrefix = config.getOrThrow<string>('uploads.urlPrefix');
-  }
+    private readonly fileUrl: FileUrlService,
+  ) {}
 
   async list(sectionId: number): Promise<SliderSectionData> {
     const rows = await this.prisma.sliderSection.findMany({
@@ -78,7 +73,7 @@ export class SliderSectionService {
   }
 
   private toSlides(rows: SlideRow[]): SliderSlide[] {
-    const toUrl = (file: { path: string } | null) => toFileUrl(file?.path ?? null, this.urlPrefix);
+    const toUrl = (file: { path: string } | null) => this.fileUrl.toUrl(file?.path ?? null);
 
     return rows.map((slide) => ({
       id: slide.id,

@@ -3,7 +3,7 @@ import { copyFile, link, mkdir, readdir, readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import type { PrismaClient } from '../../src/generated/prisma/client';
 
-const FAKE_IMAGES_DIR = join(process.cwd(), 'prisma', 'fake-images', 'products');
+const FAKE_IMAGES_ROOT = join(process.cwd(), 'prisma', 'fake-images');
 const UPLOADS_DIR = process.env.UPLOADS_DIR ?? join(process.cwd(), 'public', 'uploads');
 const SEED_IMAGE_DIR = 'seed';
 
@@ -29,8 +29,9 @@ export interface SeedImageFile {
   path: string;
 }
 
-async function loadFakeImages(): Promise<FakeImage[]> {
-  const entries = await readdir(FAKE_IMAGES_DIR, { withFileTypes: true });
+async function loadFakeImages(subdir: string): Promise<FakeImage[]> {
+  const imagesDir = join(FAKE_IMAGES_ROOT, subdir);
+  const entries = await readdir(imagesDir, { withFileTypes: true });
   const images: FakeImage[] = [];
 
   for (const entry of entries) {
@@ -40,7 +41,7 @@ async function loadFakeImages(): Promise<FakeImage[]> {
     const mimeType = MIME_TYPES[ext];
     if (!mimeType) continue;
 
-    const sourcePath = join(FAKE_IMAGES_DIR, entry.name);
+    const sourcePath = join(imagesDir, entry.name);
     const buffer = await readFile(sourcePath);
     images.push({
       originalName: entry.name,
@@ -53,7 +54,7 @@ async function loadFakeImages(): Promise<FakeImage[]> {
   }
 
   if (!images.length) {
-    throw new Error(`No images found in ${FAKE_IMAGES_DIR}`);
+    throw new Error(`No images found in ${imagesDir}`);
   }
 
   images.sort((a, b) => a.originalName.localeCompare(b.originalName));
@@ -61,12 +62,12 @@ async function loadFakeImages(): Promise<FakeImage[]> {
 }
 
 /**
- * Copies each image from `prisma/fake-images` into the uploads directory exactly once
- * and upserts a single File row per image. Returns the shared file records that all
- * seeders reuse (no per-category / per-product copies).
+ * Copies each image from `prisma/fake-images/<subdir>` into the uploads directory
+ * exactly once and upserts a single File row per image. Returns the shared file
+ * records that all seeders reuse (no per-entity copies).
  */
-export async function ensureFakeImageFiles(prisma: PrismaClient): Promise<SeedImageFile[]> {
-  const images = await loadFakeImages();
+export async function ensureFakeImageFiles(prisma: PrismaClient, subdir = 'products'): Promise<SeedImageFile[]> {
+  const images = await loadFakeImages(subdir);
   const targetDir = join(UPLOADS_DIR, SEED_IMAGE_DIR);
   await mkdir(targetDir, { recursive: true });
 

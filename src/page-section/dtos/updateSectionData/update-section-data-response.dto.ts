@@ -1,5 +1,5 @@
 import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
-import { PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
+import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
 
 export class SliderSlideDto {
   @ApiProperty({ example: 11 })
@@ -127,6 +127,12 @@ export class UpdateSectionDataResponseDto {
 
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   type!: PageSectionType;
+
+  @ApiProperty({ enum: PageSectionLocation, enumName: 'PageSectionLocation', example: PageSectionLocation.SLIDER })
+  location!: PageSectionLocation;
+
+  @ApiProperty({ example: '/products/sale', nullable: true })
+  link!: string | null;
 
   @ApiProperty({ example: 1 })
   sortOrder!: number;

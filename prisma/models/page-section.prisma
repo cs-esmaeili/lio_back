@@ -5,6 +5,16 @@ enum PageSectionType {
   INTRODUCTION
 }
 
+enum PageSectionLocation {
+  SLIDER
+  PRODUCT_LIST
+  AMAZING_PRODUCTS
+  BANNER
+  BANNER_3
+  BANNER_4
+  INTRODUCTION
+}
+
 enum PageSectionStatus {
   ACTIVE
   INACTIVE
@@ -15,6 +25,8 @@ model PageSection {
   pageId    Int               @map("page_id")
   page      Page              @relation(fields: [pageId], references: [id], onDelete: Cascade)
   type      PageSectionType
+  location  PageSectionLocation
+  link      String?
   sortOrder Int               @map("sort_order")
   status              PageSectionStatus  @default(ACTIVE)
   sliderSections      SliderSection[]

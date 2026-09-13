@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
+import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
 import type { Page, PageSection } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SliderSectionService } from './slider-section.service';
@@ -20,6 +20,13 @@ import type {
   UpdateSliderSlideDto,
 } from '../dtos/updateSectionData/update-section-data-request.dto';
 
+const DEFAULT_LOCATION: Record<PageSectionType, PageSectionLocation> = {
+  [PageSectionType.SLIDER]: PageSectionLocation.SLIDER,
+  [PageSectionType.PRODUCT_LIST]: PageSectionLocation.PRODUCT_LIST,
+  [PageSectionType.BANNER]: PageSectionLocation.BANNER,
+  [PageSectionType.INTRODUCTION]: PageSectionLocation.INTRODUCTION,
+};
+
 @Injectable()
 export class PageSectionService {
   constructor(
@@ -35,6 +42,8 @@ export class PageSectionService {
       data: {
         pageId: dto.pageId,
         type: dto.type,
+        location: dto.location ?? DEFAULT_LOCATION[dto.type],
+        link: dto.link ?? null,
         sortOrder: dto.sortOrder ?? 0,
         status: dto.status ?? PageSectionStatus.ACTIVE,
       },
@@ -132,6 +141,8 @@ export class PageSectionService {
       id: section.id,
       pageId: section.pageId,
       type: section.type,
+      location: section.location,
+      link: section.link,
       sortOrder: section.sortOrder,
       status: section.status,
       data,

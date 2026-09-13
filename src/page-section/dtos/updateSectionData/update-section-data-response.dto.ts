@@ -131,6 +131,9 @@ export class UpdateSectionDataResponseDto {
   @ApiProperty({ enum: PageSectionLocation, enumName: 'PageSectionLocation', example: PageSectionLocation.SLIDER })
   location!: PageSectionLocation;
 
+  @ApiProperty({ example: 'محصولات شگفت‌انگیز', nullable: true })
+  title!: string | null;
+
   @ApiProperty({ example: '/products/sale', nullable: true })
   link!: string | null;
 

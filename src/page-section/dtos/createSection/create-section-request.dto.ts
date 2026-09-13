@@ -21,6 +21,11 @@ export class CreateSectionRequestDto {
   @IsEnum(PageSectionLocation)
   location?: PageSectionLocation;
 
+  @ApiPropertyOptional({ example: 'محصولات شگفت‌انگیز', nullable: true })
+  @IsOptional()
+  @IsString()
+  title?: string | null;
+
   @ApiPropertyOptional({ example: '/products/sale', nullable: true })
   @IsOptional()
   @IsString()

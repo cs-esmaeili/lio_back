@@ -56,9 +56,9 @@ export async function seedHome(prisma: PrismaClient): Promise<number> {
 
   await prisma.pageSection.deleteMany({ where: { pageId: home.id } });
 
-  const createBannerSection = async (sortOrder: number, banners: BannerSeed[], location: PageSectionLocation): Promise<void> => {
+  const createBannerSection = async (sortOrder: number, banners: BannerSeed[], location: PageSectionLocation, title: string): Promise<void> => {
     const section = await prisma.pageSection.create({
-      data: { pageId: home.id, type: PageSectionType.BANNER, location, link: SECTION_LINK, sortOrder, status: PageSectionStatus.ACTIVE },
+      data: { pageId: home.id, type: PageSectionType.BANNER, location, title, link: SECTION_LINK, sortOrder, status: PageSectionStatus.ACTIVE },
       select: { id: true },
     });
     await prisma.bannerSection.createMany({
@@ -76,9 +76,9 @@ export async function seedHome(prisma: PrismaClient): Promise<number> {
     });
   };
 
-  const createProductListSection = async (sortOrder: number, selection: typeof products, location: PageSectionLocation): Promise<void> => {
+  const createProductListSection = async (sortOrder: number, selection: typeof products, location: PageSectionLocation, title: string): Promise<void> => {
     const section = await prisma.pageSection.create({
-      data: { pageId: home.id, type: PageSectionType.PRODUCT_LIST, location, link: SECTION_LINK, sortOrder, status: PageSectionStatus.ACTIVE },
+      data: { pageId: home.id, type: PageSectionType.PRODUCT_LIST, location, title, link: SECTION_LINK, sortOrder, status: PageSectionStatus.ACTIVE },
       select: { id: true },
     });
     await prisma.productListSection.createMany({
@@ -88,7 +88,15 @@ export async function seedHome(prisma: PrismaClient): Promise<number> {
 
   // 0. Slider
   const slider = await prisma.pageSection.create({
-    data: { pageId: home.id, type: PageSectionType.SLIDER, location: PageSectionLocation.SLIDER, link: SECTION_LINK, sortOrder: 0, status: PageSectionStatus.ACTIVE },
+    data: {
+      pageId: home.id,
+      type: PageSectionType.SLIDER,
+      location: PageSectionLocation.SLIDER,
+      title: 'اسلایدر اصلی',
+      link: SECTION_LINK,
+      sortOrder: 0,
+      status: PageSectionStatus.ACTIVE,
+    },
     select: { id: true },
   });
   await prisma.sliderSection.createMany({
@@ -103,20 +111,28 @@ export async function seedHome(prisma: PrismaClient): Promise<number> {
   });
 
   // 1. Amazing products
-  await createProductListSection(1, products.slice(0, PRODUCTS_PER_LIST), PageSectionLocation.AMAZING_PRODUCTS);
+  await createProductListSection(1, products.slice(0, PRODUCTS_PER_LIST), PageSectionLocation.AMAZING_PRODUCTS, 'محصولات شگفت‌انگیز');
 
   // 2. Four banners
-  await createBannerSection(2, FEATURED_BANNERS, PageSectionLocation.BANNER_4);
+  await createBannerSection(2, FEATURED_BANNERS, PageSectionLocation.BANNER_4, 'پیشنهادهای ویژه');
 
   // 3. New products
-  await createProductListSection(3, products.slice(-PRODUCTS_PER_LIST), PageSectionLocation.PRODUCT_LIST);
+  await createProductListSection(3, products.slice(-PRODUCTS_PER_LIST), PageSectionLocation.PRODUCT_LIST, 'جدیدترین محصولات');
 
   // 4. Three banners
-  await createBannerSection(4, COLLECTION_BANNERS, PageSectionLocation.BANNER_3);
+  await createBannerSection(4, COLLECTION_BANNERS, PageSectionLocation.BANNER_3, 'خرید بر اساس دسته‌بندی');
 
   // 5. Introduction
   const introduction = await prisma.pageSection.create({
-    data: { pageId: home.id, type: PageSectionType.INTRODUCTION, location: PageSectionLocation.INTRODUCTION, link: SECTION_LINK, sortOrder: 5, status: PageSectionStatus.ACTIVE },
+    data: {
+      pageId: home.id,
+      type: PageSectionType.INTRODUCTION,
+      location: PageSectionLocation.INTRODUCTION,
+      title: 'درباره لیو',
+      link: SECTION_LINK,
+      sortOrder: 5,
+      status: PageSectionStatus.ACTIVE,
+    },
     select: { id: true },
   });
   await prisma.introductionSection.create({

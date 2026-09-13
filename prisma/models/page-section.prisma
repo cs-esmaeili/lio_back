@@ -26,6 +26,7 @@ model PageSection {
   page      Page              @relation(fields: [pageId], references: [id], onDelete: Cascade)
   type      PageSectionType
   location  PageSectionLocation
+  title     String?
   link      String?
   sortOrder Int               @map("sort_order")
   status              PageSectionStatus  @default(ACTIVE)

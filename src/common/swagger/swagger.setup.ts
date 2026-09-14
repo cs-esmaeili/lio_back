@@ -63,7 +63,7 @@ function wrapSwaggerEnvelope(document: OpenAPIObject): void {
   }
 }
 
-export function setupSwagger(app: INestApplication): string {
+export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Lio API')
     .setDescription('Authentication and session management API')
@@ -74,6 +74,11 @@ export function setupSwagger(app: INestApplication): string {
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   wrapSwaggerEnvelope(document);
+  return document;
+}
+
+export function setupSwagger(app: INestApplication): string {
+  const document = createOpenApiDocument(app);
   SwaggerModule.setup(SWAGGER_URL, app, document);
 
   const port = process.env.PORT ?? 3000;

@@ -44,6 +44,34 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
+## API documentation
+
+While the server is running, the interactive Swagger UI is available at `/docs` and the raw OpenAPI document at `/docs-json`.
+
+To generate the OpenAPI document and per-endpoint markdown files without starting the server:
+
+```bash
+# compile the documentation scripts
+$ pnpm run swagger:build
+
+# generate the full OpenAPI document -> openapi.json
+$ pnpm run swagger:json
+
+# generate one self-contained markdown file per endpoint -> api/**/*.md
+$ pnpm run swagger:split
+
+# run both in one go
+$ pnpm run swagger:docs
+```
+
+`swagger:split` mirrors the URL structure and inlines every `$ref`, so each file contains its own parameters, request body, and response schemas. For example:
+
+```text
+api/auth/login/POST.md
+api/admin/page-sections/{id}/GET.md
+api/admin/permissions/{id}/DELETE.md
+```
+
 ## Run tests
 
 ```bash

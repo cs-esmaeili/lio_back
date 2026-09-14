@@ -12,6 +12,7 @@ import { AuthorizationModule } from './authorization/authorization.module';
 import { FileManagerModule } from './file-manager/file-manager.module';
 import { SiteSettingModule } from './site-setting/site-setting.module';
 import { PageSectionModule } from './page-section/page-section.module';
+import { CategoryModule } from './category/category.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import configuration from './config/configuration';
@@ -32,6 +33,7 @@ import configuration from './config/configuration';
     FileManagerModule,
     SiteSettingModule,
     PageSectionModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [

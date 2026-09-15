@@ -6,6 +6,10 @@ import { setupValidation } from './common/validation/validation.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
   setupValidation(app);
   app.use(cookieParser());
   const swaggerUrl = setupSwagger(app);

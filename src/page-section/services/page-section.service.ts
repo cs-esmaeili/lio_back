@@ -6,14 +6,17 @@ import { SliderSectionService } from './slider-section.service';
 import { ProductListSectionService } from './product-list-section.service';
 import { BannerSectionService } from './banner-section.service';
 import { IntroductionSectionService } from './introduction-section.service';
+import { HeaderSectionService } from './header-section.service';
 import type { SliderSectionData } from './slider-section.service';
 import type { ProductListSectionData } from './product-list-section.service';
 import type { BannerSectionData } from './banner-section.service';
 import type { IntroductionSectionData } from './introduction-section.service';
+import type { HeaderSectionData } from './header-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
 import type { GetPageSectionsQueryDto } from '../dtos/getPageSections/get-page-sections-query.dto';
 import type {
   UpdateBannerDto,
+  UpdateHeaderDto,
   UpdateIntroductionDto,
   UpdatePageSectionDataDto,
   UpdateProductListDto,
@@ -25,6 +28,7 @@ const DEFAULT_LOCATION: Record<PageSectionType, PageSectionLocation> = {
   [PageSectionType.PRODUCT_LIST]: PageSectionLocation.PRODUCT_LIST,
   [PageSectionType.BANNER]: PageSectionLocation.BANNER,
   [PageSectionType.INTRODUCTION]: PageSectionLocation.INTRODUCTION,
+  [PageSectionType.HEADER]: PageSectionLocation.HEADER,
 };
 
 @Injectable()
@@ -35,12 +39,20 @@ export class PageSectionService {
     private readonly productListSectionService: ProductListSectionService,
     private readonly bannerSectionService: BannerSectionService,
     private readonly introductionSectionService: IntroductionSectionService,
+    private readonly headerSectionService: HeaderSectionService,
   ) {}
 
   async createSection(dto: CreateSectionRequestDto) {
+    if (dto.pageId !== undefined) {
+      const page = await this.prisma.page.findUnique({ where: { id: dto.pageId }, select: { id: true } });
+      if (!page) {
+        throw new BadRequestException('Page not found');
+      }
+    }
+
     const section = await this.prisma.pageSection.create({
       data: {
-        pageId: dto.pageId,
+        pageId: dto.pageId ?? null,
         type: dto.type,
         location: dto.location ?? DEFAULT_LOCATION[dto.type],
         title: dto.title ?? null,
@@ -87,6 +99,8 @@ export class PageSectionService {
         return this.toResponse(section, await this.bannerSectionService.update(section.id, dto.data as UpdateBannerDto));
       case PageSectionType.INTRODUCTION:
         return this.toResponse(section, await this.introductionSectionService.update(section.id, dto.data as UpdateIntroductionDto));
+      case PageSectionType.HEADER:
+        return this.toResponse(section, await this.headerSectionService.update(section.id, dto.data as UpdateHeaderDto));
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -132,12 +146,14 @@ export class PageSectionService {
         return this.bannerSectionService.list(section.id);
       case PageSectionType.INTRODUCTION:
         return this.introductionSectionService.list(section.id);
+      case PageSectionType.HEADER:
+        return this.headerSectionService.list(section.id);
       default:
         throw new BadRequestException('Unsupported section type');
     }
   }
 
-  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData) {
+  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData | HeaderSectionData) {
     return {
       id: section.id,
       pageId: section.pageId,

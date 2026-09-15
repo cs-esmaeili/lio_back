@@ -1,5 +1,5 @@
 import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
-import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
+import { HeaderSectionType, PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
 
 export class SliderSlideDto {
   @ApiProperty({ example: 11 })
@@ -117,13 +117,52 @@ export class IntroductionSectionDataDto {
   mobileFileUrl!: string | null;
 }
 
-@ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto, IntroductionSectionDataDto)
+export class HeaderCategoryDto {
+  @ApiProperty({ example: 3 })
+  id!: number;
+
+  @ApiProperty({ example: 'موبایل' })
+  name!: string;
+
+  @ApiProperty({ example: '/category/3' })
+  url!: string;
+
+  @ApiProperty({ type: () => [HeaderCategoryDto] })
+  children!: HeaderCategoryDto[];
+}
+
+export class HeaderItemDto {
+  @ApiProperty({ example: 11 })
+  id!: number;
+
+  @ApiProperty({ enum: HeaderSectionType, enumName: 'HeaderSectionType', example: HeaderSectionType.LINK })
+  type!: HeaderSectionType;
+
+  @ApiProperty({ example: 'فروشگاه' })
+  label!: string;
+
+  @ApiProperty({ example: '/shop', nullable: true })
+  url!: string | null;
+
+  @ApiProperty({ example: 3, nullable: true })
+  categoryId!: number | null;
+
+  @ApiProperty({ type: [HeaderCategoryDto], description: 'Resolved subcategories; empty for LINK items' })
+  children!: HeaderCategoryDto[];
+}
+
+export class HeaderSectionDataDto {
+  @ApiProperty({ type: [HeaderItemDto] })
+  items!: HeaderItemDto[];
+}
+
+@ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto, IntroductionSectionDataDto, HeaderSectionDataDto)
 export class GetSectionResponseDto {
   @ApiProperty({ example: 50 })
   id!: number;
 
-  @ApiProperty({ example: 1 })
-  pageId!: number;
+  @ApiProperty({ type: Number, example: 1, nullable: true })
+  pageId!: number | null;
 
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   type!: PageSectionType;
@@ -149,7 +188,8 @@ export class GetSectionResponseDto {
       { $ref: getSchemaPath(ProductListSectionDataDto) },
       { $ref: getSchemaPath(BannerSectionDataDto) },
       { $ref: getSchemaPath(IntroductionSectionDataDto) },
+      { $ref: getSchemaPath(HeaderSectionDataDto) },
     ],
   })
-  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto;
+  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto | HeaderSectionDataDto;
 }

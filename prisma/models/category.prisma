@@ -8,6 +8,7 @@ model Category {
   image              File?               @relation(fields: [imageId], references: [id], onDelete: SetNull)
   products           ProductCategory[]
   categoryAttributes CategoryAttribute[]
+  headerSections     HeaderSection[]
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
 

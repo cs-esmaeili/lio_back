@@ -3,9 +3,10 @@ import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
 
 export class CreateSectionRequestDto {
-  @ApiProperty({ example: 1 })
+  @ApiPropertyOptional({ example: 1, nullable: true, description: 'Owning page id; omit for a global (page-less) section' })
+  @IsOptional()
   @IsInt()
-  pageId!: number;
+  pageId?: number;
 
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)

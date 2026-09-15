@@ -1,10 +1,10 @@
-# PATCH /admin/page-sections/{id}/data
+# GET /page-sections/{id}
 
-**Operation ID:** PageSectionController_updateSectionData
-**Tags:** PageSection
-**Security:** access_token
+**Operation ID:** PageSectionPublicController_getSection
+**Tags:** PageSectionPublic
+**Security:** none
 
-> Update the typed data of a page section
+> Get a single section by id with its typed data
 
 
 ## Parameters
@@ -12,232 +12,16 @@
 | In | Name | Required | Type | Description |
 | --- | --- | --- | --- | --- |
 | path | id | yes | number |  |
-| header | X-CSRF-Token | yes | string | CSRF token from GET /auth/csrf — copy the csrfToken field into this header. |
 
 ## Request Body
 
-**Content-Type:** `application/json`
-
-```json
-{
-  "type": "object",
-  "properties": {
-    "type": {
-      "example": "SLIDER",
-      "allOf": [
-        {
-          "type": "string",
-          "enum": [
-            "SLIDER",
-            "PRODUCT_LIST",
-            "BANNER",
-            "INTRODUCTION",
-            "HEADER"
-          ]
-        }
-      ]
-    },
-    "data": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "number",
-              "example": 11
-            },
-            "desktopFileId": {
-              "type": "number",
-              "example": 101
-            },
-            "tabletFileId": {
-              "type": "number",
-              "example": 102
-            },
-            "mobileFileId": {
-              "type": "number",
-              "example": 103
-            },
-            "url": {
-              "type": "object",
-              "example": "/products/sale",
-              "nullable": true,
-              "description": "Relative link target for the slide"
-            }
-          },
-          "required": [
-            "id",
-            "desktopFileId",
-            "tabletFileId",
-            "mobileFileId"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "number",
-              "example": 11
-            },
-            "productId": {
-              "type": "number",
-              "example": 42
-            },
-            "sortOrder": {
-              "type": "number",
-              "example": 0
-            }
-          },
-          "required": [
-            "id",
-            "productId"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "number",
-              "example": 11
-            },
-            "title": {
-              "type": "string",
-              "example": "Summer sale"
-            },
-            "subtitle": {
-              "type": "object",
-              "example": "Up to 50% off selected items",
-              "nullable": true
-            },
-            "buttonTitle": {
-              "type": "object",
-              "example": "Shop now",
-              "nullable": true
-            },
-            "buttonUrl": {
-              "type": "object",
-              "example": "/products/sale",
-              "nullable": true
-            },
-            "desktopFileId": {
-              "type": "number",
-              "example": 101
-            },
-            "tabletFileId": {
-              "type": "number",
-              "example": 102
-            },
-            "mobileFileId": {
-              "type": "number",
-              "example": 103
-            }
-          },
-          "required": [
-            "id",
-            "title",
-            "desktopFileId",
-            "tabletFileId",
-            "mobileFileId"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "titles": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              },
-              "example": {
-                "title": "عنوان اصلی",
-                "subtitle": "توضیح کوتاه"
-              }
-            },
-            "desktopFileId": {
-              "type": "number",
-              "example": 101
-            },
-            "tabletFileId": {
-              "type": "object",
-              "example": 102,
-              "nullable": true
-            },
-            "mobileFileId": {
-              "type": "object",
-              "example": 103,
-              "nullable": true
-            }
-          },
-          "required": [
-            "titles",
-            "desktopFileId"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "items": {
-              "description": "Top-level header items in display order. The list is replaced in full.",
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "example": "LINK",
-                    "allOf": [
-                      {
-                        "type": "string",
-                        "enum": [
-                          "LINK",
-                          "CATEGORY"
-                        ]
-                      }
-                    ]
-                  },
-                  "label": {
-                    "type": "object",
-                    "example": "فروشگاه",
-                    "nullable": true,
-                    "description": "Required for LINK items; optional for CATEGORY items (falls back to the category name)"
-                  },
-                  "url": {
-                    "type": "object",
-                    "example": "/shop",
-                    "nullable": true,
-                    "description": "Required for LINK items; ignored for CATEGORY items"
-                  },
-                  "categoryId": {
-                    "type": "object",
-                    "example": 3,
-                    "nullable": true,
-                    "description": "Required for CATEGORY items; ignored for LINK items"
-                  }
-                },
-                "required": [
-                  "type"
-                ]
-              }
-            }
-          },
-          "required": [
-            "items"
-          ]
-        }
-      ]
-    }
-  },
-  "required": [
-    "type",
-    "data"
-  ]
-}
-```
+_None_
 
 ## Responses
 
 ### 200
 
-**Description:** Updated section
+**Description:** Page section
 
 **Content-Type:** `application/json`
 
@@ -665,86 +449,6 @@
   "required": [
     "statusCode",
     "data",
-    "message"
-  ]
-}
-```
-
-### 400
-
-**Description:** Invalid section data or unknown files
-
-**Content-Type:** `application/json`
-
-```json
-{
-  "type": "object",
-  "properties": {
-    "statusCode": {
-      "type": "number",
-      "example": 400
-    },
-    "message": {
-      "type": "string",
-      "example": "Bad Request"
-    },
-    "details": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  },
-  "required": [
-    "statusCode",
-    "message"
-  ]
-}
-```
-
-### 403
-
-**Description:** Missing permission
-
-**Content-Type:** `application/json`
-
-```json
-{
-  "type": "object",
-  "properties": {
-    "statusCode": {
-      "type": "number",
-      "example": 403
-    },
-    "message": {
-      "type": "string",
-      "example": "Forbidden"
-    },
-    "details": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  },
-  "required": [
-    "statusCode",
     "message"
   ]
 }

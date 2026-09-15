@@ -8,10 +8,11 @@ import { SliderSectionService } from './services/slider-section.service';
 import { ProductListSectionService } from './services/product-list-section.service';
 import { BannerSectionService } from './services/banner-section.service';
 import { IntroductionSectionService } from './services/introduction-section.service';
+import { HeaderSectionService } from './services/header-section.service';
 
 @Module({
   imports: [AuthModule, AuthorizationModule],
   controllers: [PageSectionController, PageSectionPublicController],
-  providers: [PageSectionService, SliderSectionService, ProductListSectionService, BannerSectionService, IntroductionSectionService],
+  providers: [PageSectionService, SliderSectionService, ProductListSectionService, BannerSectionService, IntroductionSectionService, HeaderSectionService],
 })
 export class PageSectionModule {}

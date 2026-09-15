@@ -3,6 +3,7 @@ enum PageSectionType {
   PRODUCT_LIST
   BANNER
   INTRODUCTION
+  HEADER
 }
 
 enum PageSectionLocation {
@@ -13,6 +14,7 @@ enum PageSectionLocation {
   BANNER_3
   BANNER_4
   INTRODUCTION
+  HEADER
 }
 
 enum PageSectionStatus {
@@ -22,8 +24,8 @@ enum PageSectionStatus {
 
 model PageSection {
   id        Int               @id @default(autoincrement())
-  pageId    Int               @map("page_id")
-  page      Page              @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId    Int?              @map("page_id")
+  page      Page?             @relation(fields: [pageId], references: [id], onDelete: Cascade)
   type      PageSectionType
   location  PageSectionLocation
   title     String?
@@ -34,6 +36,7 @@ model PageSection {
   productListSections ProductListSection[]
   bannerSections      BannerSection[]
   introductionSection IntroductionSection?
+  headerSections      HeaderSection[]
   createdAt           DateTime           @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 

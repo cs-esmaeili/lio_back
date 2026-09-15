@@ -23,7 +23,9 @@
   "properties": {
     "pageId": {
       "type": "number",
-      "example": 1
+      "example": 1,
+      "nullable": true,
+      "description": "Owning page id; omit for a global (page-less) section"
     },
     "type": {
       "example": "SLIDER",
@@ -34,7 +36,8 @@
             "SLIDER",
             "PRODUCT_LIST",
             "BANNER",
-            "INTRODUCTION"
+            "INTRODUCTION",
+            "HEADER"
           ]
         }
       ]
@@ -52,7 +55,8 @@
             "BANNER",
             "BANNER_3",
             "BANNER_4",
-            "INTRODUCTION"
+            "INTRODUCTION",
+            "HEADER"
           ],
           "description": "Render location; defaults to the section type when omitted"
         }
@@ -86,7 +90,6 @@
     }
   },
   "required": [
-    "pageId",
     "type"
   ]
 }
@@ -117,7 +120,8 @@
         },
         "pageId": {
           "type": "number",
-          "example": 1
+          "example": 1,
+          "nullable": true
         },
         "type": {
           "example": "SLIDER",
@@ -128,7 +132,8 @@
                 "SLIDER",
                 "PRODUCT_LIST",
                 "BANNER",
-                "INTRODUCTION"
+                "INTRODUCTION",
+                "HEADER"
               ]
             }
           ]
@@ -145,7 +150,8 @@
                 "BANNER",
                 "BANNER_3",
                 "BANNER_4",
-                "INTRODUCTION"
+                "INTRODUCTION",
+                "HEADER"
               ],
               "description": "Render location; defaults to the section type when omitted"
             }
@@ -409,6 +415,93 @@
                 "desktopFileUrl",
                 "tabletFileUrl",
                 "mobileFileUrl"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number",
+                        "example": 11
+                      },
+                      "type": {
+                        "example": "LINK",
+                        "allOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "LINK",
+                              "CATEGORY"
+                            ]
+                          }
+                        ]
+                      },
+                      "label": {
+                        "type": "string",
+                        "example": "فروشگاه"
+                      },
+                      "url": {
+                        "type": "object",
+                        "example": "/shop",
+                        "nullable": true
+                      },
+                      "categoryId": {
+                        "type": "object",
+                        "example": 3,
+                        "nullable": true
+                      },
+                      "children": {
+                        "description": "Resolved subcategories; empty for LINK items",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number",
+                              "example": 3
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "موبایل"
+                            },
+                            "url": {
+                              "type": "string",
+                              "example": "/category/3"
+                            },
+                            "children": {
+                              "type": "array",
+                              "items": {
+                                "circular": "#/components/schemas/HeaderCategoryDto"
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "url",
+                            "children"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "type",
+                      "label",
+                      "url",
+                      "categoryId",
+                      "children"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "items"
               ]
             }
           ]

@@ -7,6 +7,9 @@
 # generated Prisma client
 /src/generated/prisma
 
+# generated API docs
+/api
+
 # Logs
 logs
 *.log

@@ -50,7 +50,7 @@ export class PageSectionController {
   @Permissions('page:manage')
   @Get(':id')
   getSection(@Param('id', ParseIntPipe) id: number): Promise<GetSectionResponseDto> {
-    return this.pageSections.getSection(id);
+    return this.pageSections.getSection({ id });
   }
 
   @ApiOperation({ summary: 'Update the typed data of a page section' })

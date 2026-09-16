@@ -13,6 +13,7 @@ import type { BannerSectionData } from './banner-section.service';
 import type { IntroductionSectionData } from './introduction-section.service';
 import type { HeaderSectionData } from './header-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
+import type { GetSectionQueryDto } from '../dtos/getSection/get-section-query.dto';
 import type { GetPageSectionsQueryDto } from '../dtos/getPageSections/get-page-sections-query.dto';
 import type {
   UpdateBannerDto,
@@ -62,17 +63,17 @@ export class PageSectionService {
       },
     });
 
-    return this.getSection(section.id);
+    return this.getSection({ id: section.id });
   }
 
-  async getSection(id: number) {
-    const section = await this.findSection(id);
+  async getSection(query: GetSectionQueryDto) {
+    const section = query.id !== undefined ? await this.findSection(query.id) : await this.findSectionByLocation(query.location);
 
     return this.toResponse(section, await this.getSectionData(section));
   }
 
   async getPageSections(query: GetPageSectionsQueryDto) {
-    const page = await this.findPage(query);
+    const page = await this.findPageByEntity(query);
 
     const sections = await this.prisma.pageSection.findMany({
       where: { pageId: page.id, status: PageSectionStatus.ACTIVE },
@@ -114,26 +115,24 @@ export class PageSectionService {
     return section;
   }
 
-  private async findPage(query: GetPageSectionsQueryDto): Promise<Page> {
-    if (query.id !== undefined) {
-      const page = await this.prisma.page.findUnique({ where: { id: query.id } });
-      if (!page) {
-        throw new NotFoundException('Page not found');
-      }
-      return page;
+  private async findSectionByLocation(location?: PageSectionLocation): Promise<PageSection> {
+    if (location === undefined) {
+      throw new BadRequestException('Provide either id or location');
     }
 
-    if (query.entityType !== undefined) {
-      const page = await this.prisma.page.findFirst({
-        where: { entityType: query.entityType, entityId: query.entityId ?? null },
-      });
-      if (!page) {
-        throw new NotFoundException('Page not found');
-      }
-      return page;
+    const section = await this.prisma.pageSection.findFirst({ where: { location }, orderBy: { id: 'asc' } });
+    if (!section) {
+      throw new NotFoundException('Section not found');
     }
+    return section;
+  }
 
-    throw new BadRequestException('Provide either id or entityType');
+  private async findPageByEntity(query: GetPageSectionsQueryDto): Promise<Page> {
+    const page = await this.prisma.page.findFirst({ where: { entityType: query.entityType, entityId: query.entityId ?? null } });
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+    return page;
   }
 
   private getSectionData(section: PageSection) {

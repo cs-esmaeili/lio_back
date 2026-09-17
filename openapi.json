@@ -4868,6 +4868,25 @@
           "mobileFileUrl"
         ]
       },
+      "HeaderLogoDto": {
+        "type": "object",
+        "properties": {
+          "small": {
+            "type": "object",
+            "example": "/uploads/images/logo-small.svg",
+            "nullable": true
+          },
+          "large": {
+            "type": "object",
+            "example": "/uploads/images/logo-large.svg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "small",
+          "large"
+        ]
+      },
       "HeaderSectionType": {
         "type": "string",
         "enum": [
@@ -4953,6 +4972,19 @@
       "HeaderSectionDataDto": {
         "type": "object",
         "properties": {
+          "logo": {
+            "$ref": "#/components/schemas/HeaderLogoDto"
+          },
+          "supportPhone": {
+            "type": "object",
+            "example": "021-12345678",
+            "nullable": true
+          },
+          "slogan": {
+            "type": "object",
+            "example": "لیو؛ ساده‌تر خرید کن.",
+            "nullable": true
+          },
           "items": {
             "type": "array",
             "items": {
@@ -4961,6 +4993,9 @@
           }
         },
         "required": [
+          "logo",
+          "supportPhone",
+          "slogan",
           "items"
         ]
       },

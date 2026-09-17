@@ -151,7 +151,24 @@ export class HeaderItemDto {
   children!: HeaderCategoryDto[];
 }
 
+export class HeaderLogoDto {
+  @ApiProperty({ example: '/uploads/images/logo-small.svg', nullable: true })
+  small!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/logo-large.svg', nullable: true })
+  large!: string | null;
+}
+
 export class HeaderSectionDataDto {
+  @ApiProperty({ type: HeaderLogoDto })
+  logo!: HeaderLogoDto;
+
+  @ApiProperty({ example: '021-12345678', nullable: true })
+  supportPhone!: string | null;
+
+  @ApiProperty({ example: 'لیو؛ ساده‌تر خرید کن.', nullable: true })
+  slogan!: string | null;
+
   @ApiProperty({ type: [HeaderItemDto] })
   items!: HeaderItemDto[];
 }

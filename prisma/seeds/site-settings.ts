@@ -10,8 +10,8 @@ const SITE_SETTINGS: SiteSettingSeed[] = [
   {
     key: 'logo',
     data: {
-      small: '/uploads/images/logo-small.svg',
-      large: '/uploads/images/logo-large.svg',
+      small: '/uploads/statics/logo-small.png',
+      large: '/uploads/statics/logo-large.png',
     },
     isPrivate: false,
   },

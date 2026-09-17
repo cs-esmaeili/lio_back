@@ -1,8 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { HeaderSectionType } from 'src/generated/prisma/client';
-import type { HeaderSection } from 'src/generated/prisma/client';
+import type { HeaderSection, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import type { UpdateHeaderDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+
+const LOGO_SETTING_KEY = 'logo';
+const SUPPORT_PHONE_SETTING_KEY = 'supportPhone';
+const SLOGAN_SETTING_KEY = 'slogan';
 
 export type HeaderCategory = {
   id: number;
@@ -20,7 +24,17 @@ export type HeaderItem = {
   children: HeaderCategory[];
 };
 
-export type HeaderSectionData = { items: HeaderItem[] };
+export type HeaderLogo = {
+  small: string | null;
+  large: string | null;
+};
+
+export type HeaderSectionData = {
+  logo: HeaderLogo;
+  supportPhone: string | null;
+  slogan: string | null;
+  items: HeaderItem[];
+};
 
 type CategoryRow = {
   id: number;
@@ -33,15 +47,16 @@ export class HeaderSectionService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(sectionId: number): Promise<HeaderSectionData> {
-    const [rows, categories] = await Promise.all([
+    const [rows, categories, branding] = await Promise.all([
       this.prisma.headerSection.findMany({
         where: { sectionId },
         orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
       }),
       this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, parentId: true, name: true } }),
+      this.loadBranding(),
     ]);
 
-    return { items: rows.map((row) => this.toItem(row, categories)) };
+    return { ...branding, items: rows.map((row) => this.toItem(row, categories)) };
   }
 
   /** Replace all header items that belong to the given section. */
@@ -112,6 +127,33 @@ export class HeaderSectionService {
 
   private categoryUrl(categoryId: number): string {
     return `/category/${categoryId}`;
+  }
+
+  /** Branding values are stored as public site settings and surfaced with the header. */
+  private async loadBranding(): Promise<Pick<HeaderSectionData, 'logo' | 'supportPhone' | 'slogan'>> {
+    const settings = await this.prisma.siteSetting.findMany({
+      where: { key: { in: [LOGO_SETTING_KEY, SUPPORT_PHONE_SETTING_KEY, SLOGAN_SETTING_KEY] }, isPrivate: false },
+      select: { key: true, data: true },
+    });
+
+    const dataByKey = new Map(settings.map((setting) => [setting.key, setting.data]));
+
+    return {
+      logo: {
+        small: this.readString(dataByKey.get(LOGO_SETTING_KEY), 'small'),
+        large: this.readString(dataByKey.get(LOGO_SETTING_KEY), 'large'),
+      },
+      supportPhone: this.readString(dataByKey.get(SUPPORT_PHONE_SETTING_KEY), 'value'),
+      slogan: this.readString(dataByKey.get(SLOGAN_SETTING_KEY), 'value'),
+    };
+  }
+
+  private readString(data: Prisma.JsonValue | undefined, field: string): string | null {
+    if (data === undefined || data === null || typeof data !== 'object' || Array.isArray(data)) {
+      return null;
+    }
+    const value = (data as Record<string, unknown>)[field];
+    return typeof value === 'string' ? value : null;
   }
 
   private async validate(dto: UpdateHeaderDto): Promise<void> {

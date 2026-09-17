@@ -122,6 +122,7 @@ export async function seedProducts(prisma: PrismaClient): Promise<number> {
       compareAtPrice: basePrice + variantIndex * 10000 + 50000,
       stock: (index * 7 + variantIndex * 3) % 50,
       position: variantIndex,
+      isDefault: variantIndex === 0,
     }));
   });
   await prisma.productVariant.createMany({ data: variants });

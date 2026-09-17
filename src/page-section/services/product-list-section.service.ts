@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileUrlService } from 'src/common/services/file-url.service';
-import type { ProductListSection } from 'src/generated/prisma/client';
+import { ProductRepository } from 'src/product/repositories/product.repository';
+import type { ProductDefaultVariant, ProductSummary } from 'src/product/repositories/product.repository';
 import type { UpdateProductListDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
 export type ProductImageItem = {
@@ -19,29 +20,22 @@ export type ProductListItem = {
   productName: string;
   productSlug: string;
   images: ProductImageItem[];
+  defaultVariant: ProductDefaultVariant | null;
 };
 
 export type ProductListSectionData = { products: ProductListItem[] };
 
-type ProductRow = ProductListSection & {
-  product: {
-    id: number;
-    name: string;
-    slug: string;
-    images: {
-      id: number;
-      isPrimary: boolean;
-      isThumbnail: boolean;
-      sortOrder: number;
-      file: { path: string };
-    }[];
-  } | null;
+type ProductListRow = {
+  id: number;
+  sortOrder: number;
+  productId: number;
 };
 
 @Injectable()
 export class ProductListSectionService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly productRepository: ProductRepository,
     private readonly fileUrl: FileUrlService,
   ) {}
 
@@ -49,28 +43,12 @@ export class ProductListSectionService {
     const rows = await this.prisma.productListSection.findMany({
       where: { sectionId },
       orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            images: {
-              orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-              select: {
-                id: true,
-                isPrimary: true,
-                isThumbnail: true,
-                sortOrder: true,
-                file: { select: { path: true } },
-              },
-            },
-          },
-        },
-      },
+      select: { id: true, sortOrder: true, productId: true },
     });
 
-    return { products: this.toProducts(rows) };
+    const products = await this.productRepository.findSummariesByIds(rows.map((row) => row.productId));
+
+    return { products: this.toProducts(rows, products) };
   }
 
   /** Update a single product row that belongs to the given section. */
@@ -99,20 +77,27 @@ export class ProductListSectionService {
     return this.list(sectionId);
   }
 
-  private toProducts(rows: ProductRow[]): ProductListItem[] {
-    return rows.map((row) => ({
-      id: row.id,
-      sortOrder: row.sortOrder,
-      productId: row.product?.id ?? 0,
-      productName: row.product?.name ?? '',
-      productSlug: row.product?.slug ?? '',
-      images: (row.product?.images ?? []).map((image) => ({
-        id: image.id,
-        url: this.fileUrl.toUrl(image.file.path),
-        isPrimary: image.isPrimary,
-        isThumbnail: image.isThumbnail,
-        sortOrder: image.sortOrder,
-      })),
-    }));
+  private toProducts(rows: ProductListRow[], products: ProductSummary[]): ProductListItem[] {
+    const productsById = new Map(products.map((product) => [product.id, product]));
+
+    return rows.map((row) => {
+      const product = productsById.get(row.productId);
+
+      return {
+        id: row.id,
+        sortOrder: row.sortOrder,
+        productId: row.productId,
+        productName: product?.name ?? '',
+        productSlug: product?.slug ?? '',
+        images: (product?.images ?? []).map((image) => ({
+          id: image.id,
+          url: this.fileUrl.toUrl(image.filePath),
+          isPrimary: image.isPrimary,
+          isThumbnail: image.isThumbnail,
+          sortOrder: image.sortOrder,
+        })),
+        defaultVariant: product?.defaultVariant ?? null,
+      };
+    });
   }
 }

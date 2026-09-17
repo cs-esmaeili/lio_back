@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthorizationModule } from 'src/authorization/authorization.module';
+import { ProductModule } from 'src/product/product.module';
 import { PageSectionController } from './page-section.controller';
 import { PageSectionPublicController } from './page-section-public.controller';
 import { PageSectionService } from './services/page-section.service';
@@ -12,7 +13,7 @@ import { HeaderSectionService } from './services/header-section.service';
 import { FooterSectionService } from './services/footer-section.service';
 
 @Module({
-  imports: [AuthModule, AuthorizationModule],
+  imports: [AuthModule, AuthorizationModule, ProductModule],
   controllers: [PageSectionController, PageSectionPublicController],
   providers: [PageSectionService, SliderSectionService, ProductListSectionService, BannerSectionService, IntroductionSectionService, HeaderSectionService, FooterSectionService],
 })

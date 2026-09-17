@@ -40,6 +40,23 @@ export class ProductImageDto {
   sortOrder!: number;
 }
 
+export class ProductDefaultVariantDto {
+  @ApiProperty({ example: 5 })
+  id!: number;
+
+  @ApiProperty({ example: 'SEED-SKU-1-1' })
+  sku!: string;
+
+  @ApiProperty({ example: 123000 })
+  price!: number;
+
+  @ApiProperty({ example: 173000, nullable: true })
+  compareAtPrice!: number | null;
+
+  @ApiProperty({ example: 12 })
+  stock!: number;
+}
+
 export class ProductListItemDto {
   @ApiProperty({ example: 11 })
   id!: number;
@@ -58,6 +75,13 @@ export class ProductListItemDto {
 
   @ApiProperty({ type: ProductImageDto, isArray: true })
   images!: ProductImageDto[];
+
+  @ApiProperty({
+    type: ProductDefaultVariantDto,
+    nullable: true,
+    description: 'Variant flagged as default, falling back to the first variant by position',
+  })
+  defaultVariant!: ProductDefaultVariantDto | null;
 }
 
 export class ProductListSectionDataDto {

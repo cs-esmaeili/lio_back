@@ -156,7 +156,46 @@ export class HeaderSectionDataDto {
   items!: HeaderItemDto[];
 }
 
-@ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto, IntroductionSectionDataDto, HeaderSectionDataDto)
+export class FooterLinkDto {
+  @ApiProperty({ example: 11 })
+  id!: number;
+
+  @ApiProperty({ example: 'فروشگاه' })
+  label!: string;
+
+  @ApiProperty({ example: '/shop', nullable: true })
+  url!: string | null;
+
+  @ApiProperty({ example: 'توضیحات بلند درباره این آیتم', nullable: true })
+  description!: string | null;
+
+  @ApiProperty({ example: 101, nullable: true })
+  fileId!: number | null;
+
+  @ApiProperty({ example: '/uploads/images/footer-link.png', nullable: true })
+  fileUrl!: string | null;
+}
+
+export class FooterCategoryDto {
+  @ApiProperty({ example: 3 })
+  id!: number;
+
+  @ApiProperty({ example: 'موبایل' })
+  name!: string;
+
+  @ApiProperty({ example: '/category/3' })
+  url!: string;
+}
+
+export class FooterSectionDataDto {
+  @ApiProperty({ type: [FooterLinkDto] })
+  links!: FooterLinkDto[];
+
+  @ApiProperty({ type: [FooterCategoryDto] })
+  categories!: FooterCategoryDto[];
+}
+
+@ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto, IntroductionSectionDataDto, HeaderSectionDataDto, FooterSectionDataDto)
 export class UpdateSectionDataResponseDto {
   @ApiProperty({ example: 50 })
   id!: number;
@@ -189,7 +228,8 @@ export class UpdateSectionDataResponseDto {
       { $ref: getSchemaPath(BannerSectionDataDto) },
       { $ref: getSchemaPath(IntroductionSectionDataDto) },
       { $ref: getSchemaPath(HeaderSectionDataDto) },
+      { $ref: getSchemaPath(FooterSectionDataDto) },
     ],
   })
-  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto | HeaderSectionDataDto;
+  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto | HeaderSectionDataDto | FooterSectionDataDto;
 }

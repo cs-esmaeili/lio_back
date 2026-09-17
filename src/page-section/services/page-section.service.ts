@@ -7,16 +7,19 @@ import { ProductListSectionService } from './product-list-section.service';
 import { BannerSectionService } from './banner-section.service';
 import { IntroductionSectionService } from './introduction-section.service';
 import { HeaderSectionService } from './header-section.service';
+import { FooterSectionService } from './footer-section.service';
 import type { SliderSectionData } from './slider-section.service';
 import type { ProductListSectionData } from './product-list-section.service';
 import type { BannerSectionData } from './banner-section.service';
 import type { IntroductionSectionData } from './introduction-section.service';
 import type { HeaderSectionData } from './header-section.service';
+import type { FooterSectionData } from './footer-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
 import type { GetSectionQueryDto } from '../dtos/getSection/get-section-query.dto';
 import type { GetPageSectionsQueryDto } from '../dtos/getPageSections/get-page-sections-query.dto';
 import type {
   UpdateBannerDto,
+  UpdateFooterDto,
   UpdateHeaderDto,
   UpdateIntroductionDto,
   UpdatePageSectionDataDto,
@@ -30,6 +33,7 @@ const DEFAULT_LOCATION: Record<PageSectionType, PageSectionLocation> = {
   [PageSectionType.BANNER]: PageSectionLocation.BANNER,
   [PageSectionType.INTRODUCTION]: PageSectionLocation.INTRODUCTION,
   [PageSectionType.HEADER]: PageSectionLocation.HEADER,
+  [PageSectionType.FOOTER]: PageSectionLocation.FOOTER,
 };
 
 @Injectable()
@@ -41,6 +45,7 @@ export class PageSectionService {
     private readonly bannerSectionService: BannerSectionService,
     private readonly introductionSectionService: IntroductionSectionService,
     private readonly headerSectionService: HeaderSectionService,
+    private readonly footerSectionService: FooterSectionService,
   ) {}
 
   async createSection(dto: CreateSectionRequestDto) {
@@ -102,6 +107,8 @@ export class PageSectionService {
         return this.toResponse(section, await this.introductionSectionService.update(section.id, dto.data as UpdateIntroductionDto));
       case PageSectionType.HEADER:
         return this.toResponse(section, await this.headerSectionService.update(section.id, dto.data as UpdateHeaderDto));
+      case PageSectionType.FOOTER:
+        return this.toResponse(section, await this.footerSectionService.update(section.id, dto.data as UpdateFooterDto));
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -147,12 +154,14 @@ export class PageSectionService {
         return this.introductionSectionService.list(section.id);
       case PageSectionType.HEADER:
         return this.headerSectionService.list(section.id);
+      case PageSectionType.FOOTER:
+        return this.footerSectionService.list(section.id);
       default:
         throw new BadRequestException('Unsupported section type');
     }
   }
 
-  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData | HeaderSectionData) {
+  private toResponse(section: PageSection, data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData | HeaderSectionData | FooterSectionData) {
     return {
       id: section.id,
       pageId: section.pageId,

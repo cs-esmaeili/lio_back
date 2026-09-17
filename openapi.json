@@ -3301,42 +3301,32 @@
         ]
       }
     },
-    "/page-sections": {
+    "/page-sections/section": {
       "get": {
-        "operationId": "PageSectionPublicController_getPageSections",
+        "operationId": "PageSectionPublicController_getSection",
         "parameters": [
           {
             "name": "id",
             "required": false,
             "in": "query",
-            "description": "Page id. Takes precedence over entityType when provided.",
+            "description": "Page section id. Takes precedence over location when provided.",
             "schema": {
-              "example": 1,
+              "example": 50,
               "type": "number"
             }
           },
           {
-            "name": "entityType",
+            "name": "location",
             "required": false,
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/EntityType"
-            }
-          },
-          {
-            "name": "entityId",
-            "required": false,
-            "in": "query",
-            "description": "Entity id used together with entityType.",
-            "schema": {
-              "example": 42,
-              "type": "number"
+              "$ref": "#/components/schemas/PageSectionLocation"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Page with its active sections",
+            "description": "Page section",
             "content": {
               "application/json": {
                 "schema": {
@@ -3347,7 +3337,7 @@
                       "example": 200
                     },
                     "data": {
-                      "$ref": "#/components/schemas/GetPageSectionsResponseDto"
+                      "$ref": "#/components/schemas/GetSectionResponseDto"
                     },
                     "message": {
                       "type": "string",
@@ -3364,7 +3354,7 @@
             }
           },
           "400": {
-            "description": "Neither id nor entityType provided",
+            "description": "Neither id nor location provided",
             "content": {
               "application/json": {
                 "schema": {
@@ -3395,94 +3385,6 @@
                   },
                   "required": [
                     "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Page not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 404
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Not Found"
-                    },
-                    "details": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get all active sections of a page by page id or entity",
-        "tags": [
-          "PageSectionPublic"
-        ]
-      }
-    },
-    "/page-sections/{id}": {
-      "get": {
-        "operationId": "PageSectionPublicController_getSection",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "example": 42,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Page section",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 200
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/GetSectionResponseDto"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "OK"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "data",
                     "message"
                   ]
                 }
@@ -3528,7 +3430,104 @@
             }
           }
         },
-        "summary": "Get a single section by id with its typed data",
+        "summary": "Get a single section by id or location with its typed data",
+        "tags": [
+          "PageSectionPublic"
+        ]
+      }
+    },
+    "/page-sections/page": {
+      "get": {
+        "operationId": "PageSectionPublicController_getPageSections",
+        "parameters": [
+          {
+            "name": "entityType",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EntityType"
+            }
+          },
+          {
+            "name": "entityId",
+            "required": false,
+            "in": "query",
+            "description": "Entity id used together with entityType.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page with its active sections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetPageSectionsResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a page with its active sections by entity type",
         "tags": [
           "PageSectionPublic"
         ]
@@ -4529,7 +4528,8 @@
           "PRODUCT_LIST",
           "BANNER",
           "INTRODUCTION",
-          "HEADER"
+          "HEADER",
+          "FOOTER"
         ]
       },
       "PageSectionLocation": {
@@ -4542,7 +4542,8 @@
           "BANNER_3",
           "BANNER_4",
           "INTRODUCTION",
-          "HEADER"
+          "HEADER",
+          "FOOTER"
         ],
         "description": "Render location; defaults to the section type when omitted"
       },
@@ -4946,6 +4947,90 @@
           "items"
         ]
       },
+      "FooterLinkDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 11
+          },
+          "label": {
+            "type": "string",
+            "example": "فروشگاه"
+          },
+          "url": {
+            "type": "object",
+            "example": "/shop",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "example": "توضیحات بلند درباره این آیتم",
+            "nullable": true
+          },
+          "fileId": {
+            "type": "object",
+            "example": 101,
+            "nullable": true
+          },
+          "fileUrl": {
+            "type": "object",
+            "example": "/uploads/images/footer-link.png",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "url",
+          "description",
+          "fileId",
+          "fileUrl"
+        ]
+      },
+      "FooterCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "موبایل"
+          },
+          "url": {
+            "type": "string",
+            "example": "/category/3"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url"
+        ]
+      },
+      "FooterSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FooterLinkDto"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FooterCategoryDto"
+            }
+          }
+        },
+        "required": [
+          "links",
+          "categories"
+        ]
+      },
       "CreateSectionResponseDto": {
         "type": "object",
         "properties": {
@@ -5012,6 +5097,9 @@
               },
               {
                 "$ref": "#/components/schemas/HeaderSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/FooterSectionDataDto"
               }
             ]
           }
@@ -5094,6 +5182,9 @@
               },
               {
                 "$ref": "#/components/schemas/HeaderSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/FooterSectionDataDto"
               }
             ]
           }
@@ -5293,6 +5384,74 @@
           "items"
         ]
       },
+      "FooterSectionType": {
+        "type": "string",
+        "enum": [
+          "LINK",
+          "CATEGORY"
+        ]
+      },
+      "UpdateFooterItemDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "example": "LINK",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FooterSectionType"
+              }
+            ]
+          },
+          "label": {
+            "type": "object",
+            "example": "فروشگاه",
+            "nullable": true,
+            "description": "Required for LINK items; optional for CATEGORY items (falls back to the category name)"
+          },
+          "url": {
+            "type": "object",
+            "example": "/shop",
+            "nullable": true,
+            "description": "Required for LINK items; ignored for CATEGORY items"
+          },
+          "description": {
+            "type": "object",
+            "example": "توضیحات بلند درباره این آیتم",
+            "nullable": true,
+            "description": "Optional long description"
+          },
+          "fileId": {
+            "type": "object",
+            "example": 101,
+            "nullable": true,
+            "description": "Optional referenced file id"
+          },
+          "categoryId": {
+            "type": "object",
+            "example": 3,
+            "nullable": true,
+            "description": "Required for CATEGORY items; ignored for LINK items"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "UpdateFooterDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Top-level footer items in display order. The list is replaced in full.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateFooterItemDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "UpdatePageSectionDataDto": {
         "type": "object",
         "properties": {
@@ -5320,6 +5479,9 @@
               },
               {
                 "$ref": "#/components/schemas/UpdateHeaderDto"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateFooterDto"
               }
             ]
           }
@@ -5395,6 +5557,9 @@
               },
               {
                 "$ref": "#/components/schemas/HeaderSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/FooterSectionDataDto"
               }
             ]
           }

@@ -4,6 +4,7 @@ enum PageSectionType {
   BANNER
   INTRODUCTION
   HEADER
+  FOOTER
 }
 
 enum PageSectionLocation {
@@ -15,6 +16,7 @@ enum PageSectionLocation {
   BANNER_4
   INTRODUCTION
   HEADER
+  FOOTER
 }
 
 enum PageSectionStatus {
@@ -37,6 +39,7 @@ model PageSection {
   bannerSections      BannerSection[]
   introductionSection IntroductionSection?
   headerSections      HeaderSection[]
+  footerSections      FooterSection[]
   createdAt           DateTime           @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 

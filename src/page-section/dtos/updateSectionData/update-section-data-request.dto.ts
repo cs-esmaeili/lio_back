@@ -1,7 +1,7 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { HeaderSectionType, PageSectionType } from 'src/generated/prisma/client';
+import { FooterSectionType, HeaderSectionType, PageSectionType } from 'src/generated/prisma/client';
 
 export class UpdateSliderSlideDto {
   @ApiProperty({ example: 11 })
@@ -139,7 +139,53 @@ export class UpdateHeaderDto {
   items!: UpdateHeaderItemDto[];
 }
 
-@ApiExtraModels(UpdateSliderSlideDto, UpdateProductListDto, UpdateBannerDto, UpdateIntroductionDto, UpdateHeaderDto)
+export class UpdateFooterItemDto {
+  @ApiProperty({ enum: FooterSectionType, enumName: 'FooterSectionType', example: FooterSectionType.LINK })
+  @IsEnum(FooterSectionType)
+  type!: FooterSectionType;
+
+  @ApiPropertyOptional({
+    example: 'فروشگاه',
+    nullable: true,
+    description: 'Required for LINK items; optional for CATEGORY items (falls back to the category name)',
+  })
+  @IsOptional()
+  @IsString()
+  label?: string | null;
+
+  @ApiPropertyOptional({ example: '/shop', nullable: true, description: 'Required for LINK items; ignored for CATEGORY items' })
+  @IsOptional()
+  @IsString()
+  url?: string | null;
+
+  @ApiPropertyOptional({ example: 'توضیحات بلند درباره این آیتم', nullable: true, description: 'Optional long description' })
+  @IsOptional()
+  @IsString()
+  description?: string | null;
+
+  @ApiPropertyOptional({ example: 101, nullable: true, description: 'Optional referenced file id' })
+  @IsOptional()
+  @IsInt()
+  fileId?: number | null;
+
+  @ApiPropertyOptional({ example: 3, nullable: true, description: 'Required for CATEGORY items; ignored for LINK items' })
+  @IsOptional()
+  @IsInt()
+  categoryId?: number | null;
+}
+
+export class UpdateFooterDto {
+  @ApiProperty({
+    type: [UpdateFooterItemDto],
+    description: 'Top-level footer items in display order. The list is replaced in full.',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateFooterItemDto)
+  items!: UpdateFooterItemDto[];
+}
+
+@ApiExtraModels(UpdateSliderSlideDto, UpdateProductListDto, UpdateBannerDto, UpdateIntroductionDto, UpdateHeaderDto, UpdateFooterDto)
 export class UpdatePageSectionDataDto {
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)
@@ -152,6 +198,7 @@ export class UpdatePageSectionDataDto {
       { $ref: getSchemaPath(UpdateBannerDto) },
       { $ref: getSchemaPath(UpdateIntroductionDto) },
       { $ref: getSchemaPath(UpdateHeaderDto) },
+      { $ref: getSchemaPath(UpdateFooterDto) },
     ],
   })
   @IsDefined()
@@ -167,9 +214,11 @@ export class UpdatePageSectionDataDto {
         return UpdateIntroductionDto;
       case PageSectionType.HEADER:
         return UpdateHeaderDto;
+      case PageSectionType.FOOTER:
+        return UpdateFooterDto;
       default:
         return UpdateSliderSlideDto;
     }
   })
-  data!: UpdateSliderSlideDto | UpdateProductListDto | UpdateBannerDto | UpdateIntroductionDto | UpdateHeaderDto;
+  data!: UpdateSliderSlideDto | UpdateProductListDto | UpdateBannerDto | UpdateIntroductionDto | UpdateHeaderDto | UpdateFooterDto;
 }

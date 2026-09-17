@@ -2652,7 +2652,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "example": "header",
+              "example": "logo",
               "type": "string"
             }
           }
@@ -2687,7 +2687,7 @@
             }
           },
           "404": {
-            "description": "Setting not found",
+            "description": "Setting not found, or private and the caller is not authenticated",
             "content": {
               "application/json": {
                 "schema": {
@@ -2725,7 +2725,7 @@
             }
           }
         },
-        "summary": "Get a site setting by key (e.g. header, footer)",
+        "summary": "Get a site setting by key (e.g. logo, description, slogan)",
         "tags": [
           "SiteSetting"
         ]
@@ -2738,7 +2738,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "example": "footer",
+              "example": "logo",
               "type": "string"
             }
           },
@@ -4479,11 +4479,17 @@
             "example": {
               "menu": []
             }
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "Whether the setting is only returned to authenticated callers",
+            "example": false
           }
         },
         "required": [
           "key",
-          "data"
+          "data",
+          "isPrivate"
         ]
       },
       "UpsertByKeyRequestDto": {
@@ -4495,6 +4501,11 @@
             "example": {
               "menu": []
             }
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "When true, the setting is only returned to authenticated callers",
+            "example": false
           }
         },
         "required": [
@@ -4514,11 +4525,17 @@
             "example": {
               "menu": []
             }
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "Whether the setting is only returned to authenticated callers",
+            "example": false
           }
         },
         "required": [
           "key",
-          "data"
+          "data",
+          "isPrivate"
         ]
       },
       "PageSectionType": {

@@ -10,6 +10,7 @@ import { seedProducts } from './seeds/products';
 import { seedHome } from './seeds/home';
 import { seedHeader } from './seeds/header';
 import { seedFooter } from './seeds/footer';
+import { seedSiteSettings } from './seeds/site-settings';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -25,6 +26,7 @@ const SEEDS = {
   home: seedHome,
   header: seedHeader,
   footer: seedFooter,
+  siteSettings: seedSiteSettings,
 } as const;
 
 type SeedName = keyof typeof SEEDS;

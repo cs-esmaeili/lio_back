@@ -6,4 +6,7 @@ export class UpsertByKeyResponseDto {
 
   @ApiProperty({ type: 'object', additionalProperties: true, example: { menu: [] } })
   data!: unknown;
+
+  @ApiProperty({ description: 'Whether the setting is only returned to authenticated callers', example: false })
+  isPrivate!: boolean;
 }

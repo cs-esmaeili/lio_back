@@ -8,10 +8,10 @@ const SLUG_PREFIX = 'seed-product-';
 const SKU_PREFIX = 'SEED-SKU-';
 
 const ATTRIBUTE_VALUES: Record<string, string[]> = {
-  رنگ: ['قرمز', 'آبی', 'سبز', 'مشکی', 'سفید'],
-  سایز: ['S', 'M', 'L', 'XL'],
-  جنس: ['نخ', 'پنبه', 'چرم', 'پلی‌استر'],
-  برند: ['برند آ', 'برند ب', 'برند ج'],
+  color: ['red', 'blue', 'green', 'black', 'white'],
+  size: ['s', 'm', 'l', 'xl'],
+  material: ['thread', 'cotton', 'leather', 'polyester'],
+  brand: ['brand-a', 'brand-b', 'brand-c'],
 };
 
 function pickValue(name: string, productIndex: number, attributeIndex: number): string {
@@ -32,7 +32,7 @@ export async function seedProducts(prisma: PrismaClient): Promise<number> {
   }
 
   const categoryAttributes = await prisma.categoryAttribute.findMany({
-    select: { id: true, categoryId: true, attribute: { select: { name: true } } },
+    select: { attributeId: true, categoryId: true, attribute: { select: { name: true } } },
   });
   if (!categoryAttributes.length) {
     throw new Error('No category attributes found. Run the "attributes" seed first.');
@@ -41,7 +41,7 @@ export async function seedProducts(prisma: PrismaClient): Promise<number> {
   const attributesByCategory = new Map<number, Array<{ id: number; name: string }>>();
   for (const link of categoryAttributes) {
     const list = attributesByCategory.get(link.categoryId) ?? [];
-    list.push({ id: link.id, name: link.attribute.name });
+    list.push({ id: link.attributeId, name: link.attribute.name });
     attributesByCategory.set(link.categoryId, list);
   }
 
@@ -96,7 +96,7 @@ export async function seedProducts(prisma: PrismaClient): Promise<number> {
     const categoryId = productCategories[index].categoryId;
     return (attributesByCategory.get(categoryId) ?? []).map((attribute, attributeIndex) => ({
       productId,
-      categoryAttributeId: attribute.id,
+      attributeId: attribute.id,
       value: pickValue(attribute.name, index, attributeIndex),
     }));
   });

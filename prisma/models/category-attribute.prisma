@@ -1,15 +1,31 @@
+enum AttributeUsage {
+  SPEC
+  VARIANT
+}
+
+enum FilterType {
+  CHECKBOX
+  RADIO
+  SELECT
+  RANGE
+  TOGGLE
+  SEARCH
+}
+
 model CategoryAttribute {
-  id                     Int                     @id @default(autoincrement())
-  categoryId             Int                     @map("category_id")
-  attributeId            Int                     @map("attribute_id")
-  isRequired             Boolean                 @default(false) @map("is_required")
-  isFilterable           Boolean                 @default(false) @map("is_filterable")
-  sortOrder              Int                     @default(0) @map("sort_order")
-  category               Category                @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  attribute              Attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  productAttributeValues ProductAttributeValue[]
-  createdAt              DateTime                @default(now()) @map("created_at")
-  updatedAt              DateTime                @updatedAt @map("updated_at")
+  id            Int            @id @default(autoincrement())
+  categoryId    Int            @map("category_id")
+  attributeId   Int            @map("attribute_id")
+  usage         AttributeUsage @default(SPEC)
+  isRequired    Boolean        @default(false) @map("is_required")
+  isFilterable  Boolean        @default(false) @map("is_filterable")
+  filterType    FilterType     @default(CHECKBOX) @map("filter_type")
+  isMultiSelect Boolean        @default(true) @map("is_multi_select")
+  sortOrder     Int            @default(0) @map("sort_order")
+  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  attribute     Attribute      @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   @@unique([categoryId, attributeId], map: "category_attributes_category_id_attribute_id_key")
   @@index([attributeId], map: "category_attributes_attribute_id_idx")

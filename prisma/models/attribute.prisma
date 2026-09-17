@@ -6,13 +6,15 @@ enum AttributeType {
 }
 
 model Attribute {
-  id                 Int                 @id @default(autoincrement())
-  name               String
-  type               AttributeType       @default(TEXT)
+  id                 Int                     @id @default(autoincrement())
+  name               String                  @unique(map: "attributes_name_key")
+  title              String
+  type               AttributeType           @default(TEXT)
+  options            AttributeOption[]
   categoryAttributes CategoryAttribute[]
-  createdAt          DateTime            @default(now()) @map("created_at")
-  updatedAt          DateTime            @updatedAt @map("updated_at")
+  attributeValues    ProductAttributeValue[]
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
 
-  @@index([name], map: "attributes_name_idx")
   @@map("attributes")
 }

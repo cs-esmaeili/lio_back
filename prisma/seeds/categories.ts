@@ -3,92 +3,158 @@ import { ensureFakeImageFiles } from './fake-images';
 
 interface CategoryNode {
   name: string;
+  slug: string;
   children?: CategoryNode[];
 }
 
 const CATEGORY_TREE: CategoryNode[] = [
   {
     name: 'پوشاک',
+    slug: 'clothing',
     children: [
       {
         name: 'مردانه',
-        children: [{ name: 'پیراهن مردانه' }, { name: 'شلوار مردانه' }],
+        slug: 'men',
+        children: [
+          { name: 'پیراهن مردانه', slug: 'men-shirts' },
+          { name: 'شلوار مردانه', slug: 'men-pants' },
+        ],
       },
       {
         name: 'زنانه',
-        children: [{ name: 'مانتو' }, { name: 'شال و روسری' }],
+        slug: 'women',
+        children: [
+          { name: 'مانتو', slug: 'manteau' },
+          { name: 'شال و روسری', slug: 'scarves' },
+        ],
       },
       {
         name: 'بچگانه',
-        children: [{ name: 'تی‌شرت بچگانه' }, { name: 'شلوار بچگانه' }],
+        slug: 'kids',
+        children: [
+          { name: 'تی‌شرت بچگانه', slug: 'kids-tshirts' },
+          { name: 'شلوار بچگانه', slug: 'kids-pants' },
+        ],
       },
     ],
   },
   {
     name: 'کالای دیجیتال',
+    slug: 'digital',
     children: [
       {
         name: 'موبایل',
-        children: [{ name: 'گوشی موبایل' }, { name: 'لوازم جانبی موبایل' }],
+        slug: 'mobile',
+        children: [
+          { name: 'گوشی موبایل', slug: 'mobile-phones' },
+          { name: 'لوازم جانبی موبایل', slug: 'mobile-accessories' },
+        ],
       },
       {
         name: 'لپ‌تاپ',
-        children: [{ name: 'لپ‌تاپ گیمینگ' }, { name: 'لپ‌تاپ اداری' }],
+        slug: 'laptop',
+        children: [
+          { name: 'لپ‌تاپ گیمینگ', slug: 'gaming-laptops' },
+          { name: 'لپ‌تاپ اداری', slug: 'office-laptops' },
+        ],
       },
       {
         name: 'صوتی و تصویری',
-        children: [{ name: 'هدفون' }, { name: 'اسپیکر' }],
+        slug: 'audio-video',
+        children: [
+          { name: 'هدفون', slug: 'headphones' },
+          { name: 'اسپیکر', slug: 'speakers' },
+        ],
       },
     ],
   },
   {
     name: 'خانه و آشپزخانه',
+    slug: 'home-kitchen',
     children: [
       {
         name: 'آشپزخانه',
-        children: [{ name: 'قابلمه و تابه' }, { name: 'ظروف' }],
+        slug: 'kitchen',
+        children: [
+          { name: 'قابلمه و تابه', slug: 'cookware' },
+          { name: 'ظروف', slug: 'dishes' },
+        ],
       },
       {
         name: 'دکوراسیون',
-        children: [{ name: 'آباژور' }, { name: 'تابلو' }],
+        slug: 'decor',
+        children: [
+          { name: 'آباژور', slug: 'lamps' },
+          { name: 'تابلو', slug: 'wall-art' },
+        ],
       },
       {
         name: 'لوازم خانگی',
-        children: [{ name: 'جاروبرقی' }, { name: 'چای‌ساز' }],
+        slug: 'home-appliances',
+        children: [
+          { name: 'جاروبرقی', slug: 'vacuum-cleaners' },
+          { name: 'چای‌ساز', slug: 'tea-makers' },
+        ],
       },
     ],
   },
   {
     name: 'زیبایی و سلامت',
+    slug: 'beauty-health',
     children: [
       {
         name: 'آرایشی',
-        children: [{ name: 'رژ لب' }, { name: 'کرم پودر' }],
+        slug: 'makeup',
+        children: [
+          { name: 'رژ لب', slug: 'lipstick' },
+          { name: 'کرم پودر', slug: 'foundation' },
+        ],
       },
       {
         name: 'مراقبت پوست',
-        children: [{ name: 'ضد آفتاب' }, { name: 'سرم' }],
+        slug: 'skincare',
+        children: [
+          { name: 'ضد آفتاب', slug: 'sunscreen' },
+          { name: 'سرم', slug: 'serum' },
+        ],
       },
       {
         name: 'عطر و ادکلن',
-        children: [{ name: 'عطر مردانه' }, { name: 'عطر زنانه' }],
+        slug: 'fragrance',
+        children: [
+          { name: 'عطر مردانه', slug: 'men-fragrance' },
+          { name: 'عطر زنانه', slug: 'women-fragrance' },
+        ],
       },
     ],
   },
   {
     name: 'ورزش و سفر',
+    slug: 'sports-travel',
     children: [
       {
         name: 'تجهیزات ورزشی',
-        children: [{ name: 'دمبل' }, { name: 'مت' }],
+        slug: 'sports-equipment',
+        children: [
+          { name: 'دمبل', slug: 'dumbbells' },
+          { name: 'مت', slug: 'mats' },
+        ],
       },
       {
         name: 'پوشاک ورزشی',
-        children: [{ name: 'کفش ورزشی' }, { name: 'لباس ورزشی' }],
+        slug: 'sportswear',
+        children: [
+          { name: 'کفش ورزشی', slug: 'sports-shoes' },
+          { name: 'لباس ورزشی', slug: 'sports-clothing' },
+        ],
       },
       {
         name: 'لوازم سفر',
-        children: [{ name: 'چمدان' }, { name: 'کوله پشتی' }],
+        slug: 'travel-gear',
+        children: [
+          { name: 'چمدان', slug: 'luggage' },
+          { name: 'کوله پشتی', slug: 'backpacks' },
+        ],
       },
     ],
   },
@@ -101,28 +167,19 @@ export async function seedCategories(prisma: PrismaClient): Promise<number> {
 
   const createLevel = async (nodes: CategoryNode[], parentId: number | null): Promise<void> => {
     for (const node of nodes) {
-      const existing = await prisma.category.findFirst({
-        where: { name: node.name, parentId },
+      const file = files[index % files.length];
+      const category = await prisma.category.upsert({
+        where: { slug: node.slug },
+        create: { name: node.name, slug: node.slug, parentId, imageId: file.id },
+        update: { name: node.name, parentId, imageId: file.id },
         select: { id: true },
       });
-
-      let categoryId: number;
-      if (existing) {
-        categoryId = existing.id;
-      } else {
-        const file = files[index % files.length];
-        const category = await prisma.category.create({
-          data: { name: node.name, parentId, imageId: file.id },
-          select: { id: true },
-        });
-        categoryId = category.id;
-      }
 
       index++;
       count++;
 
       if (node.children?.length) {
-        await createLevel(node.children, categoryId);
+        await createLevel(node.children, category.id);
       }
     }
   };

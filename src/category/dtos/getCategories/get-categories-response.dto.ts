@@ -7,6 +7,9 @@ export class CategoryDto {
   @ApiProperty({ example: 'پوشاک' })
   name!: string;
 
+  @ApiProperty({ example: 'clothing' })
+  slug!: string;
+
   @ApiProperty({ example: '/uploads/images/category-1.png', nullable: true })
   imageUrl!: string | null;
 

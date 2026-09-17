@@ -19,7 +19,7 @@ export type FooterLink = {
 export type FooterCategory = {
   id: number;
   name: string;
-  url: string;
+  url: string | null;
 };
 
 export type FooterLogo = {
@@ -50,7 +50,7 @@ export class FooterSectionService {
         orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
         include: { file: { select: { path: true } } },
       }),
-      this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, name: true } }),
+      this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, name: true, slug: true } }),
       this.loadBranding(),
     ]);
 
@@ -63,7 +63,7 @@ export class FooterSectionService {
         categoryItems.push({
           id: row.categoryId,
           name: category?.name ?? '',
-          url: this.categoryUrl(row.categoryId),
+          url: category ? this.categoryUrl(category.slug) : null,
         });
         continue;
       }
@@ -113,8 +113,8 @@ export class FooterSectionService {
     return this.list(sectionId);
   }
 
-  private categoryUrl(categoryId: number): string {
-    return `/category/${categoryId}`;
+  private categoryUrl(slug: string): string {
+    return `/product-category/${slug}`;
   }
 
   /** Site branding (logo, description, slogan) is stored as site settings and surfaced with the footer. */

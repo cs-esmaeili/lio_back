@@ -17,6 +17,7 @@ export class CategoryService {
         id: true,
         parentId: true,
         name: true,
+        slug: true,
         image: { select: { path: true } },
       },
     });
@@ -26,6 +27,7 @@ export class CategoryService {
       nodes.set(row.id, {
         id: row.id,
         name: row.name,
+        slug: row.slug,
         imageUrl: this.fileUrl.toUrl(row.image?.path ?? null),
         children: [],
       });

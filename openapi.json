@@ -4907,7 +4907,7 @@
           },
           "url": {
             "type": "string",
-            "example": "/category/3"
+            "example": "/product-category/mobile"
           },
           "children": {
             "type": "array",
@@ -5071,8 +5071,9 @@
             "example": "موبایل"
           },
           "url": {
-            "type": "string",
-            "example": "/category/3"
+            "type": "object",
+            "example": "/product-category/mobile",
+            "nullable": true
           }
         },
         "required": [
@@ -5702,8 +5703,10 @@
             "nullable": true
           },
           "slug": {
-            "type": "string",
-            "example": "home"
+            "type": "object",
+            "example": "home",
+            "nullable": true,
+            "description": "Route slug for standalone pages; null for entity-bound pages (the entity owns its slug)."
           }
         },
         "required": [
@@ -5742,6 +5745,10 @@
             "type": "string",
             "example": "پوشاک"
           },
+          "slug": {
+            "type": "string",
+            "example": "clothing"
+          },
           "imageUrl": {
             "type": "object",
             "example": "/uploads/images/category-1.png",
@@ -5757,6 +5764,7 @@
         "required": [
           "id",
           "name",
+          "slug",
           "imageUrl",
           "children"
         ]

@@ -40,6 +40,7 @@ type CategoryRow = {
   id: number;
   parentId: number | null;
   name: string;
+  slug: string;
 };
 
 @Injectable()
@@ -52,7 +53,7 @@ export class HeaderSectionService {
         where: { sectionId },
         orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
       }),
-      this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, parentId: true, name: true } }),
+      this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, parentId: true, name: true, slug: true } }),
       this.loadBranding(),
     ]);
 
@@ -89,7 +90,7 @@ export class HeaderSectionService {
         id: section.id,
         type: section.type,
         label: section.label ?? category?.name ?? '',
-        url: this.categoryUrl(section.categoryId),
+        url: category ? this.categoryUrl(category.slug) : null,
         categoryId: section.categoryId,
         children: this.buildCategoryTree(categories, section.categoryId),
       };
@@ -118,15 +119,15 @@ export class HeaderSectionService {
       (childrenByParent.get(parentId) ?? []).map((category) => ({
         id: category.id,
         name: category.name,
-        url: this.categoryUrl(category.id),
+        url: this.categoryUrl(category.slug),
         children: build(category.id),
       }));
 
     return build(rootId);
   }
 
-  private categoryUrl(categoryId: number): string {
-    return `/category/${categoryId}`;
+  private categoryUrl(slug: string): string {
+    return `/product-category/${slug}`;
   }
 
   /** Branding values are stored as public site settings and surfaced with the header. */

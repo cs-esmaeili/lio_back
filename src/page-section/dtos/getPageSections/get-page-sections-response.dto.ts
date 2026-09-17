@@ -12,8 +12,8 @@ export class PageSummaryDto {
   @ApiProperty({ example: null, nullable: true })
   entityId!: number | null;
 
-  @ApiProperty({ example: 'home' })
-  slug!: string;
+  @ApiProperty({ example: 'home', nullable: true, description: 'Route slug for standalone pages; null for entity-bound pages (the entity owns its slug).' })
+  slug!: string | null;
 }
 
 export class GetPageSectionsResponseDto {

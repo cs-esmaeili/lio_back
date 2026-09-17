@@ -148,7 +148,7 @@ export class HeaderCategoryDto {
   @ApiProperty({ example: 'موبایل' })
   name!: string;
 
-  @ApiProperty({ example: '/category/3' })
+  @ApiProperty({ example: '/product-category/mobile' })
   url!: string;
 
   @ApiProperty({ type: () => [HeaderCategoryDto] })
@@ -224,8 +224,8 @@ export class FooterCategoryDto {
   @ApiProperty({ example: 'موبایل' })
   name!: string;
 
-  @ApiProperty({ example: '/category/3' })
-  url!: string;
+  @ApiProperty({ example: '/product-category/mobile', nullable: true })
+  url!: string | null;
 }
 
 export class FooterLogoDto {

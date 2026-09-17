@@ -12,7 +12,7 @@ model Page {
   id              Int           @id @default(autoincrement())
   entityType      EntityType    @map("entity_type")
   entityId        Int?          @map("entity_id")
-  slug            String        @unique(map: "pages_slug_key")
+  slug            String?       @unique(map: "pages_slug_key")
   metaTitle       String?       @map("meta_title")
   metaDescription String?       @map("meta_description") @db.Text
   canonicalUrl    String?       @map("canonical_url")

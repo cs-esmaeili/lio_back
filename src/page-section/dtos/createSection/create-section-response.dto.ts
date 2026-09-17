@@ -187,7 +187,27 @@ export class FooterCategoryDto {
   url!: string;
 }
 
+export class FooterLogoDto {
+  @ApiProperty({ example: '/uploads/images/logo-small.svg', nullable: true })
+  small!: string | null;
+
+  @ApiProperty({ example: '/uploads/images/logo-large.svg', nullable: true })
+  large!: string | null;
+}
+
 export class FooterSectionDataDto {
+  @ApiProperty({ type: FooterLogoDto })
+  logo!: FooterLogoDto;
+
+  @ApiProperty({ example: 'فروشگاه اینترنتی لیو؛ تجربهٔ خرید آنلاین سریع، مطمئن و مقرون‌به‌صرفه.', nullable: true })
+  description!: string | null;
+
+  @ApiProperty({ example: 'لیو؛ ساده‌تر خرید کن.', nullable: true })
+  slogan!: string | null;
+
+  @ApiProperty({ example: '021-12345678', nullable: true })
+  supportPhone!: string | null;
+
   @ApiProperty({ type: [FooterLinkDto] })
   links!: FooterLinkDto[];
 

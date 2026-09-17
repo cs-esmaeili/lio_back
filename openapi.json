@@ -4964,6 +4964,25 @@
           "items"
         ]
       },
+      "FooterLogoDto": {
+        "type": "object",
+        "properties": {
+          "small": {
+            "type": "object",
+            "example": "/uploads/images/logo-small.svg",
+            "nullable": true
+          },
+          "large": {
+            "type": "object",
+            "example": "/uploads/images/logo-large.svg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "small",
+          "large"
+        ]
+      },
       "FooterLinkDto": {
         "type": "object",
         "properties": {
@@ -5030,6 +5049,24 @@
       "FooterSectionDataDto": {
         "type": "object",
         "properties": {
+          "logo": {
+            "$ref": "#/components/schemas/FooterLogoDto"
+          },
+          "description": {
+            "type": "object",
+            "example": "فروشگاه اینترنتی لیو؛ تجربهٔ خرید آنلاین سریع، مطمئن و مقرون‌به‌صرفه.",
+            "nullable": true
+          },
+          "slogan": {
+            "type": "object",
+            "example": "لیو؛ ساده‌تر خرید کن.",
+            "nullable": true
+          },
+          "supportPhone": {
+            "type": "object",
+            "example": "021-12345678",
+            "nullable": true
+          },
           "links": {
             "type": "array",
             "items": {
@@ -5044,6 +5081,10 @@
           }
         },
         "required": [
+          "logo",
+          "description",
+          "slogan",
+          "supportPhone",
           "links",
           "categories"
         ]

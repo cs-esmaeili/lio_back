@@ -1,8 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FooterSectionType } from 'src/generated/prisma/client';
+import type { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import type { UpdateFooterDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+
+const BRANDING_SETTING_KEYS = ['logo', 'description', 'slogan', 'supportPhone'] as const;
 
 export type FooterLink = {
   id: number;
@@ -19,7 +22,16 @@ export type FooterCategory = {
   url: string;
 };
 
+export type FooterLogo = {
+  small: string | null;
+  large: string | null;
+};
+
 export type FooterSectionData = {
+  logo: FooterLogo;
+  description: string | null;
+  slogan: string | null;
+  supportPhone: string | null;
   links: FooterLink[];
   categories: FooterCategory[];
 };
@@ -32,13 +44,14 @@ export class FooterSectionService {
   ) {}
 
   async list(sectionId: number): Promise<FooterSectionData> {
-    const [rows, categories] = await Promise.all([
+    const [rows, categories, branding] = await Promise.all([
       this.prisma.footerSection.findMany({
         where: { sectionId },
         orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
         include: { file: { select: { path: true } } },
       }),
       this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, name: true } }),
+      this.loadBranding(),
     ]);
 
     const links: FooterLink[] = [];
@@ -65,7 +78,7 @@ export class FooterSectionService {
       });
     }
 
-    return { links, categories: categoryItems };
+    return { ...branding, links, categories: categoryItems };
   }
 
   /** Replace all footer items that belong to the given section. */
@@ -102,6 +115,34 @@ export class FooterSectionService {
 
   private categoryUrl(categoryId: number): string {
     return `/category/${categoryId}`;
+  }
+
+  /** Site branding (logo, description, slogan) is stored as site settings and surfaced with the footer. */
+  private async loadBranding(): Promise<Pick<FooterSectionData, 'logo' | 'description' | 'slogan' | 'supportPhone'>> {
+    const settings = await this.prisma.siteSetting.findMany({
+      where: { key: { in: [...BRANDING_SETTING_KEYS] }, isPrivate: false },
+      select: { key: true, data: true },
+    });
+
+    const dataByKey = new Map(settings.map((setting) => [setting.key, setting.data]));
+
+    return {
+      logo: {
+        small: this.readString(dataByKey.get('logo'), 'small'),
+        large: this.readString(dataByKey.get('logo'), 'large'),
+      },
+      description: this.readString(dataByKey.get('description'), 'value'),
+      slogan: this.readString(dataByKey.get('slogan'), 'value'),
+      supportPhone: this.readString(dataByKey.get('supportPhone'), 'value'),
+    };
+  }
+
+  private readString(data: Prisma.JsonValue | undefined, field: string): string | null {
+    if (data === undefined || data === null || typeof data !== 'object' || Array.isArray(data)) {
+      return null;
+    }
+    const value = (data as Record<string, unknown>)[field];
+    return typeof value === 'string' ? value : null;
   }
 
   private async validate(dto: UpdateFooterDto): Promise<void> {

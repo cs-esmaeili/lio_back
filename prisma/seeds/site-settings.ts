@@ -29,6 +29,13 @@ const SITE_SETTINGS: SiteSettingSeed[] = [
     },
     isPrivate: false,
   },
+  {
+    key: 'supportPhone',
+    data: {
+      value: '021-12345678',
+    },
+    isPrivate: false,
+  },
 ];
 
 export async function seedSiteSettings(prisma: PrismaClient): Promise<number> {

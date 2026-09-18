@@ -94,4 +94,33 @@ export class CategoryService {
       })),
     };
   }
+
+  /** Resolve a category slug to its own id plus every descendant id. */
+  async resolveIdsBySlug(slug: string): Promise<number[]> {
+    const category = await this.prisma.category.findUnique({ where: { slug }, select: { id: true } });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const categories = await this.prisma.category.findMany({ select: { id: true, parentId: true } });
+    const childrenByParent = new Map<number, number[]>();
+    for (const item of categories) {
+      if (item.parentId === null) {
+        continue;
+      }
+      const children = childrenByParent.get(item.parentId) ?? [];
+      children.push(item.id);
+      childrenByParent.set(item.parentId, children);
+    }
+
+    const ids: number[] = [];
+    const stack = [category.id];
+    while (stack.length) {
+      const id = stack.pop()!;
+      ids.push(id);
+      stack.push(...(childrenByParent.get(id) ?? []));
+    }
+
+    return ids;
+  }
 }

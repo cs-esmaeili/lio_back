@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileUrlService } from 'src/common/services/file-url.service';
+import { CategoryService } from 'src/category/services/category.service';
 import { ProductRepository } from '../repositories/product.repository';
 import type { SearchProductsFilterDto, SearchProductsRequestDto } from '../dtos/searchProducts/search-products-request.dto';
 import type { SearchProductsResponseDto } from '../dtos/searchProducts/search-products-response.dto';
@@ -11,11 +12,12 @@ export class ProductSearchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly productRepository: ProductRepository,
+    private readonly categories: CategoryService,
     private readonly fileUrl: FileUrlService,
   ) {}
 
   async searchProducts(dto: SearchProductsRequestDto): Promise<SearchProductsResponseDto> {
-    const categoryIds = await this.resolveCategoryIds(dto.categorySlug);
+    const categoryIds = await this.categories.resolveIdsBySlug(dto.categorySlug);
     const filters = this.normalizeFilters(dto.filters ?? []);
     await this.validateFilters(filters);
 
@@ -109,34 +111,5 @@ export class ProductSearchService {
         }
       }
     }
-  }
-
-  /** Resolve a category slug to its own id plus every descendant id. */
-  private async resolveCategoryIds(slug: string): Promise<number[]> {
-    const category = await this.prisma.category.findUnique({ where: { slug }, select: { id: true } });
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
-
-    const categories = await this.prisma.category.findMany({ select: { id: true, parentId: true } });
-    const childrenByParent = new Map<number, number[]>();
-    for (const item of categories) {
-      if (item.parentId === null) {
-        continue;
-      }
-      const children = childrenByParent.get(item.parentId) ?? [];
-      children.push(item.id);
-      childrenByParent.set(item.parentId, children);
-    }
-
-    const ids: number[] = [];
-    const stack = [category.id];
-    while (stack.length) {
-      const id = stack.pop()!;
-      ids.push(id);
-      stack.push(...(childrenByParent.get(id) ?? []));
-    }
-
-    return ids;
   }
 }

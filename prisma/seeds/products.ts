@@ -7,18 +7,6 @@ const VARIANTS_PER_PRODUCT = 2;
 const SLUG_PREFIX = 'seed-product-';
 const SKU_PREFIX = 'SEED-SKU-';
 
-const ATTRIBUTE_VALUES: Record<string, string[]> = {
-  color: ['red', 'blue', 'green', 'black', 'white'],
-  size: ['s', 'm', 'l', 'xl'],
-  material: ['thread', 'cotton', 'leather', 'polyester'],
-  brand: ['brand-a', 'brand-b', 'brand-c'],
-};
-
-function pickValue(name: string, productIndex: number, attributeIndex: number): string {
-  const pool = ATTRIBUTE_VALUES[name] ?? [`مقدار ${attributeIndex + 1}`];
-  return pool[(productIndex + attributeIndex) % pool.length];
-}
-
 export async function seedProducts(prisma: PrismaClient): Promise<number> {
   const files = await ensureFakeImageFiles(prisma);
 
@@ -43,6 +31,21 @@ export async function seedProducts(prisma: PrismaClient): Promise<number> {
     const list = attributesByCategory.get(link.categoryId) ?? [];
     list.push({ id: link.attributeId, name: link.attribute.name });
     attributesByCategory.set(link.categoryId, list);
+  }
+
+  const attributeValues = await prisma.attributeValue.findMany({
+    select: { id: true, attributeId: true },
+    orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+  });
+  if (!attributeValues.length) {
+    throw new Error('No attribute values found. Run the "attributes" seed first.');
+  }
+
+  const optionsByAttribute = new Map<number, number[]>();
+  for (const option of attributeValues) {
+    const list = optionsByAttribute.get(option.attributeId) ?? [];
+    list.push(option.id);
+    optionsByAttribute.set(option.attributeId, list);
   }
 
   await prisma.product.deleteMany({ where: { slug: { startsWith: SLUG_PREFIX } } });
@@ -92,15 +95,21 @@ export async function seedProducts(prisma: PrismaClient): Promise<number> {
   }
   await prisma.productImage.createMany({ data: productImages });
 
-  const attributeValues = productIds.flatMap((productId, index) => {
+  const productAttributeValues = productIds.flatMap((productId, index) => {
     const categoryId = productCategories[index].categoryId;
-    return (attributesByCategory.get(categoryId) ?? []).map((attribute, attributeIndex) => ({
-      productId,
-      attributeId: attribute.id,
-      value: pickValue(attribute.name, index, attributeIndex),
-    }));
+    return (attributesByCategory.get(categoryId) ?? []).map((attribute, attributeIndex) => {
+      const options = optionsByAttribute.get(attribute.id) ?? [];
+      if (!options.length) {
+        throw new Error(`Attribute "${attribute.name}" has no values. Run the "attributes" seed first.`);
+      }
+      return {
+        productId,
+        attributeId: attribute.id,
+        attributeValueId: options[(index + attributeIndex) % options.length],
+      };
+    });
   });
-  await prisma.productAttributeValue.createMany({ data: attributeValues });
+  await prisma.productAttributeValue.createMany({ data: productAttributeValues });
 
   const storedValues = await prisma.productAttributeValue.findMany({
     where: { productId: { in: productIds } },

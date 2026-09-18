@@ -1,20 +1,29 @@
-enum AttributeType {
-  TEXT
-  NUMBER
-  BOOLEAN
+enum AttributeUsage {
+  SPEC
+  VARIANT
+}
+
+enum FilterType {
+  CHECKBOX
+  RADIO
   SELECT
+  RANGE
+  TOGGLE
+  SEARCH
 }
 
 model Attribute {
-  id                 Int                     @id @default(autoincrement())
-  name               String                  @unique(map: "attributes_name_key")
-  title              String
-  type               AttributeType           @default(TEXT)
-  options            AttributeOption[]
-  categoryAttributes CategoryAttribute[]
-  attributeValues    ProductAttributeValue[]
-  createdAt          DateTime                @default(now()) @map("created_at")
-  updatedAt          DateTime                @updatedAt @map("updated_at")
+  id                     Int                     @id @default(autoincrement())
+  name                   String                  @unique(map: "attributes_name_key")
+  title                  String
+  usage                  AttributeUsage          @default(SPEC)
+  filterType             FilterType              @default(CHECKBOX) @map("filter_type")
+  isMultiSelect          Boolean                 @default(true) @map("is_multi_select")
+  values                 AttributeValue[]
+  categoryAttributes     CategoryAttribute[]
+  productAttributeValues ProductAttributeValue[]
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
 
   @@map("attributes")
 }

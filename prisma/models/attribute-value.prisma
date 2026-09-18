@@ -1,0 +1,13 @@
+model AttributeValue {
+  id                     Int                     @id @default(autoincrement())
+  attributeId            Int                     @map("attribute_id")
+  value                  String
+  sortOrder              Int                     @default(0) @map("sort_order")
+  attribute              Attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  productAttributeValues ProductAttributeValue[]
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
+
+  @@unique([attributeId, value], map: "attribute_values_attribute_id_value_key")
+  @@map("attribute_values")
+}

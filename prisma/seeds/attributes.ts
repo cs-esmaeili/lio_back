@@ -1,40 +1,24 @@
-import { AttributeType } from '../../src/generated/prisma/client';
+import { AttributeUsage, FilterType } from '../../src/generated/prisma/client';
 import type { PrismaClient } from '../../src/generated/prisma/client';
 
-const ATTRIBUTES: Array<{ name: string; title: string; type: AttributeType }> = [
-  { name: 'color', title: 'رنگ', type: AttributeType.SELECT },
-  { name: 'size', title: 'سایز', type: AttributeType.SELECT },
-  { name: 'material', title: 'جنس', type: AttributeType.TEXT },
-  { name: 'brand', title: 'برند', type: AttributeType.SELECT },
+const ATTRIBUTES: Array<{
+  name: string;
+  title: string;
+  usage: AttributeUsage;
+  filterType: FilterType;
+  isMultiSelect: boolean;
+}> = [
+  { name: 'color', title: 'رنگ', usage: AttributeUsage.VARIANT, filterType: FilterType.CHECKBOX, isMultiSelect: true },
+  { name: 'size', title: 'سایز', usage: AttributeUsage.VARIANT, filterType: FilterType.RADIO, isMultiSelect: false },
+  { name: 'material', title: 'جنس', usage: AttributeUsage.SPEC, filterType: FilterType.CHECKBOX, isMultiSelect: true },
+  { name: 'brand', title: 'برند', usage: AttributeUsage.SPEC, filterType: FilterType.SELECT, isMultiSelect: false },
 ];
 
-// The option catalog of each attribute. `value` is the stable machine value stored
-// on ProductAttributeValue.value and sent by the client; `title` is the display text.
-const ATTRIBUTE_OPTIONS: Record<string, Array<{ value: string; title: string }>> = {
-  color: [
-    { value: 'red', title: 'قرمز' },
-    { value: 'blue', title: 'آبی' },
-    { value: 'green', title: 'سبز' },
-    { value: 'black', title: 'مشکی' },
-    { value: 'white', title: 'سفید' },
-  ],
-  size: [
-    { value: 's', title: 'S' },
-    { value: 'm', title: 'M' },
-    { value: 'l', title: 'L' },
-    { value: 'xl', title: 'XL' },
-  ],
-  material: [
-    { value: 'thread', title: 'نخ' },
-    { value: 'cotton', title: 'پنبه' },
-    { value: 'leather', title: 'چرم' },
-    { value: 'polyester', title: 'پلی‌استر' },
-  ],
-  brand: [
-    { value: 'brand-a', title: 'برند آ' },
-    { value: 'brand-b', title: 'برند ب' },
-    { value: 'brand-c', title: 'برند ج' },
-  ],
+const ATTRIBUTE_VALUES: Record<string, string[]> = {
+  color: ['قرمز', 'آبی', 'سبز', 'مشکی', 'سفید'],
+  size: ['S', 'M', 'L', 'XL'],
+  material: ['نخ', 'پنبه', 'چرم', 'پلی‌استر'],
+  brand: ['برند آ', 'برند ب', 'برند ج'],
 };
 
 export async function seedAttributes(prisma: PrismaClient): Promise<number> {
@@ -48,18 +32,23 @@ export async function seedAttributes(prisma: PrismaClient): Promise<number> {
     const attribute = await prisma.attribute.upsert({
       where: { name: definition.name },
       create: definition,
-      update: { title: definition.title, type: definition.type },
+      update: {
+        title: definition.title,
+        usage: definition.usage,
+        filterType: definition.filterType,
+        isMultiSelect: definition.isMultiSelect,
+      },
       select: { id: true, name: true },
     });
     attributes.push(attribute);
   }
 
   for (const attribute of attributes) {
-    for (const [sortOrder, option] of (ATTRIBUTE_OPTIONS[attribute.name] ?? []).entries()) {
-      await prisma.attributeOption.upsert({
-        where: { attributeId_value: { attributeId: attribute.id, value: option.value } },
-        create: { attributeId: attribute.id, value: option.value, title: option.title, sortOrder },
-        update: { title: option.title, sortOrder },
+    for (const [sortOrder, value] of (ATTRIBUTE_VALUES[attribute.name] ?? []).entries()) {
+      await prisma.attributeValue.upsert({
+        where: { attributeId_value: { attributeId: attribute.id, value } },
+        create: { attributeId: attribute.id, value, sortOrder },
+        update: { sortOrder },
       });
     }
   }

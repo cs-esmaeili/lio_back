@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import type { CategoryDto, GetCategoriesResponseDto } from '../dtos/getCategories/get-categories-response.dto';
+import type { GetCategoryFiltersResponseDto } from '../dtos/getCategoryFilters/get-category-filters-response.dto';
 
 @Injectable()
 export class CategoryService {
@@ -45,5 +46,52 @@ export class CategoryService {
     }
 
     return { categories };
+  }
+
+  async getCategoryFilters(slug: string): Promise<GetCategoryFiltersResponseDto> {
+    const category = await this.prisma.category.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const rows = await this.prisma.categoryAttribute.findMany({
+      where: { categoryId: category.id, isFilterable: true },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+      select: {
+        isRequired: true,
+        sortOrder: true,
+        attribute: {
+          select: {
+            id: true,
+            name: true,
+            title: true,
+            usage: true,
+            filterType: true,
+            isMultiSelect: true,
+            values: {
+              orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+              select: { id: true, value: true, sortOrder: true },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      filters: rows.map((row) => ({
+        attributeId: row.attribute.id,
+        name: row.attribute.name,
+        title: row.attribute.title,
+        usage: row.attribute.usage,
+        filterType: row.attribute.filterType,
+        isMultiSelect: row.attribute.isMultiSelect,
+        isRequired: row.isRequired,
+        sortOrder: row.sortOrder,
+        values: row.attribute.values,
+      })),
+    };
   }
 }

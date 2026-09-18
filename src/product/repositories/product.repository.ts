@@ -67,17 +67,27 @@ type ProductSummaryRow = Prisma.ProductGetPayload<{ select: typeof PRODUCT_SUMMA
 export class ProductRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * The single entry point for product listings. Callers compose the `where`
+   * clause (category scope, attribute filters, and future general filters) and
+   * this method owns the projection, so the product shape stays consistent.
+   */
+  async findSummaries(where: Prisma.ProductWhereInput = {}): Promise<ProductSummary[]> {
+    const products = await this.prisma.product.findMany({
+      where,
+      orderBy: { id: 'desc' },
+      select: PRODUCT_SUMMARY_SELECT,
+    });
+
+    return products.map((product) => this.toSummary(product));
+  }
+
   async findSummariesByIds(ids: number[]): Promise<ProductSummary[]> {
     if (!ids.length) {
       return [];
     }
 
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: ids } },
-      select: PRODUCT_SUMMARY_SELECT,
-    });
-
-    return products.map((product) => this.toSummary(product));
+    return this.findSummaries({ id: { in: ids } });
   }
 
   private toSummary(product: ProductSummaryRow): ProductSummary {

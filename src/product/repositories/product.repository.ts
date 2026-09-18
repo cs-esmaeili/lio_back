@@ -72,14 +72,21 @@ export class ProductRepository {
    * clause (category scope, attribute filters, and future general filters) and
    * this method owns the projection, so the product shape stays consistent.
    */
-  async findSummaries(where: Prisma.ProductWhereInput = {}): Promise<ProductSummary[]> {
+  async findSummaries(where: Prisma.ProductWhereInput = {}, options: { skip?: number; take?: number } = {}): Promise<ProductSummary[]> {
     const products = await this.prisma.product.findMany({
       where,
       orderBy: { id: 'desc' },
+      skip: options.skip,
+      take: options.take,
       select: PRODUCT_SUMMARY_SELECT,
     });
 
     return products.map((product) => this.toSummary(product));
+  }
+
+  /** Count products for the same `where` used by {@link findSummaries}. */
+  async count(where: Prisma.ProductWhereInput = {}): Promise<number> {
+    return this.prisma.product.count({ where });
   }
 
   async findSummariesByIds(ids: number[]): Promise<ProductSummary[]> {

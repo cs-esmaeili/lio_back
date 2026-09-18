@@ -51,7 +51,30 @@ export class SearchProductDto {
   defaultVariant!: SearchProductVariantDto | null;
 }
 
+export class SearchProductsPaginationDto {
+  @ApiProperty({ example: 1 })
+  page!: number;
+
+  @ApiProperty({ example: 20 })
+  limit!: number;
+
+  @ApiProperty({ example: 102 })
+  total!: number;
+
+  @ApiProperty({ example: 6 })
+  totalPages!: number;
+
+  @ApiProperty({ example: true })
+  hasNextPage!: boolean;
+
+  @ApiProperty({ example: false })
+  hasPreviousPage!: boolean;
+}
+
 export class SearchProductsResponseDto {
   @ApiProperty({ type: [SearchProductDto] })
   products!: SearchProductDto[];
+
+  @ApiProperty({ type: SearchProductsPaginationDto })
+  pagination!: SearchProductsPaginationDto;
 }

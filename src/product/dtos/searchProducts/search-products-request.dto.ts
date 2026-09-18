@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsInt, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 export class SearchProductsFilterDto {
   @ApiProperty({ example: 1, description: 'Attribute id from the category filters response' })
@@ -29,4 +29,18 @@ export class SearchProductsRequestDto {
   @ValidateNested({ each: true })
   @Type(() => SearchProductsFilterDto)
   filters?: SearchProductsFilterDto[];
+
+  @ApiPropertyOptional({ example: 1, default: 1, description: 'Page number, 1-based. Defaults to 1.' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ example: 20, default: 20, description: 'Page size. Defaults to 20 and is capped at 100.' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number;
 }

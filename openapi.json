@@ -3533,6 +3533,132 @@
         ]
       }
     },
+    "/products/search": {
+      "post": {
+        "operationId": "ProductPublicController_searchProducts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchProductsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Products matching the category and variant filters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SearchProductsResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown attribute value or value/attribute mismatch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Search products by category slug and attribute value filters",
+        "tags": [
+          "ProductPublic"
+        ]
+      }
+    },
     "/categories": {
       "get": {
         "operationId": "CategoryPublicController_getCategories",
@@ -3568,6 +3694,93 @@
           }
         },
         "summary": "Get all site categories as a nested tree",
+        "tags": [
+          "CategoryPublic"
+        ]
+      }
+    },
+    "/categories/{slug}/filters": {
+      "get": {
+        "operationId": "CategoryPublicController_getCategoryFilters",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filterable attributes with their types and values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetCategoryFiltersResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the filter configuration for a category by slug",
         "tags": [
           "CategoryPublic"
         ]
@@ -5734,6 +5947,222 @@
           "sections"
         ]
       },
+      "SearchProductsFilterDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1,
+            "description": "Attribute id from the category filters response"
+          },
+          "valueIds": {
+            "example": [
+              1,
+              2
+            ],
+            "description": "Selected value ids for this attribute (OR within the attribute)",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "valueIds"
+        ]
+      },
+      "SearchProductsRequestDto": {
+        "type": "object",
+        "properties": {
+          "categorySlug": {
+            "type": "string",
+            "example": "clothing"
+          },
+          "filters": {
+            "description": "Attribute value filters. AND across attributes, matched on a single variant.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchProductsFilterDto"
+            }
+          },
+          "page": {
+            "type": "number",
+            "example": 1,
+            "default": 1,
+            "description": "Page number, 1-based. Defaults to 1."
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "default": 20,
+            "description": "Page size. Defaults to 20 and is capped at 100."
+          }
+        },
+        "required": [
+          "categorySlug"
+        ]
+      },
+      "SearchProductImageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 7
+          },
+          "url": {
+            "type": "object",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true
+          },
+          "isThumbnail": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "isPrimary",
+          "isThumbnail",
+          "sortOrder"
+        ]
+      },
+      "SearchProductVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 5
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 123000
+          },
+          "compareAtPrice": {
+            "type": "object",
+            "example": 173000,
+            "nullable": true
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "SearchProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 11
+          },
+          "name": {
+            "type": "string",
+            "example": "محصول ۱"
+          },
+          "slug": {
+            "type": "string",
+            "example": "product-name"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchProductImageDto"
+            }
+          },
+          "defaultVariant": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SearchProductVariantDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "images",
+          "defaultVariant"
+        ]
+      },
+      "SearchProductsPaginationDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 102
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 6
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
+      "SearchProductsResponseDto": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchProductDto"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/SearchProductsPaginationDto"
+          }
+        },
+        "required": [
+          "products",
+          "pagination"
+        ]
+      },
       "CategoryDto": {
         "type": "object",
         "properties": {
@@ -5781,6 +6210,122 @@
         },
         "required": [
           "categories"
+        ]
+      },
+      "AttributeUsage": {
+        "type": "string",
+        "enum": [
+          "SPEC",
+          "VARIANT"
+        ]
+      },
+      "FilterType": {
+        "type": "string",
+        "enum": [
+          "CHECKBOX",
+          "RADIO",
+          "SELECT",
+          "RANGE",
+          "TOGGLE",
+          "SEARCH"
+        ]
+      },
+      "CategoryFilterValueDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "value": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "sortOrder"
+        ]
+      },
+      "CategoryFilterDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryFilterValueDto"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "isRequired",
+          "sortOrder",
+          "values"
+        ]
+      },
+      "GetCategoryFiltersResponseDto": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryFilterDto"
+            }
+          }
+        },
+        "required": [
+          "filters"
         ]
       }
     }

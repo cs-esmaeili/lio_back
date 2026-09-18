@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import type { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileUrlService } from 'src/common/services/file-url.service';
+import { PaginationService } from 'src/common/services/pagination.service';
 import { CategoryService } from 'src/category/services/category.service';
 import { ProductRepository } from '../repositories/product.repository';
 import type { SearchProductsFilterDto, SearchProductsRequestDto } from '../dtos/searchProducts/search-products-request.dto';
@@ -13,6 +14,7 @@ export class ProductSearchService {
     private readonly prisma: PrismaService,
     private readonly productRepository: ProductRepository,
     private readonly categories: CategoryService,
+    private readonly pagination: PaginationService,
     private readonly fileUrl: FileUrlService,
   ) {}
 
@@ -21,7 +23,10 @@ export class ProductSearchService {
     const filters = this.normalizeFilters(dto.filters ?? []);
     await this.validateFilters(filters);
 
-    const products = await this.productRepository.findSummaries(this.buildWhere(categoryIds, filters));
+    const where = this.buildWhere(categoryIds, filters);
+    const { page, limit, skip, take } = this.pagination.resolveOffset(dto);
+
+    const [products, total] = await Promise.all([this.productRepository.findSummaries(where, { skip, take }), this.productRepository.count(where)]);
 
     return {
       products: products.map((product) => ({
@@ -37,6 +42,7 @@ export class ProductSearchService {
         })),
         defaultVariant: product.defaultVariant,
       })),
+      pagination: this.pagination.buildMeta(page, limit, total),
     };
   }
 

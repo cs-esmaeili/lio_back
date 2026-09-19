@@ -1,14 +1,15 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { DateTime } from 'luxon';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { OtpPurpose } from 'src/generated/prisma/client';
+import { and, desc, eq, gt, gte, isNull, sql } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { OtpPurpose, otps } from 'src/database/schema';
 
 @Injectable()
 export class OtpService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly config: ConfigService,
   ) {}
 
@@ -18,65 +19,54 @@ export class OtpService {
     const now = DateTime.now();
 
     // single active OTP per phone+purpose: invalidate previous unused ones
-    await this.prisma.otp.updateMany({
-      where: { phone, purpose, usedAt: null },
-      data: { usedAt: now.toJSDate() },
-    });
+    await this.db
+      .update(otps)
+      .set({ usedAt: now.toJSDate() })
+      .where(and(eq(otps.phone, phone), eq(otps.purpose, purpose), isNull(otps.usedAt)));
 
     const code = this.generateCode();
-    await this.prisma.otp.create({
-      data: {
-        phone,
-        purpose,
-        codeHash: this.hashCode(code),
-        expiresAt: now.plus({ seconds: this.ttlSeconds }).toJSDate(),
-      },
+    await this.db.insert(otps).values({
+      phone,
+      purpose,
+      codeHash: this.hashCode(code),
+      expiresAt: now.plus({ seconds: this.ttlSeconds }).toJSDate(),
     });
 
     return code;
   }
 
   async verify(phone: string, purpose: OtpPurpose, code: string): Promise<boolean> {
-    const otp = await this.prisma.otp.findFirst({
-      where: {
-        phone,
-        purpose,
-        usedAt: null,
-        expiresAt: { gt: DateTime.now().toJSDate() },
-      },
-      orderBy: { createdAt: 'desc' },
+    const otp = await this.db.query.otps.findFirst({
+      where: and(eq(otps.phone, phone), eq(otps.purpose, purpose), isNull(otps.usedAt), gt(otps.expiresAt, DateTime.now().toJSDate())),
+      orderBy: desc(otps.createdAt),
     });
     if (!otp) return false;
 
     if (otp.attempts >= this.maxAttempts) {
-      await this.prisma.otp.update({
-        where: { id: otp.id },
-        data: { usedAt: DateTime.now().toJSDate() },
-      });
+      await this.db.update(otps).set({ usedAt: DateTime.now().toJSDate() }).where(eq(otps.id, otp.id));
       return false;
     }
 
     if (!this.codesEqual(otp.codeHash, this.hashCode(code))) {
-      await this.prisma.otp.update({
-        where: { id: otp.id },
-        data: { attempts: { increment: 1 } },
-      });
+      await this.db
+        .update(otps)
+        .set({ attempts: sql`${otps.attempts} + 1` })
+        .where(eq(otps.id, otp.id));
       return false;
     }
 
     // atomic single-use consume (guards against concurrent replay)
-    const consumed = await this.prisma.otp.updateMany({
-      where: { id: otp.id, usedAt: null },
-      data: { usedAt: DateTime.now().toJSDate() },
-    });
-    return consumed.count === 1;
+    const consumed = await this.db
+      .update(otps)
+      .set({ usedAt: DateTime.now().toJSDate() })
+      .where(and(eq(otps.id, otp.id), isNull(otps.usedAt)))
+      .returning({ id: otps.id });
+    return consumed.length === 1;
   }
 
   private async assertRequestAllowed(phone: string): Promise<void> {
     const since = DateTime.now().minus({ seconds: this.requestWindowSeconds }).toJSDate();
-    const count = await this.prisma.otp.count({
-      where: { phone, createdAt: { gte: since } },
-    });
+    const count = await this.db.$count(otps, and(eq(otps.phone, phone), gte(otps.createdAt, since)));
     if (count >= this.maxRequests) {
       throw new ForbiddenException('Too many OTP requests');
     }

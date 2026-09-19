@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { DateTime } from 'luxon';
 import type { Request, Response } from 'express';
-import { UserStatus } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { and, eq, isNull, ne } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { UserStatus, authSessions } from 'src/database/schema';
 import { UsersService } from 'src/users/users.service';
 import { TokenService } from './token.service';
 import { CookieService } from './cookie.service';
@@ -28,7 +29,7 @@ export interface AuthUser {
 @Injectable()
 export class SessionService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly config: ConfigService,
     private readonly users: UsersService,
     private readonly tokens: TokenService,
@@ -36,17 +37,19 @@ export class SessionService {
     private readonly csrf: CsrfService,
   ) {}
 
-  create(input: { userId: number; refreshTokenHash: string; ip?: string; userAgent?: string }) {
-    return this.prisma.authSession.create({
-      data: {
+  async create(input: { userId: number; refreshTokenHash: string; ip?: string; userAgent?: string }) {
+    const [session] = await this.db
+      .insert(authSessions)
+      .values({
         userId: input.userId,
         refreshTokenHash: input.refreshTokenHash,
         familyId: randomUUID(),
         expiresAt: this.newExpiry(),
-        ip: input.ip,
-        userAgent: input.userAgent,
-      },
-    });
+        ip: input.ip ?? null,
+        userAgent: input.userAgent ?? null,
+      })
+      .returning();
+    return session;
   }
 
   // Full login handshake: mint a refresh token, persist the session, set auth
@@ -121,11 +124,11 @@ export class SessionService {
   }
 
   findByRefreshHash(refreshTokenHash: string) {
-    return this.prisma.authSession.findUnique({ where: { refreshTokenHash } });
+    return this.db.query.authSessions.findFirst({ where: eq(authSessions.refreshTokenHash, refreshTokenHash) });
   }
 
   findById(id: string) {
-    return this.prisma.authSession.findUnique({ where: { id } });
+    return this.db.query.authSessions.findFirst({ where: eq(authSessions.id, id) });
   }
 
   isActive(session: { revokedAt: Date | null; expiresAt: Date }): boolean {
@@ -142,61 +145,59 @@ export class SessionService {
     }
 
     // Atomic claim: first refresher wins, concurrent one gets count 0.
-    const claimed = await this.prisma.authSession.updateMany({
-      where: { id: oldSession.id, revokedAt: null },
-      data: { revokedAt: now, lastUsedAt: now },
-    });
-    if (claimed.count === 0) {
+    const claimed = await this.db
+      .update(authSessions)
+      .set({ revokedAt: now, lastUsedAt: now })
+      .where(and(eq(authSessions.id, oldSession.id), isNull(authSessions.revokedAt)))
+      .returning({ id: authSessions.id });
+    if (claimed.length === 0) {
       await this.revokeFamily(oldSession.familyId);
       throw new UnauthorizedException('Refresh token reuse detected');
     }
 
-    return this.prisma.authSession.create({
-      data: {
+    const [created] = await this.db
+      .insert(authSessions)
+      .values({
         userId: oldSession.userId,
         refreshTokenHash: newHash,
         familyId: oldSession.familyId,
         replacedById: oldSession.id,
         expiresAt: this.newExpiry(),
-        ip,
-        userAgent,
-      },
-    });
+        ip: ip ?? null,
+        userAgent: userAgent ?? null,
+      })
+      .returning();
+
+    return created;
   }
 
-  revokeOne(id: string) {
-    return this.prisma.authSession.update({
-      where: { id },
-      data: { revokedAt: DateTime.now().toJSDate() },
-    });
+  async revokeOne(id: string) {
+    await this.db.update(authSessions).set({ revokedAt: DateTime.now().toJSDate() }).where(eq(authSessions.id, id));
   }
 
-  revokeAllForUser(userId: number) {
-    return this.prisma.authSession.updateMany({
-      where: { userId, revokedAt: null },
-      data: { revokedAt: DateTime.now().toJSDate() },
-    });
+  async revokeAllForUser(userId: number) {
+    await this.db
+      .update(authSessions)
+      .set({ revokedAt: DateTime.now().toJSDate() })
+      .where(and(eq(authSessions.userId, userId), isNull(authSessions.revokedAt)));
   }
 
-  revokeAllForUserExcept(userId: number, exceptSessionId: string) {
-    return this.prisma.authSession.updateMany({
-      where: { userId, revokedAt: null, id: { not: exceptSessionId } },
-      data: { revokedAt: DateTime.now().toJSDate() },
-    });
+  async revokeAllForUserExcept(userId: number, exceptSessionId: string) {
+    await this.db
+      .update(authSessions)
+      .set({ revokedAt: DateTime.now().toJSDate() })
+      .where(and(eq(authSessions.userId, userId), isNull(authSessions.revokedAt), ne(authSessions.id, exceptSessionId)));
   }
 
-  revokeFamily(familyId: string) {
-    return this.prisma.authSession.updateMany({
-      where: { familyId, revokedAt: null },
-      data: { revokedAt: DateTime.now().toJSDate() },
-    });
+  async revokeFamily(familyId: string) {
+    await this.db
+      .update(authSessions)
+      .set({ revokedAt: DateTime.now().toJSDate() })
+      .where(and(eq(authSessions.familyId, familyId), isNull(authSessions.revokedAt)));
   }
 
-  touch(id: string) {
-    return this.prisma.authSession.update({
-      where: { id },
-      data: { lastUsedAt: DateTime.now().toJSDate() },
-    });
+  async touch(id: string) {
+    await this.db.update(authSessions).set({ lastUsedAt: DateTime.now().toJSDate() }).where(eq(authSessions.id, id));
   }
 
   private newExpiry(): Date {

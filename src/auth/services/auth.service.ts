@@ -3,7 +3,7 @@ import { UsersService } from 'src/users/users.service';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
 import { JwtService } from '@nestjs/jwt';
-import { UserStatus } from 'src/generated/prisma/client';
+import { UserStatus } from 'src/database/schema';
 
 @Injectable()
 export class AuthService {

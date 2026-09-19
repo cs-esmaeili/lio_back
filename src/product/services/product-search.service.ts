@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import type { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { and, eq, exists, inArray, sql, type SQL } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { attributeValues, productAttributeValues, productCategories, products, productVariants, variantAttributeValues } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import { PaginationService } from 'src/common/services/pagination.service';
 import { CategoryService } from 'src/category/services/category.service';
@@ -11,7 +12,7 @@ import type { SearchProductsResponseDto } from '../dtos/searchProducts/search-pr
 @Injectable()
 export class ProductSearchService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly productRepository: ProductRepository,
     private readonly categories: CategoryService,
     private readonly pagination: PaginationService,
@@ -53,29 +54,48 @@ export class ProductSearchService {
    * a single variant that satisfies every attribute group. Within one group the
    * value ids are OR-ed, across groups they are AND-ed.
    */
-  private buildWhere(categoryIds: number[], filters: SearchProductsFilterDto[]): Prisma.ProductWhereInput {
-    const where: Prisma.ProductWhereInput = {
-      categories: { some: { categoryId: { in: categoryIds } } },
-    };
+  private buildWhere(categoryIds: number[], filters: SearchProductsFilterDto[]): SQL {
+    // The relational API has no `some` filtering, so relation scopes are expressed as EXISTS subqueries.
+    const conditions: SQL[] = [
+      exists(
+        this.db
+          .select({ value: sql`1` })
+          .from(productCategories)
+          .where(and(eq(productCategories.productId, products.id), inArray(productCategories.categoryId, categoryIds))),
+      ),
+    ];
 
     if (filters.length) {
-      where.variants = {
-        some: {
-          AND: filters.map((filter) => ({
-            variantAttributeValues: {
-              some: {
-                productAttributeValue: {
-                  attributeId: filter.attributeId,
-                  attributeValueId: { in: filter.valueIds },
-                },
-              },
-            },
-          })),
-        },
-      };
+      conditions.push(
+        exists(
+          this.db
+            .select({ value: sql`1` })
+            .from(productVariants)
+            .where(
+              and(
+                eq(productVariants.productId, products.id),
+                ...filters.map((filter) =>
+                  exists(
+                    this.db
+                      .select({ value: sql`1` })
+                      .from(variantAttributeValues)
+                      .innerJoin(productAttributeValues, eq(variantAttributeValues.productAttributeValueId, productAttributeValues.id))
+                      .where(
+                        and(
+                          eq(variantAttributeValues.variantId, productVariants.id),
+                          eq(productAttributeValues.attributeId, filter.attributeId),
+                          inArray(productAttributeValues.attributeValueId, filter.valueIds),
+                        ),
+                      ),
+                  ),
+                ),
+              ),
+            ),
+        ),
+      );
     }
 
-    return where;
+    return and(...conditions)!;
   }
 
   /** Merge duplicate attribute groups so each attribute id appears once. */
@@ -100,9 +120,9 @@ export class ProductSearchService {
       return;
     }
 
-    const values = await this.prisma.attributeValue.findMany({
-      where: { id: { in: valueIds } },
-      select: { id: true, attributeId: true },
+    const values = await this.db.query.attributeValues.findMany({
+      where: inArray(attributeValues.id, valueIds),
+      columns: { id: true, attributeId: true },
     });
     const attributeIdByValue = new Map(values.map((value) => [value.id, value.attributeId]));
 

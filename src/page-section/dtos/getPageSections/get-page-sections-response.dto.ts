@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { EntityType } from 'src/generated/prisma/client';
+import { EntityType } from 'src/database/schema';
 import { GetSectionResponseDto } from '../getSection/get-section-response.dto';
 
 export class PageSummaryDto {

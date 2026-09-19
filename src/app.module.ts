@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
-import { PrismaModule } from './prisma/prisma.module';
+import { DatabaseModule } from './database/database.module';
 import { CommonModule } from './common/common.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
@@ -26,7 +26,7 @@ import configuration from './config/configuration';
       serveRoot: '/uploads',
       serveStaticOptions: { index: false },
     }),
-    PrismaModule,
+    DatabaseModule,
     CommonModule,
     AuthModule,
     UsersModule,

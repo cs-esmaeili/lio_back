@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, eq } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { attributeValues, categories, categoryAttributes } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import type { CategoryDto, GetCategoriesResponseDto } from '../dtos/getCategories/get-categories-response.dto';
 import type { GetCategoryFiltersResponseDto } from '../dtos/getCategoryFilters/get-category-filters-response.dto';
@@ -7,20 +9,15 @@ import type { GetCategoryFiltersResponseDto } from '../dtos/getCategoryFilters/g
 @Injectable()
 export class CategoryService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly fileUrl: FileUrlService,
   ) {}
 
   async getCategories(): Promise<GetCategoriesResponseDto> {
-    const rows = await this.prisma.category.findMany({
-      orderBy: { id: 'asc' },
-      select: {
-        id: true,
-        parentId: true,
-        name: true,
-        slug: true,
-        image: { select: { path: true } },
-      },
+    const rows = await this.db.query.categories.findMany({
+      orderBy: asc(categories.id),
+      columns: { id: true, parentId: true, name: true, slug: true },
+      with: { image: { columns: { path: true } } },
     });
 
     const nodes = new Map<number, CategoryDto>();
@@ -34,46 +31,37 @@ export class CategoryService {
       });
     }
 
-    const categories: CategoryDto[] = [];
+    const rootCategories: CategoryDto[] = [];
     for (const row of rows) {
       const node = nodes.get(row.id)!;
       const parent = row.parentId !== null ? nodes.get(row.parentId) : undefined;
       if (parent) {
         parent.children.push(node);
       } else {
-        categories.push(node);
+        rootCategories.push(node);
       }
     }
 
-    return { categories };
+    return { categories: rootCategories };
   }
 
   async getCategoryFilters(slug: string): Promise<GetCategoryFiltersResponseDto> {
-    const category = await this.prisma.category.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
+    const category = await this.db.query.categories.findFirst({ where: eq(categories.slug, slug), columns: { id: true } });
     if (!category) {
       throw new NotFoundException('Category not found');
     }
 
-    const rows = await this.prisma.categoryAttribute.findMany({
-      where: { categoryId: category.id, isFilterable: true },
-      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-      select: {
-        isRequired: true,
-        sortOrder: true,
+    const rows = await this.db.query.categoryAttributes.findMany({
+      where: and(eq(categoryAttributes.categoryId, category.id), eq(categoryAttributes.isFilterable, true)),
+      orderBy: [asc(categoryAttributes.sortOrder), asc(categoryAttributes.id)],
+      columns: { isRequired: true, sortOrder: true },
+      with: {
         attribute: {
-          select: {
-            id: true,
-            name: true,
-            title: true,
-            usage: true,
-            filterType: true,
-            isMultiSelect: true,
+          columns: { id: true, name: true, title: true, usage: true, filterType: true, isMultiSelect: true },
+          with: {
             values: {
-              orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-              select: { id: true, value: true, sortOrder: true },
+              orderBy: [asc(attributeValues.sortOrder), asc(attributeValues.id)],
+              columns: { id: true, value: true, sortOrder: true },
             },
           },
         },
@@ -97,14 +85,14 @@ export class CategoryService {
 
   /** Resolve a category slug to its own id plus every descendant id. */
   async resolveIdsBySlug(slug: string): Promise<number[]> {
-    const category = await this.prisma.category.findUnique({ where: { slug }, select: { id: true } });
+    const category = await this.db.query.categories.findFirst({ where: eq(categories.slug, slug), columns: { id: true } });
     if (!category) {
       throw new NotFoundException('Category not found');
     }
 
-    const categories = await this.prisma.category.findMany({ select: { id: true, parentId: true } });
+    const all = await this.db.query.categories.findMany({ columns: { id: true, parentId: true } });
     const childrenByParent = new Map<number, number[]>();
-    for (const item of categories) {
+    for (const item of all) {
       if (item.parentId === null) {
         continue;
       }

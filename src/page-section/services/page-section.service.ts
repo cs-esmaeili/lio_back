@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
-import type { Page, PageSection } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, eq, isNull } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { PageSectionLocation, PageSectionStatus, PageSectionType, pageSections, pages } from 'src/database/schema';
 import { SliderSectionService } from './slider-section.service';
 import { ProductListSectionService } from './product-list-section.service';
 import { BannerSectionService } from './banner-section.service';
@@ -27,6 +27,9 @@ import type {
   UpdateSliderSlideDto,
 } from '../dtos/updateSectionData/update-section-data-request.dto';
 
+type PageSection = typeof pageSections.$inferSelect;
+type Page = typeof pages.$inferSelect;
+
 const DEFAULT_LOCATION: Record<PageSectionType, PageSectionLocation> = {
   [PageSectionType.SLIDER]: PageSectionLocation.SLIDER,
   [PageSectionType.PRODUCT_LIST]: PageSectionLocation.PRODUCT_LIST,
@@ -39,7 +42,7 @@ const DEFAULT_LOCATION: Record<PageSectionType, PageSectionLocation> = {
 @Injectable()
 export class PageSectionService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly sliderSectionService: SliderSectionService,
     private readonly productListSectionService: ProductListSectionService,
     private readonly bannerSectionService: BannerSectionService,
@@ -50,14 +53,15 @@ export class PageSectionService {
 
   async createSection(dto: CreateSectionRequestDto) {
     if (dto.pageId !== undefined) {
-      const page = await this.prisma.page.findUnique({ where: { id: dto.pageId }, select: { id: true } });
+      const page = await this.db.query.pages.findFirst({ where: eq(pages.id, dto.pageId), columns: { id: true } });
       if (!page) {
         throw new BadRequestException('Page not found');
       }
     }
 
-    const section = await this.prisma.pageSection.create({
-      data: {
+    const [section] = await this.db
+      .insert(pageSections)
+      .values({
         pageId: dto.pageId ?? null,
         type: dto.type,
         location: dto.location ?? DEFAULT_LOCATION[dto.type],
@@ -65,8 +69,8 @@ export class PageSectionService {
         link: dto.link ?? null,
         sortOrder: dto.sortOrder ?? 0,
         status: dto.status ?? PageSectionStatus.ACTIVE,
-      },
-    });
+      })
+      .returning();
 
     return this.getSection({ id: section.id });
   }
@@ -80,9 +84,9 @@ export class PageSectionService {
   async getPageSections(query: GetPageSectionsQueryDto) {
     const page = await this.findPageByEntity(query);
 
-    const sections = await this.prisma.pageSection.findMany({
-      where: { pageId: page.id, status: PageSectionStatus.ACTIVE },
-      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    const sections = await this.db.query.pageSections.findMany({
+      where: and(eq(pageSections.pageId, page.id), eq(pageSections.status, PageSectionStatus.ACTIVE)),
+      orderBy: [asc(pageSections.sortOrder), asc(pageSections.id)],
     });
 
     const data = await Promise.all(sections.map(async (section) => this.toResponse(section, await this.getSectionData(section))));
@@ -115,7 +119,7 @@ export class PageSectionService {
   }
 
   private async findSection(id: number): Promise<PageSection> {
-    const section = await this.prisma.pageSection.findUnique({ where: { id } });
+    const section = await this.db.query.pageSections.findFirst({ where: eq(pageSections.id, id) });
     if (!section) {
       throw new NotFoundException('Section not found');
     }
@@ -127,7 +131,7 @@ export class PageSectionService {
       throw new BadRequestException('Provide either id or location');
     }
 
-    const section = await this.prisma.pageSection.findFirst({ where: { location }, orderBy: { id: 'asc' } });
+    const section = await this.db.query.pageSections.findFirst({ where: eq(pageSections.location, location), orderBy: asc(pageSections.id) });
     if (!section) {
       throw new NotFoundException('Section not found');
     }
@@ -135,7 +139,10 @@ export class PageSectionService {
   }
 
   private async findPageByEntity(query: GetPageSectionsQueryDto): Promise<Page> {
-    const page = await this.prisma.page.findFirst({ where: { entityType: query.entityType, entityId: query.entityId ?? null } });
+    const entityId = query.entityId ?? null;
+    const page = await this.db.query.pages.findFirst({
+      where: and(eq(pages.entityType, query.entityType), entityId === null ? isNull(pages.entityId) : eq(pages.entityId, entityId)),
+    });
     if (!page) {
       throw new NotFoundException('Page not found');
     }

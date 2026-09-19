@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, eq, inArray } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { bannerSections, files } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
-import type { BannerSection } from 'src/generated/prisma/client';
 import type { UpdateBannerDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
 export type BannerItem = {
@@ -18,7 +19,7 @@ export type BannerItem = {
 
 export type BannerSectionData = { banners: BannerItem[] };
 
-type BannerRow = BannerSection & {
+type BannerRow = typeof bannerSections.$inferSelect & {
   desktopFile: { path: string } | null;
   tabletFile: { path: string } | null;
   mobileFile: { path: string } | null;
@@ -27,18 +28,18 @@ type BannerRow = BannerSection & {
 @Injectable()
 export class BannerSectionService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly fileUrl: FileUrlService,
   ) {}
 
   async list(sectionId: number): Promise<BannerSectionData> {
-    const rows = await this.prisma.bannerSection.findMany({
-      where: { sectionId },
-      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-      include: {
-        desktopFile: { select: { path: true } },
-        tabletFile: { select: { path: true } },
-        mobileFile: { select: { path: true } },
+    const rows = await this.db.query.bannerSections.findMany({
+      where: eq(bannerSections.sectionId, sectionId),
+      orderBy: [asc(bannerSections.sortOrder), asc(bannerSections.id)],
+      with: {
+        desktopFile: { columns: { path: true } },
+        tabletFile: { columns: { path: true } },
+        mobileFile: { columns: { path: true } },
       },
     });
     return { banners: this.toBanners(rows) };
@@ -48,18 +49,18 @@ export class BannerSectionService {
   async update(sectionId: number, banner: UpdateBannerDto): Promise<BannerSectionData> {
     await this.validateFiles(banner);
 
-    const existing = await this.prisma.bannerSection.findFirst({
-      where: { id: banner.id, sectionId },
-      select: { id: true },
+    const existing = await this.db.query.bannerSections.findFirst({
+      where: and(eq(bannerSections.id, banner.id), eq(bannerSections.sectionId, sectionId)),
+      columns: { id: true },
     });
     if (!existing) {
       throw new NotFoundException('Banner not found');
     }
 
     try {
-      await this.prisma.bannerSection.update({
-        where: { id: banner.id },
-        data: {
+      await this.db
+        .update(bannerSections)
+        .set({
           title: banner.title,
           subtitle: banner.subtitle ?? null,
           buttonTitle: banner.buttonTitle ?? null,
@@ -67,8 +68,8 @@ export class BannerSectionService {
           desktopFileId: banner.desktopFileId,
           tabletFileId: banner.tabletFileId,
           mobileFileId: banner.mobileFileId,
-        },
-      });
+        })
+        .where(eq(bannerSections.id, banner.id));
     } catch (error) {
       if (this.isForeignKeyViolation(error)) {
         throw new BadRequestException('One or more referenced files no longer exist');
@@ -102,13 +103,13 @@ export class BannerSectionService {
       return;
     }
 
-    const count = await this.prisma.file.count({ where: { id: { in: ids } } });
+    const count = await this.db.$count(files, inArray(files.id, ids));
     if (count !== ids.length) {
       throw new BadRequestException('One or more referenced files do not exist');
     }
   }
 
   private isForeignKeyViolation(error: unknown): boolean {
-    return typeof error === 'object' && error !== null && (error as { code?: string }).code === 'P2003';
+    return typeof error === 'object' && error !== null && (error as { code?: string }).code === '23503';
   }
 }

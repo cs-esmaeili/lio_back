@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { HeaderSectionType } from 'src/generated/prisma/client';
-import type { HeaderSection, Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { and, asc, eq, inArray } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { HeaderSectionType, categories, headerSections, siteSettings } from 'src/database/schema';
 import type { UpdateHeaderDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
 const LOGO_SETTING_KEY = 'logo';
@@ -36,6 +36,8 @@ export type HeaderSectionData = {
   items: HeaderItem[];
 };
 
+type HeaderSection = typeof headerSections.$inferSelect;
+
 type CategoryRow = {
   id: number;
   parentId: number | null;
@@ -45,19 +47,19 @@ type CategoryRow = {
 
 @Injectable()
 export class HeaderSectionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   async list(sectionId: number): Promise<HeaderSectionData> {
-    const [rows, categories, branding] = await Promise.all([
-      this.prisma.headerSection.findMany({
-        where: { sectionId },
-        orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    const [rows, categoryRows, branding] = await Promise.all([
+      this.db.query.headerSections.findMany({
+        where: eq(headerSections.sectionId, sectionId),
+        orderBy: [asc(headerSections.sortOrder), asc(headerSections.id)],
       }),
-      this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, parentId: true, name: true, slug: true } }),
+      this.db.query.categories.findMany({ orderBy: asc(categories.id), columns: { id: true, parentId: true, name: true, slug: true } }),
       this.loadBranding(),
     ]);
 
-    return { ...branding, items: rows.map((row) => this.toItem(row, categories)) };
+    return { ...branding, items: rows.map((row) => this.toItem(row, categoryRows)) };
   }
 
   /** Replace all header items that belong to the given section. */
@@ -73,26 +75,26 @@ export class HeaderSectionService {
       sortOrder: index,
     }));
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.headerSection.deleteMany({ where: { sectionId } });
+    await this.db.transaction(async (tx) => {
+      await tx.delete(headerSections).where(eq(headerSections.sectionId, sectionId));
       if (data.length > 0) {
-        await tx.headerSection.createMany({ data });
+        await tx.insert(headerSections).values(data);
       }
     });
 
     return this.list(sectionId);
   }
 
-  private toItem(section: HeaderSection, categories: CategoryRow[]): HeaderItem {
+  private toItem(section: HeaderSection, categoryRows: CategoryRow[]): HeaderItem {
     if (section.type === HeaderSectionType.CATEGORY && section.categoryId !== null) {
-      const category = categories.find((row) => row.id === section.categoryId);
+      const category = categoryRows.find((row) => row.id === section.categoryId);
       return {
         id: section.id,
         type: section.type,
         label: section.label ?? category?.name ?? '',
         url: category ? this.categoryUrl(category.slug) : null,
         categoryId: section.categoryId,
-        children: this.buildCategoryTree(categories, section.categoryId),
+        children: this.buildCategoryTree(categoryRows, section.categoryId),
       };
     }
 
@@ -106,9 +108,9 @@ export class HeaderSectionService {
     };
   }
 
-  private buildCategoryTree(categories: CategoryRow[], rootId: number): HeaderCategory[] {
+  private buildCategoryTree(categoryRows: CategoryRow[], rootId: number): HeaderCategory[] {
     const childrenByParent = new Map<number, CategoryRow[]>();
-    for (const category of categories) {
+    for (const category of categoryRows) {
       if (category.parentId === null) continue;
       const siblings = childrenByParent.get(category.parentId) ?? [];
       siblings.push(category);
@@ -132,9 +134,9 @@ export class HeaderSectionService {
 
   /** Branding values are stored as public site settings and surfaced with the header. */
   private async loadBranding(): Promise<Pick<HeaderSectionData, 'logo' | 'supportPhone' | 'slogan'>> {
-    const settings = await this.prisma.siteSetting.findMany({
-      where: { key: { in: [LOGO_SETTING_KEY, SUPPORT_PHONE_SETTING_KEY, SLOGAN_SETTING_KEY] }, isPrivate: false },
-      select: { key: true, data: true },
+    const settings = await this.db.query.siteSettings.findMany({
+      where: and(inArray(siteSettings.key, [LOGO_SETTING_KEY, SUPPORT_PHONE_SETTING_KEY, SLOGAN_SETTING_KEY]), eq(siteSettings.isPrivate, false)),
+      columns: { key: true, data: true },
     });
 
     const dataByKey = new Map(settings.map((setting) => [setting.key, setting.data]));
@@ -149,7 +151,7 @@ export class HeaderSectionService {
     };
   }
 
-  private readString(data: Prisma.JsonValue | undefined, field: string): string | null {
+  private readString(data: unknown, field: string): string | null {
     if (data === undefined || data === null || typeof data !== 'object' || Array.isArray(data)) {
       return null;
     }
@@ -179,7 +181,7 @@ export class HeaderSectionService {
     }
 
     if (uniqueIds.size > 0) {
-      const count = await this.prisma.category.count({ where: { id: { in: [...uniqueIds] } } });
+      const count = await this.db.$count(categories, inArray(categories.id, [...uniqueIds]));
       if (count !== uniqueIds.size) {
         throw new BadRequestException('One or more referenced categories do not exist');
       }

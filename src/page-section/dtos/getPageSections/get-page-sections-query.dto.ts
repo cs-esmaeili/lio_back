@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional } from 'class-validator';
-import { EntityType } from 'src/generated/prisma/client';
+import { EntityType } from 'src/database/schema';
 
 export class GetPageSectionsQueryDto {
   @ApiProperty({ enum: EntityType, enumName: 'EntityType', example: EntityType.HOME })

@@ -64,10 +64,10 @@ export class ProductRepository {
    * clause (category scope, attribute filters, and future general filters) and
    * this method owns the projection, so the product shape stays consistent.
    */
-  async findSummaries(where: SQL | undefined = undefined, options: { skip?: number; take?: number } = {}): Promise<ProductSummary[]> {
+  async findSummaries(where: SQL | undefined = undefined, options: { skip?: number; take?: number; orderBy?: SQL | SQL[] } = {}): Promise<ProductSummary[]> {
     const rows = await this.db.query.products.findMany({
       where,
-      orderBy: desc(products.id),
+      orderBy: options.orderBy ?? desc(products.id),
       offset: options.skip,
       limit: options.take,
       columns: { id: true, name: true, slug: true },

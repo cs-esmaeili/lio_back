@@ -6,6 +6,8 @@ import { FileUrlService } from 'src/common/services/file-url.service';
 import { PaginationService } from 'src/common/services/pagination.service';
 import { CategoryService } from 'src/category/services/category.service';
 import { ProductRepository } from '../repositories/product.repository';
+import { ProductGlobalFilterService } from './product-global-filter.service';
+import { ProductSortService } from './product-sort.service';
 import type { SearchProductsFilterDto, SearchProductsRequestDto } from '../dtos/searchProducts/search-products-request.dto';
 import type { SearchProductsResponseDto } from '../dtos/searchProducts/search-products-response.dto';
 
@@ -14,6 +16,8 @@ export class ProductSearchService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly productRepository: ProductRepository,
+    private readonly globalFilters: ProductGlobalFilterService,
+    private readonly sorts: ProductSortService,
     private readonly categories: CategoryService,
     private readonly pagination: PaginationService,
     private readonly fileUrl: FileUrlService,
@@ -24,10 +28,19 @@ export class ProductSearchService {
     const filters = this.normalizeFilters(dto.filters ?? []);
     await this.validateFilters(filters);
 
-    const where = this.buildWhere(categoryIds, filters);
+    const where = and(
+      this.buildAttributeWhere(categoryIds, filters),
+      ...this.globalFilters.buildWhere({
+        minPrice: dto.minPrice,
+        maxPrice: dto.maxPrice,
+        inStock: dto.inStock,
+        hasDiscount: dto.hasDiscount,
+      }),
+    )!;
+    const orderBy = this.sorts.buildOrderBy(dto.sort);
     const { page, limit, skip, take } = this.pagination.resolveOffset(dto);
 
-    const [products, total] = await Promise.all([this.productRepository.findSummaries(where, { skip, take }), this.productRepository.count(where)]);
+    const [products, total] = await Promise.all([this.productRepository.findSummaries(where, { skip, take, orderBy }), this.productRepository.count(where)]);
 
     return {
       products: products.map((product) => ({
@@ -54,7 +67,7 @@ export class ProductSearchService {
    * a single variant that satisfies every attribute group. Within one group the
    * value ids are OR-ed, across groups they are AND-ed.
    */
-  private buildWhere(categoryIds: number[], filters: SearchProductsFilterDto[]): SQL {
+  private buildAttributeWhere(categoryIds: number[], filters: SearchProductsFilterDto[]): SQL {
     // The relational API has no `some` filtering, so relation scopes are expressed as EXISTS subqueries.
     const conditions: SQL[] = [
       exists(

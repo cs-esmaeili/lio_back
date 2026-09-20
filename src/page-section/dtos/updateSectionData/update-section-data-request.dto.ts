@@ -1,7 +1,7 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { FooterSectionType, HeaderSectionType, PageSectionType } from 'src/generated/prisma/client';
+import { FooterSectionType, HeaderSectionType, PageSectionType } from 'src/database/schema';
 
 export class UpdateSliderSlideDto {
   @ApiProperty({ example: 11 })

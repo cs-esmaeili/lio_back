@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
+import { PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/database/schema';
 
 export class CreateSectionRequestDto {
   @ApiPropertyOptional({ example: 1, nullable: true, description: 'Owning page id; omit for a global (page-less) section' })

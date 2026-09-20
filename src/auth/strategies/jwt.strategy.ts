@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { CookieService } from '../services/cookie.service';
 import { SessionService } from '../services/session.service';
 import { UsersService } from 'src/users/users.service';
-import { UserStatus } from 'src/generated/prisma/client';
+import { UserStatus } from 'src/database/schema';
 
 interface JwtPayload {
   sub: string;

@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, eq, inArray } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { files, sliderSections } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
-import type { SliderSection } from 'src/generated/prisma/client';
 import type { UpdateSliderSlideDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
 export type SliderSlide = {
@@ -14,7 +15,7 @@ export type SliderSlide = {
 
 export type SliderSectionData = { slides: SliderSlide[] };
 
-type SlideRow = SliderSection & {
+type SlideRow = typeof sliderSections.$inferSelect & {
   desktopFile: { path: string } | null;
   tabletFile: { path: string } | null;
   mobileFile: { path: string } | null;
@@ -23,18 +24,18 @@ type SlideRow = SliderSection & {
 @Injectable()
 export class SliderSectionService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly fileUrl: FileUrlService,
   ) {}
 
   async list(sectionId: number): Promise<SliderSectionData> {
-    const rows = await this.prisma.sliderSection.findMany({
-      where: { sectionId },
-      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-      include: {
-        desktopFile: { select: { path: true } },
-        tabletFile: { select: { path: true } },
-        mobileFile: { select: { path: true } },
+    const rows = await this.db.query.sliderSections.findMany({
+      where: eq(sliderSections.sectionId, sectionId),
+      orderBy: [asc(sliderSections.sortOrder), asc(sliderSections.id)],
+      with: {
+        desktopFile: { columns: { path: true } },
+        tabletFile: { columns: { path: true } },
+        mobileFile: { columns: { path: true } },
       },
     });
     return { slides: this.toSlides(rows) };
@@ -44,24 +45,24 @@ export class SliderSectionService {
   async update(sectionId: number, slide: UpdateSliderSlideDto): Promise<SliderSectionData> {
     await this.validateFiles(slide);
 
-    const existing = await this.prisma.sliderSection.findFirst({
-      where: { id: slide.id, sectionId },
-      select: { id: true },
+    const existing = await this.db.query.sliderSections.findFirst({
+      where: and(eq(sliderSections.id, slide.id), eq(sliderSections.sectionId, sectionId)),
+      columns: { id: true },
     });
     if (!existing) {
       throw new NotFoundException('Slider slide not found');
     }
 
     try {
-      await this.prisma.sliderSection.update({
-        where: { id: slide.id },
-        data: {
+      await this.db
+        .update(sliderSections)
+        .set({
           desktopFileId: slide.desktopFileId ?? null,
           tabletFileId: slide.tabletFileId ?? null,
           mobileFileId: slide.mobileFileId ?? null,
           url: slide.url ?? null,
-        },
-      });
+        })
+        .where(eq(sliderSections.id, slide.id));
     } catch (error) {
       if (this.isForeignKeyViolation(error)) {
         throw new BadRequestException('One or more referenced files no longer exist');
@@ -91,13 +92,13 @@ export class SliderSectionService {
       return;
     }
 
-    const count = await this.prisma.file.count({ where: { id: { in: ids } } });
+    const count = await this.db.$count(files, inArray(files.id, ids));
     if (count !== ids.length) {
       throw new BadRequestException('One or more referenced files do not exist');
     }
   }
 
   private isForeignKeyViolation(error: unknown): boolean {
-    return typeof error === 'object' && error !== null && (error as { code?: string }).code === 'P2003';
+    return typeof error === 'object' && error !== null && (error as { code?: string }).code === '23503';
   }
 }

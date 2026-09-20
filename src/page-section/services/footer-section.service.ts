@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { FooterSectionType } from 'src/generated/prisma/client';
-import type { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { and, asc, eq, inArray } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { FooterSectionType, categories, files, footerSections, siteSettings } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import type { UpdateFooterDto } from '../dtos/updateSectionData/update-section-data-request.dto';
 
@@ -39,18 +39,18 @@ export type FooterSectionData = {
 @Injectable()
 export class FooterSectionService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     private readonly fileUrl: FileUrlService,
   ) {}
 
   async list(sectionId: number): Promise<FooterSectionData> {
-    const [rows, categories, branding] = await Promise.all([
-      this.prisma.footerSection.findMany({
-        where: { sectionId },
-        orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-        include: { file: { select: { path: true } } },
+    const [rows, categoryRows, branding] = await Promise.all([
+      this.db.query.footerSections.findMany({
+        where: eq(footerSections.sectionId, sectionId),
+        orderBy: [asc(footerSections.sortOrder), asc(footerSections.id)],
+        with: { file: { columns: { path: true } } },
       }),
-      this.prisma.category.findMany({ orderBy: { id: 'asc' }, select: { id: true, name: true, slug: true } }),
+      this.db.query.categories.findMany({ orderBy: asc(categories.id), columns: { id: true, name: true, slug: true } }),
       this.loadBranding(),
     ]);
 
@@ -59,7 +59,7 @@ export class FooterSectionService {
 
     for (const row of rows) {
       if (row.type === FooterSectionType.CATEGORY && row.categoryId !== null) {
-        const category = categories.find((candidate) => candidate.id === row.categoryId);
+        const category = categoryRows.find((candidate) => candidate.id === row.categoryId);
         categoryItems.push({
           id: row.categoryId,
           name: category?.name ?? '',
@@ -97,10 +97,10 @@ export class FooterSectionService {
     }));
 
     try {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.footerSection.deleteMany({ where: { sectionId } });
+      await this.db.transaction(async (tx) => {
+        await tx.delete(footerSections).where(eq(footerSections.sectionId, sectionId));
         if (data.length > 0) {
-          await tx.footerSection.createMany({ data });
+          await tx.insert(footerSections).values(data);
         }
       });
     } catch (error) {
@@ -119,9 +119,9 @@ export class FooterSectionService {
 
   /** Site branding (logo, description, slogan) is stored as site settings and surfaced with the footer. */
   private async loadBranding(): Promise<Pick<FooterSectionData, 'logo' | 'description' | 'slogan' | 'supportPhone'>> {
-    const settings = await this.prisma.siteSetting.findMany({
-      where: { key: { in: [...BRANDING_SETTING_KEYS] }, isPrivate: false },
-      select: { key: true, data: true },
+    const settings = await this.db.query.siteSettings.findMany({
+      where: and(inArray(siteSettings.key, [...BRANDING_SETTING_KEYS]), eq(siteSettings.isPrivate, false)),
+      columns: { key: true, data: true },
     });
 
     const dataByKey = new Map(settings.map((setting) => [setting.key, setting.data]));
@@ -137,7 +137,7 @@ export class FooterSectionService {
     };
   }
 
-  private readString(data: Prisma.JsonValue | undefined, field: string): string | null {
+  private readString(data: unknown, field: string): string | null {
     if (data === undefined || data === null || typeof data !== 'object' || Array.isArray(data)) {
       return null;
     }
@@ -172,7 +172,7 @@ export class FooterSectionService {
     }
 
     if (uniqueCategoryIds.size > 0) {
-      const count = await this.prisma.category.count({ where: { id: { in: [...uniqueCategoryIds] } } });
+      const count = await this.db.$count(categories, inArray(categories.id, [...uniqueCategoryIds]));
       if (count !== uniqueCategoryIds.size) {
         throw new BadRequestException('One or more referenced categories do not exist');
       }
@@ -180,7 +180,7 @@ export class FooterSectionService {
 
     const uniqueFileIds = new Set(fileIds);
     if (uniqueFileIds.size > 0) {
-      const count = await this.prisma.file.count({ where: { id: { in: [...uniqueFileIds] } } });
+      const count = await this.db.$count(files, inArray(files.id, [...uniqueFileIds]));
       if (count !== uniqueFileIds.size) {
         throw new BadRequestException('One or more referenced files do not exist');
       }
@@ -188,6 +188,6 @@ export class FooterSectionService {
   }
 
   private isForeignKeyViolation(error: unknown): boolean {
-    return typeof error === 'object' && error !== null && (error as { code?: string }).code === 'P2003';
+    return typeof error === 'object' && error !== null && (error as { code?: string }).code === '23503';
   }
 }

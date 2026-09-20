@@ -16,7 +16,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
 import { DevAuthGuard } from './guards/dev-auth.guard';
 import { Public } from './decorators/public.decorator';
-import { OtpPurpose, UserStatus } from 'src/generated/prisma/client';
+import { OtpPurpose, UserStatus } from 'src/database/schema';
 import { RequestOtpRequestDto } from './dtos/requestOtp/request-otp-request.dto';
 import { RequestOtpResponseDto } from './dtos/requestOtp/request-otp-response.dto';
 import { VerifyOtpRequestDto } from './dtos/verifyOtp/verify-otp-request.dto';

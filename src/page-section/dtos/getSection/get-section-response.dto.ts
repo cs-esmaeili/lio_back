@@ -1,5 +1,5 @@
 import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
-import { HeaderSectionType, PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/generated/prisma/client';
+import { HeaderSectionType, PageSectionLocation, PageSectionStatus, PageSectionType } from 'src/database/schema';
 
 export class SliderSlideDto {
   @ApiProperty({ example: 11 })

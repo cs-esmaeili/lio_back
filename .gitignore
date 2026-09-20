@@ -4,9 +4,6 @@
 /node_modules
 /build
 
-# generated Prisma client
-/src/generated/prisma
-
 # generated API docs
 /api
 

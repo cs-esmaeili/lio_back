@@ -1,6 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { eq, inArray, like } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { files } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import { createHash, randomBytes } from 'node:crypto';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
@@ -52,7 +54,7 @@ export class FileManagerService {
   private readonly uploadsDir: string;
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DATABASE) private readonly db: Database,
     config: ConfigService,
     private readonly fileUrl: FileUrlService,
   ) {
@@ -85,13 +87,16 @@ export class FileManagerService {
     }
 
     const records = fileDirents.length
-      ? await this.prisma.file.findMany({
-          where: { storedName: { in: fileDirents.map((f) => f.name) } },
+      ? await this.db.query.files.findMany({
+          where: inArray(
+            files.storedName,
+            fileDirents.map((f) => f.name),
+          ),
         })
       : [];
     const byStoredName = new Map(records.map((record) => [record.storedName, record]));
 
-    const files: FileEntry[] = fileDirents.map((file) => {
+    const fileEntries: FileEntry[] = fileDirents.map((file) => {
       const record = byStoredName.get(file.name);
       return {
         type: 'file',
@@ -105,41 +110,42 @@ export class FileManagerService {
       };
     });
 
-    return { path: rel, entries: [...folders, ...files] };
+    return { path: rel, entries: [...folders, ...fileEntries] };
   }
 
-  async uploadFiles(files: UploadedFileInput[], relativePath: string, uploaderId: number): Promise<FileRecord[]> {
+  async uploadFiles(uploadedFiles: UploadedFileInput[], relativePath: string, uploaderId: number): Promise<FileRecord[]> {
     const rel = this.normalizeRelative(relativePath);
     const dir = this.resolveSafe(rel);
     await mkdir(dir, { recursive: true });
 
     const created: FileRecord[] = [];
-    for (const file of files) {
+    for (const file of uploadedFiles) {
       const storedName = this.buildStoredName(file.originalname, file.buffer);
       const filePath = this.joinRelative(rel, storedName);
       await writeFile(join(dir, storedName), file.buffer);
-      const record = await this.prisma.file.create({
-        data: {
+      const [record] = await this.db
+        .insert(files)
+        .values({
           originalName: file.originalname,
           storedName,
           path: filePath,
           mimeType: file.mimetype,
           size: file.size,
           uploaderId,
-        },
-      });
+        })
+        .returning();
       created.push(record);
     }
     return created;
   }
 
   async deleteFile(id: number) {
-    const record = await this.prisma.file.findUnique({ where: { id } });
+    const record = await this.db.query.files.findFirst({ where: eq(files.id, id) });
     if (!record) {
       throw new NotFoundException('File not found');
     }
     await rm(this.resolveSafe(record.path), { force: true });
-    await this.prisma.file.delete({ where: { id } });
+    await this.db.delete(files).where(eq(files.id, id));
     return { ok: true };
   }
 
@@ -156,9 +162,7 @@ export class FileManagerService {
       throw new BadRequestException('Cannot delete the uploads root folder');
     }
     await rm(dir, { recursive: true, force: true });
-    await this.prisma.file.deleteMany({
-      where: { path: { startsWith: `${rel}/` } },
-    });
+    await this.db.delete(files).where(like(files.path, `${rel}/%`));
     return { ok: true };
   }
 

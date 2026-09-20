@@ -1,26 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import { DATABASE, type Database } from 'src/database/database.constants';
+import { users } from 'src/database/schema';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   findByUsername(username: string) {
-    return this.prisma.user.findUnique({ where: { username } });
+    return this.db.query.users.findFirst({ where: eq(users.username, username) });
   }
 
   findById(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.db.query.users.findFirst({ where: eq(users.id, id) });
   }
 
-  createByUsername(username: string) {
-    return this.prisma.user.create({ data: { username } });
+  async createByUsername(username: string) {
+    const [user] = await this.db.insert(users).values({ username }).returning();
+    return user;
   }
 
-  setPassword(userId: number, passwordHash: string) {
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    });
+  async setPassword(userId: number, passwordHash: string) {
+    const [user] = await this.db.update(users).set({ passwordHash }).where(eq(users.id, userId)).returning();
+    return user;
   }
 }

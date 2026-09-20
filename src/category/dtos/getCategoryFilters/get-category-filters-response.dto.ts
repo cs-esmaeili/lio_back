@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AttributeUsage, FilterType } from 'src/generated/prisma/client';
+import { AttributeUsage, FilterType } from 'src/database/schema';
 
 export class CategoryFilterValueDto {
   @ApiProperty({ example: 12 })

@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional } from 'class-validator';
-import { PageSectionLocation } from 'src/generated/prisma/client';
+import { PageSectionLocation } from 'src/database/schema';
 
 export class GetSectionQueryDto {
   @ApiPropertyOptional({ example: 50, description: 'Page section id. Takes precedence over location when provided.' })

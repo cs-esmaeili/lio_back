@@ -4,12 +4,13 @@ import { ProductPublicController } from './product-public.controller';
 import { ProductSearchService } from './services/product-search.service';
 import { ProductGlobalFilterService } from './services/product-global-filter.service';
 import { ProductSortService } from './services/product-sort.service';
+import { ProductDetailService } from './services/product-detail.service';
 import { ProductRepository } from './repositories/product.repository';
 
 @Module({
   imports: [CategoryModule],
   controllers: [ProductPublicController],
-  providers: [ProductRepository, ProductSearchService, ProductGlobalFilterService, ProductSortService],
+  providers: [ProductRepository, ProductSearchService, ProductGlobalFilterService, ProductSortService, ProductDetailService],
   exports: [ProductRepository],
 })
 export class ProductModule {}

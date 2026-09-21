@@ -3739,6 +3739,95 @@
         ]
       }
     },
+    "/products/{slug}/details": {
+      "get": {
+        "operationId": "ProductPublicController_getProductDetails",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "description": "Product slug",
+            "schema": {
+              "example": "kamel-compact-abi",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product details with specifications, variant prices and related product lists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetProductDetailsResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the full single-product page payload by product slug",
+        "tags": [
+          "ProductPublic"
+        ]
+      }
+    },
     "/categories": {
       "get": {
         "operationId": "CategoryPublicController_getCategories",
@@ -6361,6 +6450,503 @@
         "required": [
           "products",
           "pagination"
+        ]
+      },
+      "ProductDetailsImageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 7
+          },
+          "url": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true
+          },
+          "isThumbnail": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "isPrimary",
+          "isThumbnail",
+          "sortOrder"
+        ]
+      },
+      "ProductDetailsCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 224
+          },
+          "name": {
+            "type": "string",
+            "example": "سیگار"
+          },
+          "slug": {
+            "type": "string",
+            "example": "sigar"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "/uploads/images/category.png",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "imageUrl"
+        ]
+      },
+      "ProductDetailsTagDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 42
+          },
+          "name": {
+            "type": "string",
+            "example": "ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "irani"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "ProductVariantValueDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1,
+            "description": "Variant-defining attribute id"
+          },
+          "attributeTitle": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "valueId": {
+            "type": "number",
+            "example": 1,
+            "description": "Attribute value id"
+          },
+          "valueTitle": {
+            "type": "string",
+            "example": "قرمز"
+          }
+        },
+        "required": [
+          "attributeId",
+          "attributeTitle",
+          "valueId",
+          "valueTitle"
+        ]
+      },
+      "ProductVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744,
+            "description": "Variant id"
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "values": {
+            "description": "One entry per variant-defining attribute. A selection matches this variant when every entry matches the selected value of its attribute.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantValueDto"
+            }
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Selling price"
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true,
+            "description": "Reference price before discount"
+          },
+          "discountPercent": {
+            "type": "number",
+            "example": 3,
+            "description": "Discount percentage derived from compareAtPrice"
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "example": true
+          },
+          "zeroPrice": {
+            "type": "string",
+            "example": "call",
+            "nullable": true,
+            "description": "Set to \"call\" when the variant has no price"
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "values",
+          "price",
+          "compareAtPrice",
+          "discountPercent",
+          "stock",
+          "isAvailable",
+          "zeroPrice"
+        ]
+      },
+      "ProductDetailsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          },
+          "description": {
+            "type": "string",
+            "example": "<p>معرفی محصول</p>",
+            "nullable": true
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDetailsImageDto"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDetailsCategoryDto"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDetailsTagDto"
+            }
+          },
+          "defaultVariant": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductVariantDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "images",
+          "categories",
+          "tags",
+          "defaultVariant"
+        ]
+      },
+      "ProductBaseAttributeValueDto": {
+        "type": "object",
+        "properties": {
+          "valueId": {
+            "type": "number",
+            "example": 1,
+            "description": "Attribute value id"
+          },
+          "title": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "isSelected": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the default variant uses this value"
+          }
+        },
+        "required": [
+          "valueId",
+          "title",
+          "isSelected"
+        ]
+      },
+      "ProductBaseAttributeDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1,
+            "description": "Variant-defining attribute id"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductBaseAttributeValueDto"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "title",
+          "values"
+        ]
+      },
+      "ProductAttributeGroupItemDto": {
+        "type": "object",
+        "properties": {
+          "valueId": {
+            "type": "number",
+            "example": 12,
+            "description": "Attribute value id"
+          },
+          "title": {
+            "type": "string",
+            "example": "جنس"
+          },
+          "value": {
+            "type": "string",
+            "example": "چرم"
+          }
+        },
+        "required": [
+          "valueId",
+          "title",
+          "value"
+        ]
+      },
+      "ProductAttributeGroupDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 3,
+            "description": "Attribute id"
+          },
+          "title": {
+            "type": "string",
+            "example": "جنس"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductAttributeGroupItemDto"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "title",
+          "attributes"
+        ]
+      },
+      "ProductCardImageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 7
+          },
+          "url": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true
+          },
+          "isThumbnail": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "isPrimary",
+          "isThumbnail",
+          "sortOrder"
+        ]
+      },
+      "ProductCardVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 5
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 123000
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 173000,
+            "nullable": true
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "ProductCardDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 11
+          },
+          "name": {
+            "type": "string",
+            "example": "محصول ۱"
+          },
+          "slug": {
+            "type": "string",
+            "example": "product-name"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCardImageDto"
+            }
+          },
+          "defaultVariant": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductCardVariantDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "images",
+          "defaultVariant"
+        ]
+      },
+      "ProductDetailSectionsDto": {
+        "type": "object",
+        "properties": {
+          "similar": {
+            "description": "Products sharing at least one category with the requested product",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCardDto"
+            }
+          },
+          "newProducts": {
+            "description": "Newest products across the catalogue",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCardDto"
+            }
+          }
+        },
+        "required": [
+          "similar",
+          "newProducts"
+        ]
+      },
+      "GetProductDetailsResponseDto": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "$ref": "#/components/schemas/ProductDetailsDto"
+          },
+          "baseAttributes": {
+            "description": "Variant-defining attributes and the values the buyer can pick. Every combination of one value per attribute is a variant in `variants`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductBaseAttributeDto"
+            }
+          },
+          "attributeGroups": {
+            "description": "Spec (non variant-defining) attributes and their values for this product.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductAttributeGroupDto"
+            }
+          },
+          "variants": {
+            "description": "Every variant of the product. Each variant is one combination of the base attributes and carries its own price and stock.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantDto"
+            }
+          },
+          "sections": {
+            "$ref": "#/components/schemas/ProductDetailSectionsDto"
+          }
+        },
+        "required": [
+          "product",
+          "baseAttributes",
+          "attributeGroups",
+          "variants",
+          "sections"
         ]
       },
       "CategoryDto": {

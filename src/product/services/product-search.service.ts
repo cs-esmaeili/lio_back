@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, eq, exists, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, eq, exists, ilike, inArray, sql, type SQL } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { attributeValues, productAttributeValues, productCategories, products, productVariants, variantAttributeValues } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
@@ -24,19 +24,24 @@ export class ProductSearchService {
   ) {}
 
   async searchProducts(dto: SearchProductsRequestDto): Promise<SearchProductsResponseDto> {
-    const categoryIds = await this.categories.resolveIdsBySlug(dto.categorySlug);
+    // The category scope is optional: without a slug the search runs across the whole catalogue.
+    const categoryIds = dto.categorySlug ? await this.categories.resolveIdsBySlug(dto.categorySlug) : undefined;
     const filters = this.normalizeFilters(dto.filters ?? []);
     await this.validateFilters(filters);
+    const name = dto.name?.trim();
 
-    const where = and(
-      this.buildAttributeWhere(categoryIds, filters),
+    const conditions = [
+      ...(categoryIds ? [this.buildCategoryWhere(categoryIds)] : []),
+      ...(filters.length ? [this.buildAttributeWhere(filters)] : []),
+      ...(name ? [this.buildNameWhere(name)] : []),
       ...this.globalFilters.buildWhere({
         minPrice: dto.minPrice,
         maxPrice: dto.maxPrice,
         inStock: dto.inStock,
         hasDiscount: dto.hasDiscount,
       }),
-    )!;
+    ];
+    const where = conditions.length ? and(...conditions) : undefined;
     const orderBy = this.sorts.buildOrderBy(dto.sort);
     const { page, limit, skip, take } = this.pagination.resolveOffset(dto);
 
@@ -60,55 +65,60 @@ export class ProductSearchService {
     };
   }
 
+  /** Category scope: the product belongs to any of the resolved (self + descendant) category ids. */
+  private buildCategoryWhere(categoryIds: number[]): SQL {
+    // The relational API has no `some` filtering, so relation scopes are expressed as EXISTS subqueries.
+    return exists(
+      this.db
+        .select({ value: sql`1` })
+        .from(productCategories)
+        .where(and(eq(productCategories.productId, products.id), inArray(productCategories.categoryId, categoryIds))),
+    );
+  }
+
   /**
-   * Category scope plus attribute filters.
+   * Attribute filters.
    *
    * Attribute filters use the variant-combination semantics: a product must have
    * a single variant that satisfies every attribute group. Within one group the
    * value ids are OR-ed, across groups they are AND-ed.
    */
-  private buildAttributeWhere(categoryIds: number[], filters: SearchProductsFilterDto[]): SQL {
-    // The relational API has no `some` filtering, so relation scopes are expressed as EXISTS subqueries.
-    const conditions: SQL[] = [
-      exists(
-        this.db
-          .select({ value: sql`1` })
-          .from(productCategories)
-          .where(and(eq(productCategories.productId, products.id), inArray(productCategories.categoryId, categoryIds))),
-      ),
-    ];
-
-    if (filters.length) {
-      conditions.push(
-        exists(
-          this.db
-            .select({ value: sql`1` })
-            .from(productVariants)
-            .where(
-              and(
-                eq(productVariants.productId, products.id),
-                ...filters.map((filter) =>
-                  exists(
-                    this.db
-                      .select({ value: sql`1` })
-                      .from(variantAttributeValues)
-                      .innerJoin(productAttributeValues, eq(variantAttributeValues.productAttributeValueId, productAttributeValues.id))
-                      .where(
-                        and(
-                          eq(variantAttributeValues.variantId, productVariants.id),
-                          eq(productAttributeValues.attributeId, filter.attributeId),
-                          inArray(productAttributeValues.attributeValueId, filter.valueIds),
-                        ),
-                      ),
+  private buildAttributeWhere(filters: SearchProductsFilterDto[]): SQL {
+    return exists(
+      this.db
+        .select({ value: sql`1` })
+        .from(productVariants)
+        .where(
+          and(
+            eq(productVariants.productId, products.id),
+            ...filters.map((filter) =>
+              exists(
+                this.db
+                  .select({ value: sql`1` })
+                  .from(variantAttributeValues)
+                  .innerJoin(productAttributeValues, eq(variantAttributeValues.productAttributeValueId, productAttributeValues.id))
+                  .where(
+                    and(
+                      eq(variantAttributeValues.variantId, productVariants.id),
+                      eq(productAttributeValues.attributeId, filter.attributeId),
+                      inArray(productAttributeValues.attributeValueId, filter.valueIds),
+                    ),
                   ),
-                ),
               ),
             ),
+          ),
         ),
-      );
-    }
+    );
+  }
 
-    return and(...conditions)!;
+  /** Case-insensitive substring match on the product name. */
+  private buildNameWhere(name: string): SQL {
+    return ilike(products.name, `%${this.escapeLikePattern(name)}%`);
+  }
+
+  /** Escape LIKE wildcards so the user input is matched literally. */
+  private escapeLikePattern(value: string): string {
+    return value.replace(/[\\%_]/g, '\\$&');
   }
 
   /** Merge duplicate attribute groups so each attribute id appears once. */

@@ -33,10 +33,10 @@ export class ProductPublicController {
     return this.sorts.listOptions();
   }
 
-  @ApiOperation({ summary: 'Search products by category slug, attribute filters, global filters and sort' })
-  @ApiOkResponse({ description: 'Products matching the category and variant filters', type: SearchProductsResponseDto })
+  @ApiOperation({ summary: 'Search products by optional name, category slug, attribute filters, global filters and sort' })
+  @ApiOkResponse({ description: 'Products matching the name, category and variant filters', type: SearchProductsResponseDto })
   @ApiBadRequestResponse({ description: 'Unknown attribute value or value/attribute mismatch' })
-  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiNotFoundResponse({ description: 'Category not found (only when categorySlug is provided)' })
   @Post('search')
   searchProducts(@Body() body: SearchProductsRequestDto): Promise<SearchProductsResponseDto> {
     return this.products.searchProducts(body);

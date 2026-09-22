@@ -3629,7 +3629,7 @@
         },
         "responses": {
           "200": {
-            "description": "Products matching the category and variant filters",
+            "description": "Products matching the name, category and variant filters",
             "content": {
               "application/json": {
                 "schema": {
@@ -3695,7 +3695,7 @@
             }
           },
           "404": {
-            "description": "Category not found",
+            "description": "Category not found (only when categorySlug is provided)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3733,7 +3733,7 @@
             }
           }
         },
-        "summary": "Search products by category slug, attribute filters, global filters and sort",
+        "summary": "Search products by optional name, category slug, attribute filters, global filters and sort",
         "tags": [
           "ProductPublic"
         ]
@@ -6238,7 +6238,13 @@
         "properties": {
           "categorySlug": {
             "type": "string",
-            "example": "clothing"
+            "example": "clothing",
+            "description": "Category scope. When omitted, products are searched across the whole catalogue."
+          },
+          "name": {
+            "type": "string",
+            "example": "کامل",
+            "description": "Case-insensitive substring match on the product name"
           },
           "filters": {
             "description": "Attribute value filters. AND across attributes, matched on a single variant.",
@@ -6287,10 +6293,7 @@
             "default": 20,
             "description": "Page size. Defaults to 20 and is capped at 100."
           }
-        },
-        "required": [
-          "categorySlug"
-        ]
+        }
       },
       "SearchProductImageDto": {
         "type": "object",

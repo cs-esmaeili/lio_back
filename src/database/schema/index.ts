@@ -4,6 +4,7 @@ export * from './attribute';
 export * from './attribute-value';
 export * from './auth-session';
 export * from './banner-section';
+export * from './cart';
 export * from './category';
 export * from './category-attribute';
 export * from './file';

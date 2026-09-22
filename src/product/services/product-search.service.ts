@@ -10,6 +10,8 @@ import { ProductGlobalFilterService } from './product-global-filter.service';
 import { ProductSortService } from './product-sort.service';
 import type { SearchProductsFilterDto, SearchProductsRequestDto } from '../dtos/searchProducts/search-products-request.dto';
 import type { SearchProductsResponseDto } from '../dtos/searchProducts/search-products-response.dto';
+import type { GetSearchConfigRequestDto } from '../dtos/getSearchConfig/get-search-config-request.dto';
+import type { GetSearchConfigResponseDto } from '../dtos/getSearchConfig/get-search-config-response.dto';
 
 @Injectable()
 export class ProductSearchService {
@@ -62,6 +64,22 @@ export class ProductSearchService {
         defaultVariant: product.defaultVariant,
       })),
       pagination: this.pagination.buildMeta(page, limit, total),
+    };
+  }
+
+  /**
+   * The full config a listing page needs in one round-trip.
+   *
+   * Global filters and sort options are static, so they are returned as-is;
+   * category filters are only fetched when a category scope is provided.
+   */
+  async getSearchConfig(dto: GetSearchConfigRequestDto): Promise<GetSearchConfigResponseDto> {
+    const categoryFilters = dto.categorySlug ? (await this.categories.getCategoryFilters(dto.categorySlug)).filters : null;
+
+    return {
+      globalFilters: this.globalFilters.listDefinitions().filters,
+      sorts: this.sorts.listOptions().sorts,
+      categoryFilters,
     };
   }
 

@@ -310,7 +310,8 @@ function onLoggedOut(): void {
 
 ### تله ۹ — CORS و Origin
 - فرانت باید `credentials: 'include'` بزند تا کوکی‌ها بروند.
-- `assertOrigin` در CSRF، هدر `Origin` را با `APP_ORIGIN` بک چک می‌کند. اگر origin فرانت با `APP_ORIGIN` یکی نباشد → `403 Invalid origin` (برای همه‌ی mutationها، نه فقط سبد).
+- `assertOrigin` در CSRF، هدر `Origin` را با لیست allow شده (`APP_ORIGIN`) چک می‌کند. اگر origin فرانت در لیست نباشد → `403 Invalid origin` (برای همه‌ی mutationها، نه فقط سبد).
+- `APP_ORIGIN` می‌تواند کاما-جدا چند origin باشد: `APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173`. مقدار `*` چک را غیرفعال می‌کند (فقط dev؛ هرگز در پروداکشن). بعد از تغییر، بک را restart کن.
 - اگر فرانت و API روی سایت‌های متفاوت‌اند (نه فقط پورت متفاوت)، با `SameSite=Lax` پیش‌فرض کوکی ردوبدل نمی‌شود؛ باید `SameSite=None; Secure` ست شود (تنظیمات env سمت بک).
 
 ### تله ۱۰ — قیمت **لحظه‌ای** است، نه snapshot

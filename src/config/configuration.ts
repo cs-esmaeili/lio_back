@@ -50,5 +50,20 @@ export default () => {
       requestWindowSeconds: parseInt(process.env.OTP_REQUEST_WINDOW_SECONDS ?? '900', 10),
       secret: process.env.OTP_SECRET,
     },
+    sms: {
+      // When false, sends are skipped and logged instead of hitting the provider.
+      enabled: process.env.SMS_ENABLED !== 'false',
+      // Active backend, selected in SmsModule.
+      provider: process.env.SMS_PROVIDER ?? 'kavenegar',
+      // Logical template -> provider template name. Keep provider names in env.
+      templates: {
+        otp: process.env.KAVENEGAR_OTP_TEMPLATE ?? 'reqOTP',
+        orderPaid: process.env.KAVENEGAR_ORDER_PAID_TEMPLATE ?? 'cartPaid',
+      },
+      kavenegar: {
+        apiKey: process.env.KAVENEGAR_API_KEY,
+        baseUrl: process.env.KAVENEGAR_BASE_URL ?? 'https://api.kavenegar.com',
+      },
+    },
   };
 };

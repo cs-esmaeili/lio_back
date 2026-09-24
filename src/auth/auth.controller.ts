@@ -1,9 +1,10 @@
-import { BadRequestException, Body, Controller, Get, Logger, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBody, ApiCookieAuth, ApiHeader, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Get, Logger, Post, Req, Res, ServiceUnavailableException, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiCookieAuth, ApiHeader, ApiOkResponse, ApiOperation, ApiServiceUnavailableResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { AuthService } from './services/auth.service';
 import { OtpService } from './services/otp.service';
+import { SmsService } from 'src/sms/sms.service';
 import { SessionService } from './services/session.service';
 import type { AuthUser } from './services/session.service';
 import { CsrfService } from './services/csrf.service';
@@ -47,6 +48,7 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly otp: OtpService,
+    private readonly sms: SmsService,
     private readonly sessions: SessionService,
     private readonly csrfService: CsrfService,
     private readonly passwords: PasswordService,
@@ -71,6 +73,7 @@ export class AuthController {
   @ApiBody({ type: RequestOtpRequestDto })
   @ApiOkResponse({ description: 'OTP sent', type: RequestOtpResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid phone number' })
+  @ApiServiceUnavailableResponse({ description: 'The OTP was created but the SMS provider failed to send it' })
   @Public()
   @UseGuards(CsrfGuard)
   @Post('otp/request')
@@ -78,8 +81,16 @@ export class AuthController {
     const username = this.normalizeUsername(body.username);
     const code = await this.otp.request(username, OtpPurpose.LOGIN);
 
-    // Dev delivery: no SMS yet. Log only, never in response body.
-    this.logger.log(`OTP for ${username}: ${code}`);
+    const sms = await this.sms.sendOtp(username, code);
+    if (!sms.ok) {
+      if (this.sms.enabled) {
+        // SMS is on but the provider rejected the send; let the client retry.
+        this.logger.error(`Failed to send OTP SMS to ${username}: ${sms.error}`);
+        throw new ServiceUnavailableException('Could not send the OTP SMS');
+      }
+      // SMS disabled (local/dev): log the code so the login flow can be completed.
+      this.logger.warn(`SMS disabled; OTP for ${username}: ${code}`);
+    }
 
     return { ttlSeconds: this.config.getOrThrow<number>('otp.ttlSeconds') };
   }

@@ -16,13 +16,15 @@ const IRAN_MOBILE_RE = /^0?9\d{9}$/;
 @Injectable()
 export class SmsService {
   private readonly logger = new Logger(SmsService.name);
-  private readonly enabled: boolean;
 
   constructor(
     @Inject(SMS_PROVIDER) private readonly provider: SmsProvider,
     private readonly config: ConfigService,
-  ) {
-    this.enabled = config.get<boolean>('sms.enabled') ?? false;
+  ) {}
+
+  /** Whether SMS is switched on via `SMS_ENABLED`. */
+  get enabled(): boolean {
+    return this.config.get<boolean>('sms.enabled') ?? false;
   }
 
   /** Send a login / signup OTP. */

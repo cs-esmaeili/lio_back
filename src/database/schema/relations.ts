@@ -4,6 +4,7 @@ import { attributeValues } from './attribute-value';
 import { attributes } from './attribute';
 import { authSessions } from './auth-session';
 import { bannerSections } from './banner-section';
+import { cartItems, carts } from './cart';
 import { categories } from './category';
 import { categoryAttributes } from './category-attribute';
 import { files } from './file';
@@ -33,6 +34,17 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   addresses: many(addresses),
   files: many(files),
   sessions: many(authSessions),
+  cart: one(carts),
+}));
+
+export const cartsRelations = relations(carts, ({ one, many }) => ({
+  user: one(users, { fields: [carts.userId], references: [users.id] }),
+  items: many(cartItems),
+}));
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  cart: one(carts, { fields: [cartItems.cartId], references: [carts.id] }),
+  variant: one(productVariants, { fields: [cartItems.variantId], references: [productVariants.id] }),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -123,6 +135,7 @@ export const productImagesRelations = relations(productImages, ({ one }) => ({
 export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
   product: one(products, { fields: [productVariants.productId], references: [products.id] }),
   variantAttributeValues: many(variantAttributeValues),
+  cartItems: many(cartItems),
 }));
 
 export const productAttributeValuesRelations = relations(productAttributeValues, ({ one, many }) => ({

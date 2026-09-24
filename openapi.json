@@ -3613,6 +3613,95 @@
         ]
       }
     },
+    "/products/search-config": {
+      "get": {
+        "operationId": "ProductPublicController_getSearchConfig",
+        "parameters": [
+          {
+            "name": "categorySlug",
+            "required": false,
+            "in": "query",
+            "description": "Category scope. When omitted, categoryFilters is null.",
+            "schema": {
+              "example": "clothing",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search config for the frontend",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetSearchConfigResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found (only when categorySlug is provided)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the full listing-page config: global filters, sort options and optional category filters",
+        "tags": [
+          "ProductPublic"
+        ]
+      }
+    },
     "/products/search": {
       "post": {
         "operationId": "ProductPublicController_searchProducts",
@@ -3629,7 +3718,7 @@
         },
         "responses": {
           "200": {
-            "description": "Products matching the category and variant filters",
+            "description": "Products matching the name, category and variant filters",
             "content": {
               "application/json": {
                 "schema": {
@@ -3695,7 +3784,7 @@
             }
           },
           "404": {
-            "description": "Category not found",
+            "description": "Category not found (only when categorySlug is provided)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3733,7 +3822,7 @@
             }
           }
         },
-        "summary": "Search products by category slug, attribute filters, global filters and sort",
+        "summary": "Search products by optional name, category slug, attribute filters, global filters and sort",
         "tags": [
           "ProductPublic"
         ]
@@ -6200,6 +6289,174 @@
           "sorts"
         ]
       },
+      "SearchConfigGlobalFilterDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "price",
+            "description": "Filter key to send back on the search request"
+          },
+          "title": {
+            "type": "string",
+            "example": "قیمت"
+          },
+          "type": {
+            "example": "RANGE",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "type"
+        ]
+      },
+      "SearchConfigSortDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "cheapest",
+            "description": "Sort key to send back on the search request"
+          },
+          "title": {
+            "type": "string",
+            "example": "ارزان‌ترین"
+          }
+        },
+        "required": [
+          "key",
+          "title"
+        ]
+      },
+      "AttributeUsage": {
+        "type": "string",
+        "enum": [
+          "SPEC",
+          "VARIANT"
+        ]
+      },
+      "SearchConfigCategoryFilterValueDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "value": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "sortOrder"
+        ]
+      },
+      "SearchConfigCategoryFilterDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchConfigCategoryFilterValueDto"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "isRequired",
+          "sortOrder",
+          "values"
+        ]
+      },
+      "GetSearchConfigResponseDto": {
+        "type": "object",
+        "properties": {
+          "globalFilters": {
+            "description": "Non-attribute filters available on every listing page",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchConfigGlobalFilterDto"
+            }
+          },
+          "sorts": {
+            "description": "Sort options available on every listing page",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchConfigSortDto"
+            }
+          },
+          "categoryFilters": {
+            "nullable": true,
+            "description": "Filterable attributes of the category, or null when no categorySlug was sent",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchConfigCategoryFilterDto"
+            }
+          }
+        },
+        "required": [
+          "globalFilters",
+          "sorts",
+          "categoryFilters"
+        ]
+      },
       "SearchProductsFilterDto": {
         "type": "object",
         "properties": {
@@ -6238,7 +6495,13 @@
         "properties": {
           "categorySlug": {
             "type": "string",
-            "example": "clothing"
+            "example": "clothing",
+            "description": "Category scope. When omitted, products are searched across the whole catalogue."
+          },
+          "name": {
+            "type": "string",
+            "example": "کامل",
+            "description": "Case-insensitive substring match on the product name"
           },
           "filters": {
             "description": "Attribute value filters. AND across attributes, matched on a single variant.",
@@ -6287,10 +6550,7 @@
             "default": 20,
             "description": "Page size. Defaults to 20 and is capped at 100."
           }
-        },
-        "required": [
-          "categorySlug"
-        ]
+        }
       },
       "SearchProductImageDto": {
         "type": "object",
@@ -6996,13 +7256,6 @@
         },
         "required": [
           "categories"
-        ]
-      },
-      "AttributeUsage": {
-        "type": "string",
-        "enum": [
-          "SPEC",
-          "VARIANT"
         ]
       },
       "CategoryFilterValueDto": {

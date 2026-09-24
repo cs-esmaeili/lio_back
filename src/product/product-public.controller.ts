@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { ProductSearchService } from './services/product-search.service';
 import { ProductGlobalFilterService } from './services/product-global-filter.service';
@@ -9,6 +9,8 @@ import { SearchProductsResponseDto } from './dtos/searchProducts/search-products
 import { GetProductGlobalFiltersResponseDto } from './dtos/getProductGlobalFilters/get-product-global-filters-response.dto';
 import { GetProductSortOptionsResponseDto } from './dtos/getProductSortOptions/get-product-sort-options-response.dto';
 import { GetProductDetailsResponseDto } from './dtos/getProductDetails/get-product-details-response.dto';
+import { GetSearchConfigRequestDto } from './dtos/getSearchConfig/get-search-config-request.dto';
+import { GetSearchConfigResponseDto } from './dtos/getSearchConfig/get-search-config-response.dto';
 
 @Controller('products')
 export class ProductPublicController {
@@ -33,10 +35,18 @@ export class ProductPublicController {
     return this.sorts.listOptions();
   }
 
-  @ApiOperation({ summary: 'Search products by category slug, attribute filters, global filters and sort' })
-  @ApiOkResponse({ description: 'Products matching the category and variant filters', type: SearchProductsResponseDto })
+  @ApiOperation({ summary: 'Get the full listing-page config: global filters, sort options and optional category filters' })
+  @ApiOkResponse({ description: 'Search config for the frontend', type: GetSearchConfigResponseDto })
+  @ApiNotFoundResponse({ description: 'Category not found (only when categorySlug is provided)' })
+  @Get('search-config')
+  getSearchConfig(@Query() query: GetSearchConfigRequestDto): Promise<GetSearchConfigResponseDto> {
+    return this.products.getSearchConfig(query);
+  }
+
+  @ApiOperation({ summary: 'Search products by optional name, category slug, attribute filters, global filters and sort' })
+  @ApiOkResponse({ description: 'Products matching the name, category and variant filters', type: SearchProductsResponseDto })
   @ApiBadRequestResponse({ description: 'Unknown attribute value or value/attribute mismatch' })
-  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiNotFoundResponse({ description: 'Category not found (only when categorySlug is provided)' })
   @Post('search')
   searchProducts(@Body() body: SearchProductsRequestDto): Promise<SearchProductsResponseDto> {
     return this.products.searchProducts(body);

@@ -16,10 +16,17 @@ export class SearchProductsFilterDto {
 }
 
 export class SearchProductsRequestDto {
-  @ApiProperty({ example: 'clothing' })
+  @ApiPropertyOptional({ example: 'clothing', description: 'Category scope. When omitted, products are searched across the whole catalogue.' })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  categorySlug!: string;
+  categorySlug?: string;
+
+  @ApiPropertyOptional({ example: 'کامل', description: 'Case-insensitive substring match on the product name' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @ApiPropertyOptional({
     type: [SearchProductsFilterDto],

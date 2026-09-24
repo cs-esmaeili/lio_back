@@ -39,9 +39,11 @@ export class CsrfService {
   assertOrigin(req: Request): void {
     const origin = req.get('origin');
     if (!origin) return; // non-browser client
-    if (origin !== this.config.getOrThrow<string>('app.origin')) {
-      throw new ForbiddenException('Invalid origin');
+    const allowed = this.config.getOrThrow<string[]>('app.origins');
+    if (allowed.includes('*') || allowed.includes(origin)) {
+      return;
     }
+    throw new ForbiddenException('Invalid origin');
   }
 
   private safeEqual(a: string, b: string): boolean {

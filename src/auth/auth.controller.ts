@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Logger, Post, Req, Res, ServiceUnavailableException, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Req, Res, ServiceUnavailableException, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiCookieAuth, ApiHeader, ApiOkResponse, ApiOperation, ApiServiceUnavailableResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
@@ -70,6 +70,7 @@ export class AuthController {
   @ApiServiceUnavailableResponse({ description: 'The OTP was created but the SMS provider failed to send it' })
   @Public()
   @UseGuards(CsrfGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('otp/request')
   async requestOtp(@Body() body: RequestOtpRequestDto): Promise<RequestOtpResponseDto> {
     const username = this.normalizeUsername(body.username);
@@ -102,6 +103,7 @@ export class AuthController {
   })
   @Public()
   @UseGuards(CsrfGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('otp/verify')
   async verifyOtp(@Body() body: VerifyOtpRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<VerifyOtpResponseDto> {
     const username = this.normalizeUsername(body.username);
@@ -126,6 +128,7 @@ export class AuthController {
   })
   @Public()
   @UseGuards(LocalAuthGuard, CsrfGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() _body: LoginRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LoginResponseDto> {
     return this.sessions.establishSession(req.user as AuthUser, req, res);
@@ -136,6 +139,7 @@ export class AuthController {
   @ApiCookieAuth('session')
   @ApiOkResponse({ description: 'Logged out', type: LogoutResponseDto })
   @UseGuards(OptionalSessionAuthGuard, CsrfGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     const user = req.user as SessionUser | undefined;
@@ -149,6 +153,7 @@ export class AuthController {
   @ApiCookieAuth('session')
   @ApiOkResponse({ description: 'Password changed', type: ChangePasswordResponseDto })
   @UseGuards(SessionAuthGuard, CsrfGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('password')
   async changePassword(@Body() body: ChangePasswordRequestDto, @Req() req: Request): Promise<ChangePasswordResponseDto> {
     const user = req.user as SessionUser;
@@ -188,6 +193,7 @@ export class AuthController {
   })
   @Public()
   @UseGuards(DevAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('dev/login')
   async devLogin(@Body() body: DevLoginRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<DevLoginResponseDto> {
     const username = this.normalizeUsername(body.username);
@@ -204,6 +210,7 @@ export class AuthController {
   @ApiBody({ type: HashPasswordRequestDto })
   @ApiOkResponse({ description: 'Hashed password', type: HashPasswordResponseDto })
   @Public()
+  @HttpCode(HttpStatus.OK)
   @Post('test/hash-password')
   async hashPassword(@Body() body: HashPasswordRequestDto): Promise<HashPasswordResponseDto> {
     const hash = await this.passwords.hash(body.password);

@@ -14,9 +14,9 @@
 
 ```jsonc
 {
-  "statusCode": 201,
+  "statusCode": 200,
   "data": { /* payload واقعی */ },
-  "message": "Created"
+  "message": "OK"
 }
 ```
 
@@ -88,16 +88,16 @@ function getCsrfToken(): string {
 |---|---|
 | هدرها | `Content-Type: application/json`، `X-CSRF-Token: <...>` |
 | بدنه | `{ "username": "09123456789", "password": "secret-password" }` |
-| موفق | `201` + کوکی `session` و `csrf_token` تازه |
+| موفق | `200` + کوکی `session` و `csrf_token` تازه |
 | خطاها | `400` اعتبارسنجی، `401` رمز/کاربر نادرست، `403` CSRF |
 
 پاسخ موفق:
 
 ```jsonc
 {
-  "statusCode": 201,
+  "statusCode": 200,
   "data": { "id": 1, "username": "09123456789", "name": "Ali", "lastName": "Rezaei" },
-  "message": "Created"
+  "message": "OK"
 }
 ```
 
@@ -111,11 +111,11 @@ function getCsrfToken(): string {
 |---|---|
 | هدرها | `Content-Type: application/json`، `X-CSRF-Token: <...>` |
 | بدنه | `{ "username": "09123456789" }` |
-| موفق | `201` |
+| موفق | `200` |
 | خطاها | `400` شماره‌ی نامعتبر، `403` CSRF یا «درخواست زیاد»، `503` شکست ارسال پیامک |
 
 ```jsonc
-{ "statusCode": 201, "data": { "ttlSeconds": 120 }, "message": "Created" }
+{ "statusCode": 200, "data": { "ttlSeconds": 120 }, "message": "OK" }
 ```
 
 - `ttlSeconds` = مدت اعتبار کد. فرانت شمارش معکوس و «ارسال مجدد» را بر همین اساس بسازد.
@@ -130,7 +130,7 @@ function getCsrfToken(): string {
 |---|---|
 | هدرها | `Content-Type: application/json`، `X-CSRF-Token: <...>` |
 | بدنه | `{ "username": "09123456789", "code": "123456" }` |
-| موفق | `201` + کوکی `session` و `csrf_token` تازه |
+| موفق | `200` + کوکی `session` و `csrf_token` تازه |
 | خطاها | `400` اعتبارسنجی، `401` کد نادرست/منقضی، `403` CSRF |
 
 - اگر کاربر با این شماره وجود نداشته باشد، **همین‌جا ساخته می‌شود** (ثبت‌نام با OTP).
@@ -159,7 +159,7 @@ function getCsrfToken(): string {
 هدر `X-CSRF-Token` لازم است. بدون بدنه.
 
 ```jsonc
-{ "statusCode": 201, "data": { "ok": true }, "message": "Created" }
+{ "statusCode": 200, "data": { "ok": true }, "message": "OK" }
 ```
 
 نشست جاری باطل و کوکی `session` پاک می‌شود.
@@ -169,7 +169,7 @@ function getCsrfToken(): string {
 هدر `X-CSRF-Token` لازم است. بدنه `{ "newPassword": "..." }` (حداقل ۸ کاراکتر).
 
 ```jsonc
-{ "statusCode": 201, "data": { "ok": true }, "message": "Created" }
+{ "statusCode": 200, "data": { "ok": true }, "message": "OK" }
 ```
 
 > **همه‌ی نشست‌های دیگرِ آن کاربر باطل می‌شوند** (فقط نشست جاری باقی می‌ماند).
@@ -211,7 +211,7 @@ curl -i -c cookies.txt -b cookies.txt -H 'Content-Type: application/json' \
 ```
 
 ```jsonc
-{ "statusCode": 201, "data": { "csrfToken": "...", "user": { "id": 1, "username": "09123456789", "name": "Ali", "lastName": "Rezaei" } }, "message": "Created" }
+{ "statusCode": 200, "data": { "csrfToken": "...", "user": { "id": 1, "username": "09123456789", "name": "Ali", "lastName": "Rezaei" } }, "message": "OK" }
 ```
 
 > در production باید `DEV_AUTH=false` باشد.

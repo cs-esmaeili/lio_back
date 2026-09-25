@@ -1,11 +1,20 @@
 ---
 name: git-commit
-description: Commit message style and attribution rules — conventional format, never attribute a commit to the AI.
+description: Commit message style and attribution rules — conventional format, never attribute a commit to the AI, and the assistant must never commit on its own.
 ---
 
 # Git Commit Rules
 
 These rules are mandatory for every `git commit` made on this project.
+
+## 0. The assistant never commits on its own
+
+The assistant/agent is **not allowed to run `git commit`** unless the user explicitly asks it to commit a specific change in that request.
+
+- Do NOT run `git commit` autonomously — not even after finishing a task, and not "to keep the tree clean".
+- Staging (`git add`) is allowed; preparing a suggested message is allowed. The user owns the commit.
+- Only when the user explicitly says to commit (e.g. "commit this", "کامیت کن") may `git commit` be run, and only for the files/changes they referred to.
+- When unsure whether the user wants a commit, stage the changes and ask — do not commit defensively.
 
 ## 1. Never attribute a commit to the AI
 

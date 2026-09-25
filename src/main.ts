@@ -18,11 +18,13 @@ async function bootstrap() {
 
   setupValidation(app);
   app.use(cookieParser());
-  const swaggerUrl = setupSwagger(app);
 
-  const port = process.env.PORT ?? 3000;
+  const port = config.getOrThrow<number>('app.port');
+  const swaggerUrl = setupSwagger(app, port);
+
   await app.listen(port);
   console.log(`server is running on http://localhost:${port}/`);
   console.log(swaggerUrl);
+  console.log(`log viewer is running on http://localhost:${port}/admin/logs`);
 }
 void bootstrap();

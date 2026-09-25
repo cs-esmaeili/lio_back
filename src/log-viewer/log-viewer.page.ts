@@ -172,8 +172,21 @@ export function renderLogViewerPage(): string {
     <label>Date
       <select id="date"></select>
     </label>
-    <label>Channel
-      <select id="channel"></select>
+    <label>Source
+      <select id="source"></select>
+    </label>
+    <label>Level
+      <select id="level">
+        <option value="" selected>All levels</option>
+        <option value="fatal">fatal</option>
+        <option value="error">error</option>
+        <option value="warn">warn</option>
+        <option value="info">info</option>
+        <option value="debug">debug</option>
+      </select>
+    </label>
+    <label>Scope
+      <select id="scope"></select>
     </label>
     <label class="grow">Search
       <input id="search" type="search" placeholder="text in message or fields" />
@@ -200,7 +213,7 @@ export function renderLogViewerPage(): string {
         <tr>
           <th class="c-time">Time</th>
           <th class="c-level">Level</th>
-          <th class="c-channel">Channel</th>
+          <th class="c-channel">Scope</th>
           <th>Message</th>
           <th class="c-meta"></th>
         </tr>
@@ -270,11 +283,20 @@ export function renderLogViewerPage(): string {
     dates.forEach(function (date) { select.appendChild(option(date, date)); });
   }
 
-  function fillChannels(channels) {
-    var select = el('channel');
+  function fillSources(sources) {
+    var select = el('source');
     select.innerHTML = '';
-    select.appendChild(option('', 'All channels'));
-    channels.forEach(function (channel) { select.appendChild(option(channel, channel)); });
+    var list = sources.length ? sources : ['combined'];
+    list.forEach(function (source) { select.appendChild(option(source, source)); });
+  }
+
+  function fillScopes(scopes) {
+    var select = el('scope');
+    select.innerHTML = '';
+    select.appendChild(option('', 'All scopes'));
+    scopes
+      .filter(function (scope) { return scope !== 'combined'; })
+      .forEach(function (scope) { select.appendChild(option(scope, scope)); });
   }
 
   function formatTime(iso) {
@@ -315,12 +337,12 @@ export function renderLogViewerPage(): string {
     badge.textContent = entry.levelName || '-';
     level.appendChild(badge);
 
-    var channel = document.createElement('td');
-    channel.className = 'c-channel';
+    var scope = document.createElement('td');
+    scope.className = 'c-channel';
     var chip = document.createElement('span');
     chip.className = 'chip';
-    chip.textContent = entry.channel || '-';
-    channel.appendChild(chip);
+    chip.textContent = entry.scope || '-';
+    scope.appendChild(chip);
 
     var message = document.createElement('td');
     message.className = 'message';
@@ -336,7 +358,7 @@ export function renderLogViewerPage(): string {
 
     row.appendChild(time);
     row.appendChild(level);
-    row.appendChild(channel);
+    row.appendChild(scope);
     row.appendChild(message);
     row.appendChild(actions);
 
@@ -346,7 +368,7 @@ export function renderLogViewerPage(): string {
     var detailCell = document.createElement('td');
     detailCell.colSpan = 5;
     var pre = document.createElement('pre');
-    var full = { time: entry.time, level: entry.level, channel: entry.channel, message: entry.message };
+    var full = { time: entry.time, level: entry.level, scope: entry.scope, message: entry.message };
     Object.keys(entry.meta || {}).forEach(function (key) { full[key] = entry.meta[key]; });
     try { pre.textContent = JSON.stringify(full, null, 2); } catch (err) { pre.textContent = String(full); }
     detailCell.appendChild(pre);
@@ -379,7 +401,7 @@ export function renderLogViewerPage(): string {
 
     state.totalPages = result.totalPages;
     state.page = result.page;
-    el('summary').textContent = result.total + ' entries on ' + result.date;
+    el('summary').textContent = result.total + ' entries in ' + result.source + ' on ' + result.date;
     el('pageinfo').textContent = 'Page ' + result.page + ' / ' + Math.max(result.totalPages, 1);
     el('prev').disabled = result.page <= 1;
     el('next').disabled = result.page >= result.totalPages;
@@ -396,7 +418,9 @@ export function renderLogViewerPage(): string {
     setError('');
     var params = new URLSearchParams();
     params.set('date', date);
-    if (el('channel').value) params.set('channel', el('channel').value);
+    params.set('source', el('source').value || 'combined');
+    if (el('level').value) params.set('level', el('level').value);
+    if (el('scope').value) params.set('scope', el('scope').value);
     if (el('search').value.trim()) params.set('search', el('search').value.trim());
     params.set('page', String(state.page));
     params.set('limit', el('limit').value);
@@ -415,7 +439,8 @@ export function renderLogViewerPage(): string {
   function loadMeta() {
     return request('/admin/logs/meta').then(function (meta) {
       fillDates(meta.dates || []);
-      fillChannels(meta.channels || []);
+      fillSources(meta.scopes || []);
+      fillScopes(meta.scopes || []);
       if (!(meta.dates || []).length) setError('No log files found yet.');
     });
   }
@@ -432,7 +457,9 @@ export function renderLogViewerPage(): string {
 
   el('apply').addEventListener('click', applyFilters);
   el('date').addEventListener('change', applyFilters);
-  el('channel').addEventListener('change', applyFilters);
+  el('source').addEventListener('change', applyFilters);
+  el('level').addEventListener('change', applyFilters);
+  el('scope').addEventListener('change', applyFilters);
   el('limit').addEventListener('change', applyFilters);
   el('search').addEventListener('keydown', function (event) {
     if (event.key === 'Enter') applyFilters();

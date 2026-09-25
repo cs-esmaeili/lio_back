@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
-import { LOG_CHANNELS } from 'src/logger/logger.constants';
+import { COMBINED_SCOPE, LOG_LEVELS, SCOPE_RE } from 'src/logger/logger.constants';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -10,10 +10,26 @@ export class ReadLogEntriesRequestDto {
   @Matches(DATE_RE, { message: 'date must be in yyyy-MM-dd format' })
   date!: string;
 
-  @ApiPropertyOptional({ description: 'Only entries from this channel', enum: LOG_CHANNELS })
+  @ApiPropertyOptional({
+    description: 'File to read: `combined` or a service scope',
+    example: COMBINED_SCOPE,
+    default: COMBINED_SCOPE,
+  })
   @IsOptional()
-  @IsIn([...LOG_CHANNELS])
-  channel?: string;
+  @IsString()
+  @Matches(SCOPE_RE, { message: 'source must be lowercase letters, digits or dashes' })
+  source?: string;
+
+  @ApiPropertyOptional({ description: 'Only entries of this level', enum: LOG_LEVELS, example: 'error' })
+  @IsOptional()
+  @IsIn([...LOG_LEVELS])
+  level?: string;
+
+  @ApiPropertyOptional({ description: 'Only entries from this scope (useful for the combined file)', example: 'sms' })
+  @IsOptional()
+  @IsString()
+  @Matches(SCOPE_RE, { message: 'scope must be lowercase letters, digits or dashes' })
+  scope?: string;
 
   @ApiPropertyOptional({ description: 'Case-insensitive text search across the raw entry', example: 'timeout' })
   @IsOptional()

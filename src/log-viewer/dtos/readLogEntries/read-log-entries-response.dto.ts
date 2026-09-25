@@ -10,8 +10,8 @@ export class LogEntryDto {
   @ApiProperty({ description: 'Level name', nullable: true, example: 'error' })
   levelName!: string | null;
 
-  @ApiProperty({ description: 'Channel the entry was written to', nullable: true, example: 'error' })
-  channel!: string | null;
+  @ApiProperty({ description: 'Scope (service) the entry belongs to', nullable: true, example: 'sms' })
+  scope!: string | null;
 
   @ApiProperty({ description: 'Log message (usually a string)', nullable: true })
   message!: unknown;
@@ -23,6 +23,9 @@ export class LogEntryDto {
 export class ReadLogEntriesResponseDto {
   @ApiProperty({ example: '2026-09-25' })
   date!: string;
+
+  @ApiProperty({ example: 'combined' })
+  source!: string;
 
   @ApiProperty({ example: 1 })
   page!: number;

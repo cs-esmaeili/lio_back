@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { LOG_CHANNELS } from 'src/logger/logger.constants';
+import { COMBINED_SCOPE } from 'src/logger/logger.constants';
 
 export class ListLogMetaResponseDto {
   @ApiProperty({
@@ -10,9 +10,9 @@ export class ListLogMetaResponseDto {
   dates!: string[];
 
   @ApiProperty({
-    description: 'Channels that can be filtered on',
+    description: 'Selectable log sources: the combined file plus every service scope',
     type: [String],
-    example: [...LOG_CHANNELS],
+    example: [COMBINED_SCOPE, 'app', 'sms'],
   })
-  channels!: string[];
+  scopes!: string[];
 }

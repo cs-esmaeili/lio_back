@@ -15,7 +15,7 @@ export class LoggerController {
   @HttpCode(HttpStatus.OK)
   @Post('test')
   writeTest(@Body() body: WriteTestRequestDto): WriteTestResponseDto {
-    const file = this.logger.write(body.channel, body.message, body.meta ?? {});
-    return { channel: body.channel, file, writtenAt: new Date().toISOString() };
+    const file = this.logger.write(body.scope, body.level, body.message, body.meta ?? {});
+    return { scope: body.scope, level: body.level, file, writtenAt: new Date().toISOString() };
   }
 }

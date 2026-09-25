@@ -1,13 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { LOG_CHANNELS } from '../../logger.constants';
+import { LOG_LEVELS } from '../../logger.constants';
 
 export class WriteTestResponseDto {
-  @ApiProperty({ description: 'Channel the entry was written to', enum: LOG_CHANNELS })
-  channel!: string;
+  @ApiProperty({ description: 'Scope the entry was written to', example: 'sms' })
+  scope!: string;
+
+  @ApiProperty({ description: 'Level of the entry', enum: LOG_LEVELS, example: 'error' })
+  level!: string;
 
   @ApiProperty({
-    description: 'Absolute path of the channel log file',
-    example: '/app/logs/info/2026-09-25.log',
+    description: 'Absolute path of the scope log file',
+    example: '/app/logs/sms/2026-09-25.log',
   })
   file!: string;
 

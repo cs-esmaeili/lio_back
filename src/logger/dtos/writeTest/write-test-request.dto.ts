@@ -1,16 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
-import { LOG_CHANNELS, type LogChannel } from '../../logger.constants';
+import { IsIn, IsNotEmpty, IsObject, IsOptional, IsString, Matches } from 'class-validator';
+import { DEFAULT_SCOPE, LOG_LEVELS, SCOPE_RE, type LogLevel } from '../../logger.constants';
 
 export class WriteTestRequestDto {
   @ApiPropertyOptional({
-    description: 'Channel (file) to write the entry to',
-    enum: LOG_CHANNELS,
-    default: 'info',
+    description: 'Scope (service) the entry belongs to',
+    example: 'sms',
+    default: DEFAULT_SCOPE,
   })
   @IsOptional()
-  @IsIn([...LOG_CHANNELS])
-  channel: LogChannel = 'info';
+  @IsString()
+  @Matches(SCOPE_RE, { message: 'scope must be lowercase letters, digits or dashes' })
+  scope: string = DEFAULT_SCOPE;
+
+  @ApiPropertyOptional({ description: 'Log level', enum: LOG_LEVELS, default: 'info' })
+  @IsOptional()
+  @IsIn([...LOG_LEVELS])
+  level: LogLevel = 'info';
 
   @ApiProperty({ description: 'Message to log', example: 'hello from the logger' })
   @IsString()

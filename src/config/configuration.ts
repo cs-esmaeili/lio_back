@@ -38,7 +38,7 @@ export default () => {
     },
     otp: {
       ttlSeconds: parseInt(process.env.OTP_TTL_SECONDS ?? '120', 10),
-      length: parseInt(process.env.OTP_LENGTH ?? '6', 10),
+      length: parseInt(process.env.OTP_LENGTH ?? '4', 10),
       maxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS ?? '5', 10),
       maxRequests: parseInt(process.env.OTP_MAX_REQUESTS ?? '10', 10),
       requestWindowSeconds: parseInt(process.env.OTP_REQUEST_WINDOW_SECONDS ?? '900', 10),

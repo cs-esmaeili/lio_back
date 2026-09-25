@@ -4620,8 +4620,8 @@
           },
           "code": {
             "type": "string",
-            "description": "Six-digit OTP code",
-            "example": "123456"
+            "description": "Four-digit OTP code",
+            "example": "1234"
           }
         },
         "required": [

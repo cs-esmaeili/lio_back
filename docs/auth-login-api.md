@@ -119,7 +119,7 @@ function getCsrfToken(): string {
 ```
 
 - `ttlSeconds` = مدت اعتبار کد. فرانت شمارش معکوس و «ارسال مجدد» را بر همین اساس بسازد.
-- کد **۶ رقمی** است.
+- کد **۴ رقمی** است.
 - **فقط یک OTP فعال** برای هر شماره؛ درخواست جدید کد قبلی را باطل می‌کند.
 - محدودیت نرخ: `OTP_MAX_REQUESTS=10` در `OTP_REQUEST_WINDOW_SECONDS` (پیش‌فرض ۹۰۰) → عبور = **`403 Too many OTP requests`**.
 - شکست پیامک → **`503 Could not send the OTP SMS`**.
@@ -129,7 +129,7 @@ function getCsrfToken(): string {
 | | |
 |---|---|
 | هدرها | `Content-Type: application/json`، `X-CSRF-Token: <...>` |
-| بدنه | `{ "username": "09123456789", "code": "123456" }` |
+| بدنه | `{ "username": "09123456789", "code": "1234" }` |
 | موفق | `200` + کوکی `session` و `csrf_token` تازه |
 | خطاها | `400` اعتبارسنجی، `401` کد نادرست/منقضی، `403` CSRF |
 

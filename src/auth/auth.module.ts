@@ -16,11 +16,13 @@ import { CsrfGuard } from './guards/csrf.guard';
 import { DevAuthGuard } from './guards/dev-auth.guard';
 import { CsrfService } from './services/csrf.service';
 import { AuthController } from './auth.controller';
+import { SmsModule } from 'src/sms/sms.module';
 import { ConfigService } from '@nestjs/config';
 @Module({
   controllers: [AuthController],
   imports: [
     UsersModule,
+    SmsModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

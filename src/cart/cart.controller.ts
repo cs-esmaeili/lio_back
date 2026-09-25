@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Delete, Get, Headers, Param, Par
 import { ApiBadRequestResponse, ApiCookieAuth, ApiHeader, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { isUUID } from 'class-validator';
-import { OptionalAuthGuard } from 'src/auth/guards/optional-auth.guard';
+import { OptionalSessionAuthGuard } from 'src/auth/guards/optional-session-auth.guard';
 import { CsrfGuard } from 'src/auth/guards/csrf.guard';
 import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { CART_TOKEN_API_HEADER, CART_TOKEN_HEADER } from './cart.constants';
@@ -15,7 +15,7 @@ import { UpdateCartItemRequestDto } from './dtos/updateCartItem/update-cart-item
 import { UpdateCartItemResponseDto } from './dtos/updateCartItem/update-cart-item-response.dto';
 import { RemoveCartItemResponseDto } from './dtos/removeCartItem/remove-cart-item-response.dto';
 
-interface JwtUser {
+interface SessionUser {
   userId: number;
 }
 
@@ -25,14 +25,14 @@ interface JwtUser {
  * client-generated `X-Cart-Token` header. When both are present the guest cart
  * is merged into the user cart before the operation runs.
  */
-@UseGuards(OptionalAuthGuard, CsrfGuard)
+@UseGuards(OptionalSessionAuthGuard, CsrfGuard)
 @Controller('cart')
 export class CartController {
   constructor(private readonly cart: CartService) {}
 
   @ApiOperation({ summary: 'Get the current cart (user cart or guest cart)' })
   @ApiHeader(CART_TOKEN_API_HEADER)
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiOkResponse({ description: 'The cart for the current user, or the empty cart for a new guest', type: GetCartResponseDto })
   @ApiBadRequestResponse({ description: 'Malformed X-Cart-Token header' })
   @Get()
@@ -43,7 +43,7 @@ export class CartController {
   @ApiOperation({ summary: 'Add a variant to the cart (merges the guest cart first when logged in)' })
   @ApiHeader(CART_TOKEN_API_HEADER)
   @ApiHeader(CSRF_HEADER)
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiOkResponse({ description: 'The cart after adding the variant', type: AddCartItemResponseDto })
   @ApiBadRequestResponse({ description: 'Out of stock, quantity above stock, or missing guest cart token' })
   @ApiNotFoundResponse({ description: 'Variant not found' })
@@ -55,7 +55,7 @@ export class CartController {
   @ApiOperation({ summary: 'Set the quantity of a variant in the cart' })
   @ApiHeader(CART_TOKEN_API_HEADER)
   @ApiHeader(CSRF_HEADER)
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiParam({ name: 'variantId', type: Number, example: 3744, description: 'Product variant id' })
   @ApiOkResponse({ description: 'The cart after updating the quantity', type: UpdateCartItemResponseDto })
   @ApiBadRequestResponse({ description: 'Quantity above stock or missing guest cart token' })
@@ -73,7 +73,7 @@ export class CartController {
   @ApiOperation({ summary: 'Remove a variant from the cart' })
   @ApiHeader(CART_TOKEN_API_HEADER)
   @ApiHeader(CSRF_HEADER)
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiParam({ name: 'variantId', type: Number, example: 3744, description: 'Product variant id' })
   @ApiOkResponse({ description: 'The cart after removing the variant', type: RemoveCartItemResponseDto })
   @ApiBadRequestResponse({ description: 'Missing guest cart token' })
@@ -88,7 +88,7 @@ export class CartController {
   }
 
   private toIdentity(req: Request, cartToken?: string): CartIdentity {
-    const user = req.user as JwtUser | undefined;
+    const user = req.user as SessionUser | undefined;
     const token = cartToken?.trim();
     if (token && !isUUID(token)) {
       throw new BadRequestException('Invalid X-Cart-Token header');

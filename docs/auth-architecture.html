@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>راهنمای جامع احراز هویت (Auth) — نشست کوکی‌محور</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --text: #1f2933; --muted: #5b6672;
+    --border: #e3e6ea; --accent: #2f6fed; --accent-soft: #eaf1fe;
+    --code-bg: #f2f4f7; --code-border: #e0e4ea; --th-bg: #eef1f5; --stripe: #f9fafb; --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1217; --surface: #171b22; --text: #e6e9ee; --muted: #9aa4b2;
+      --border: #262c36; --accent: #6ea1ff; --accent-soft: #1b2942;
+      --code-bg: #11151c; --code-border: #242b36; --th-bg: #1c222c; --stripe: #141920;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, 'Noto Naskh Arabic', sans-serif;
+    font-size: 16px; line-height: 1.95; -webkit-font-smoothing: antialiased; }
+  .layout { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px;
+    display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  .content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 28px 32px 40px; min-width: 0; }
+  @media (max-width: 600px) { .content { padding: 20px 16px 28px; } }
+  .toc { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow: auto; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; font-size: 14px; }
+  @media (max-width: 960px) { .toc { position: static; max-height: none; } }
+  .toc-title { margin: 0 0 10px; font-weight: 700; color: var(--muted); font-size: 13px; letter-spacing: .02em; }
+  .toc ol { margin: 0; padding: 0; list-style: none; }
+  .toc li { margin: 3px 0; }
+  .toc a { color: var(--text); text-decoration: none; display: block; padding: 3px 6px; border-radius: 6px; }
+  .toc a:hover { background: var(--accent-soft); color: var(--accent); }
+  .toc-level-3 { padding-inline-start: 14px; font-size: 13px; opacity: .85; }
+  h1, h2, h3, h4 { line-height: 1.6; font-weight: 700; }
+  h1 { font-size: 28px; margin: 0 0 18px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }
+  h2 { font-size: 22px; margin: 40px 0 14px; padding-top: 6px; }
+  h3 { font-size: 18px; margin: 26px 0 10px; }
+  h4 { font-size: 16px; margin: 20px 0 8px; }
+  h2::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); margin-inline-end: 10px; vertical-align: middle; }
+  p { margin: 10px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 34px 0; }
+  ul, ol { padding-inline-start: 26px; }
+  li { margin: 4px 0; }
+  li > input[type=checkbox] { margin-inline-end: 6px; }
+  blockquote { margin: 14px 0; padding: 10px 16px; background: var(--accent-soft);
+    border-inline-start: 4px solid var(--accent); border-radius: 6px; }
+  blockquote p { margin: 4px 0; }
+  code { font-family: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace; font-size: .88em;
+    background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 5px; padding: .12em .38em;
+    direction: ltr; unicode-bidi: embed; white-space: pre-wrap; }
+  pre { direction: ltr; text-align: left; background: var(--code-bg); border: 1px solid var(--code-border);
+    border-radius: 8px; padding: 14px 16px; overflow: auto; line-height: 1.6; margin: 14px 0; }
+  pre code { background: none; border: 0; padding: 0; white-space: pre; font-size: .86em; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; display: block; overflow-x: auto; }
+  thead th { background: var(--th-bg); font-weight: 700; text-align: right; white-space: nowrap; }
+  th, td { border: 1px solid var(--border); padding: 9px 12px; vertical-align: top; }
+  tbody tr:nth-child(even) { background: var(--stripe); }
+  td code { white-space: nowrap; }
+  footer.doc-foot { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 13px; margin-top: 8px; }
+  @media print { body { background: #fff; } .toc { display: none; }
+    .layout { display: block; max-width: none; padding: 0; } .content { border: 0; padding: 0; } a { color: inherit; } }
+</style>
+</head>
+<body>
+  <div class="layout">
+<nav class="toc" aria-label="فهرست مطالب">
+  <p class="toc-title">فهرست مطالب</p>
+  <ol>
+    <li class="toc-level-2"><a href="#h-2">۰. نقشه‌ی ذهنی در یک نگاه</a></li>
+    <li class="toc-level-2"><a href="#h-3">۱. اجزا و فایل‌ها</a></li>
+    <li class="toc-level-2"><a href="#h-4">۲. کوکی‌ها</a></li>
+    <li class="toc-level-2"><a href="#h-5">۳. مدل داده: auth_sessions</a></li>
+    <li class="toc-level-2"><a href="#h-6">۴. گاردها و ماتریس endpointها</a></li>
+    <li class="toc-level-2"><a href="#h-7">۵. CSRF</a></li>
+    <li class="toc-level-2"><a href="#h-8">۶. چند حامل اعتبار (وب + موبایل)</a></li>
+    <li class="toc-level-2"><a href="#h-9">۷. جریان‌های کلیدی</a></li>
+    <li class="toc-level-2"><a href="#h-10">۸. SSR و PWA</a></li>
+    <li class="toc-level-2"><a href="#h-11">۹. درگاه پرداخت</a></li>
+    <li class="toc-level-2"><a href="#h-12">۱۰. متغیرهای محیطی</a></li>
+    <li class="toc-level-2"><a href="#h-13">۱۱. نکات و ریسک‌ها</a></li>
+    <li class="toc-level-2"><a href="#h-14">۱۲. جمع‌بندی</a></li>
+  </ol>
+</nav>
+    <main class="content">
+<h1 id="h-1">راهنمای جامع احراز هویت (Auth) — نشست کوکی‌محور</h1>
+<p>این سند معماری احراز هویت این پروژه را توضیح می‌دهد: <strong>چه چیزی وجود دارد، چرا، چه کسی چه چیزی را صدا می‌زند، و کجاها ممکن است دردسر ایجاد شود.</strong></p>
+<blockquote>
+<p>نسخه‌ی قبلی این سند بر پایه‌ی <strong>JWT (access + refresh + rotation)</strong> بود. اکنون به <strong>نشست سرور-محور روی کوکی HttpOnly</strong> مهاجرت کرده‌ایم. برای چرایی این تصمیم (و مقایسه با Passport/Sanctum) به سند <code>auth-passport-vs-sanctum.md</code> مراجعه کن.</p>
+</blockquote>
+<hr />
+<h2 id="h-2">۰. نقشه‌ی ذهنی در یک نگاه</h2>
+<table>
+<thead>
+<tr>
+<th>موضوع</th>
+<th>چطور</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>حامل اعتبار (transport)</strong></td>
+<td>کوکی <code>session</code> (HttpOnly) برای وب؛ <code>Authorization: Bearer</code> برای موبایل</td>
+</tr>
+<tr>
+<td><strong>حقیقت اصلی</strong></td>
+<td>جدول <code>auth_sessions</code> در دیتابیس (توکن فقط <strong>هش</strong> می‌شود)</td>
+</tr>
+<tr>
+<td><strong>تمدید</strong></td>
+<td>sliding ۳۰ روزه (با استفاده) + سقف مطلق ۹۰ روزه</td>
+</tr>
+<tr>
+<td><strong>محافظت درخواست</strong></td>
+<td>CSRF double-submit + Origin (فقط برای کوکی)</td>
+</tr>
+<tr>
+<td><strong>مجوزدهی</strong></td>
+<td>RBAC با <code>PermissionsGuard</code> (بدون تغییر)</td>
+</tr>
+<tr>
+<td><strong>JWT / refresh</strong></td>
+<td>حذف شدند</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="h-3">۱. اجزا و فایل‌ها</h2>
+<table>
+<thead>
+<tr>
+<th>فایل</th>
+<th>نقش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auth/auth.controller.ts</code></td>
+<td>همه‌ی endpointهای <code>/auth/*</code></td>
+</tr>
+<tr>
+<td><code>auth/services/session.service.ts</code></td>
+<td>هسته‌ی نشست: ساخت، resolve/sliding، revoke</td>
+</tr>
+<tr>
+<td><code>auth/services/token.service.ts</code></td>
+<td>ساخت توکن نشست تصادفی + هش SHA-256</td>
+</tr>
+<tr>
+<td><code>auth/services/cookie.service.ts</code></td>
+<td>ست/پاک‌کردن کوکی <code>session</code></td>
+</tr>
+<tr>
+<td><code>auth/services/csrf.service.ts</code></td>
+<td>ساخت و اعتبارسنجی CSRF</td>
+</tr>
+<tr>
+<td><code>auth/services/otp.service.ts</code></td>
+<td>OTP</td>
+</tr>
+<tr>
+<td><code>auth/services/password.service.ts</code></td>
+<td>هش/تأیید رمز (Argon2)</td>
+</tr>
+<tr>
+<td><code>auth/guards/session-auth.guard.ts</code></td>
+<td>الزام نشست (با احترام به <code>@Public</code>)</td>
+</tr>
+<tr>
+<td><code>auth/guards/optional-session-auth.guard.ts</code></td>
+<td>نشست اختیاری</td>
+</tr>
+<tr>
+<td><code>auth/guards/csrf.guard.ts</code></td>
+<td>اعمال CSRF روی متدهای تغییردهنده</td>
+</tr>
+<tr>
+<td><code>auth/guards/local-auth.guard.ts</code></td>
+<td>ورود با رمز</td>
+</tr>
+<tr>
+<td><code>auth/utils/extract-session-credential.ts</code></td>
+<td>استخراج توکن از کوکی یا Bearer</td>
+</tr>
+<tr>
+<td><code>authorization/guards/permissions.guard.ts</code></td>
+<td>بررسی دسترسی نقش‌محور</td>
+</tr>
+<tr>
+<td><code>database/schema/auth-session.ts</code></td>
+<td>جدول <code>auth_sessions</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="h-4">۲. کوکی‌ها</h2>
+<table>
+<thead>
+<tr>
+<th>کوکی</th>
+<th>HttpOnly</th>
+<th>عمر</th>
+<th>نقش</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session</code></td>
+<td>✅</td>
+<td>۳۰ روز (sliding)</td>
+<td>احراز هویت</td>
+</tr>
+<tr>
+<td><code>csrf_token</code></td>
+<td>❌</td>
+<td>۸ ساعت</td>
+<td>محافظت CSRF (double-submit)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>در production با <code>COOKIE_SECURE=true</code> و بدون domain، نام به <code>__Host-session</code> تغییر می‌کند.</li>
+<li>همه‌ی کوکی‌ها <code>Path=/</code> و <code>SameSite</code> از config.</li>
+</ul>
+<hr />
+<h2 id="h-5">۳. مدل داده: <code>auth_sessions</code></h2>
+<pre><code>id            text pk (uuidv7)
+user_id       int  -&gt; users.id (cascade)
+token_hash    text unique         ← sha256 توکن خام (توکن خام هرگز ذخیره نمی‌شود)
+expires_at    timestamptz         ← انقضای sliding
+revoked_at    timestamptz null    ← logout/بن/تغییر رمز
+last_used_at  timestamptz null
+ip            text null
+user_agent    text null
+created_at    timestamptz         ← مبنای سقف مطلق
+</code></pre>
+<p><strong>چرخه‌ی نشست:</strong></p>
+<ol>
+<li><strong>ورود:</strong> توکن ۳۲ بایتی تصادفی ساخته می‌شود؛ فقط <code>sha256</code> آن در DB ذخیره و توکن خام در کوکی می‌رود.</li>
+<li><strong>هر درخواست:</strong> <code>sha256</code> توکن → lookup → چک <code>revoked_at</code>/<code>expires_at</code>/سقف مطلق → بارگذاری کاربر.</li>
+<li><strong>sliding:</strong> اگر از نیمه‌ی عمر گذشته باشد، <code>expires_at = now + 30d</code> و کوکی دوباره ست می‌شود (حداکثر یک نوشتن در هر نیمه‌عمر).</li>
+<li><strong>سقف مطلق:</strong> اگر <code>now &gt; created_at + 90d</code> → نشست باطل.</li>
+<li><strong>revoke:</strong> logout، تغییر رمز، یا غیرفعال‌شدن کاربر.</li>
+</ol>
+<blockquote>
+<p>چون سرور همیشه DB را می‌خواند، <strong>لغو فوری</strong> است (برخلاف JWT stateless).</p>
+</blockquote>
+<hr />
+<h2 id="h-6">۴. گاردها و ماتریس endpointها</h2>
+<blockquote>
+<p>گارد گلوبال (<code>APP_GUARD</code>) وجود ندارد؛ هر کنترلر صریحاً <code>@UseGuards</code> می‌گیرد.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>متد</th>
+<th>مسیر</th>
+<th>گاردها</th>
+<th>CSRF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/auth/csrf</code></td>
+<td><code>@Public</code></td>
+<td>❌</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/otp/request</code></td>
+<td><code>@Public</code> + <code>CsrfGuard</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/otp/verify</code></td>
+<td><code>@Public</code> + <code>CsrfGuard</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/login</code></td>
+<td><code>@Public</code> + <code>LocalAuthGuard</code> + <code>CsrfGuard</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/logout</code></td>
+<td><code>OptionalSessionAuthGuard</code> + <code>CsrfGuard</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/password</code></td>
+<td><code>SessionAuthGuard</code> + <code>CsrfGuard</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/auth/me</code></td>
+<td><code>OptionalSessionAuthGuard</code></td>
+<td>❌</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/dev/login</code></td>
+<td><code>@Public</code> + <code>DevAuthGuard</code></td>
+<td>❌*</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/auth/test/hash-password</code></td>
+<td><code>@Public</code></td>
+<td>❌</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>POST /auth/refresh</code> <strong>حذف شد</strong>.</p>
+</blockquote>
+<p>گارد روی کنترلرهای دیگر:</p>
+<table>
+<thead>
+<tr>
+<th>کنترلر</th>
+<th>پیشوند</th>
+<th>گاردها</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cart</code></td>
+<td><code>/cart</code></td>
+<td><code>OptionalSessionAuthGuard</code> + <code>CsrfGuard</code></td>
+</tr>
+<tr>
+<td><code>site-settings</code></td>
+<td><code>/site-settings</code></td>
+<td><code>SessionAuthGuard</code> + <code>PermissionsGuard</code> + <code>CsrfGuard</code> (یک GET: <code>@Public</code> + <code>OptionalSessionAuthGuard</code>)</td>
+</tr>
+<tr>
+<td><code>authorization</code></td>
+<td><code>/admin</code></td>
+<td><code>SessionAuthGuard</code> + <code>PermissionsGuard</code> + <code>CsrfGuard</code></td>
+</tr>
+<tr>
+<td><code>page-section</code> (ادمین)</td>
+<td><code>/admin/page-sections</code></td>
+<td><code>SessionAuthGuard</code> + <code>PermissionsGuard</code> + <code>CsrfGuard</code></td>
+</tr>
+<tr>
+<td><code>file-manager</code></td>
+<td><code>/files</code></td>
+<td><code>SessionAuthGuard</code> + <code>PermissionsGuard</code> + <code>CsrfGuard</code></td>
+</tr>
+<tr>
+<td><code>product-public</code> / <code>category-public</code> / <code>page-section-public</code></td>
+<td>عمومی</td>
+<td>بدون گارد (فقط خواندن)</td>
+</tr>
+</tbody>
+</table>
+<p><code>req.user</code> شکل زیر را دارد (سازگار با قبل):</p>
+<pre lang="ts"><code>{ userId: number; username: string; sessionId: string }
+</code></pre>
+<hr />
+<h2 id="h-7">۵. CSRF</h2>
+<ul>
+<li><code>CsrfGuard</code> روی <code>GET/HEAD/OPTIONS</code> معاف است.</li>
+<li>برای درخواست‌های تغییردهنده: <code>assertOrigin</code> (هدر Origin در <code>APP_ORIGIN</code>) + <code>validate</code> (هدر <code>X-CSRF-Token</code> == کوکی <code>csrf_token</code>).</li>
+<li>اگر درخواست با <strong>Bearer</strong> احراز شده باشد، CSRF معاف است (چون مرورگر هدر را خودکار نمی‌فرستد).</li>
+<li><code>csrf_token</code> بعد از <code>login</code>، <code>otp/verify</code> و <code>dev/login</code> می‌چرخد.</li>
+</ul>
+<hr />
+<h2 id="h-8">۶. چند حامل اعتبار (وب + موبایل)</h2>
+<p><code>extractSessionCredential</code> توکن را از یکی از این دو می‌گیرد:</p>
+<ol>
+<li>کوکی <code>session</code> (وب) → <code>authVia = 'cookie'</code> → CSRF لازم.</li>
+<li>هدر <code>Authorization: Bearer &lt;token&gt;</code> (موبایل/API) → <code>authVia = 'bearer'</code> → CSRF معاف.</li>
+</ol>
+<p>هر دو به <strong>همان جدول <code>auth_sessions</code></strong> اشاره می‌کنند؛ یعنی یک سیستم نشست با دو حامل. برای موبایل می‌توان بعداً یک endpoint (<code>POST /auth/token</code>) اضافه کرد که همان توکن را در بدنه برگرداند.</p>
+<hr />
+<h2 id="h-9">۷. جریان‌های کلیدی</h2>
+<p><strong>ورود (login/otp/verify):</strong></p>
+<pre><code>raw = randomBytes(32)
+INSERT auth_sessions { user_id, token_hash=sha256(raw), expires_at=now+30d }
+Set-Cookie: session=raw; HttpOnly; Secure; SameSite=Lax; Path=/
+rotate csrf_token
+</code></pre>
+<p><strong>هر درخواست:</strong> توکن → hash → lookup → چک revoked/expires/absolute → sliding → <code>req.user</code>.</p>
+<p><strong>خروج:</strong> <code>revokeOne(sessionId)</code> + پاک‌کردن کوکی.</p>
+<p><strong>تغییر رمز:</strong> ست رمز + <code>revokeAllForUserExcept(userId, currentSessionId)</code>.</p>
+<hr />
+<h2 id="h-10">۸. SSR و PWA</h2>
+<ul>
+<li>SSR فقط کوکی <code>session</code> را forward می‌کند (سرور-به-سرور). بدون interceptor، بدون refresh، بدون race.</li>
+<li>PWA همان مرورگر است؛ کوکی بی‌مشکل کار می‌کند. فقط کش service worker را برای داده‌ی احرازشده خاموش کن.</li>
+<li>برای فرانت/بک same-site (مثل <code>test.com</code> + <code>api.test.com</code>) کوکی <code>SameSite=Lax</code> کافی است.</li>
+</ul>
+<hr />
+<h2 id="h-11">۹. درگاه پرداخت</h2>
+<p>سه نکته‌ی حساس (همه حول CSRF/کوکی، نه نشست):</p>
+<ol>
+<li><strong>callback درگاه باید <code>@Public</code> و بدون <code>CsrfGuard</code> باشد</strong> (درگاه نه هدر CSRF می‌فرستد نه Origin معتبر دارد). ترجیحاً <code>GET</code>.</li>
+<li>پاسخ callback باید <code>302 redirect</code> با <code>@Res()</code> (بدون passthrough) باشد، نه JSON.</li>
+<li>اعتبار پرداخت را با <strong>verify سمت سرور</strong> بسنج؛ به پارامترهای callback اعتماد نکن و مبلغ را سمت سرور بازمحاسبه کن.</li>
+<li>شروع پرداخت (<code>POST</code>) یک عملیات تغییردهنده‌ی عادی است → <code>SessionAuthGuard</code> + <code>CsrfGuard</code>.</li>
+<li>در callback به نشست کاربر تکیه نکن؛ سفارش را با authority/شناسه پیدا کن.</li>
+</ol>
+<hr />
+<h2 id="h-12">۱۰. متغیرهای محیطی</h2>
+<pre lang="dotenv"><code># App / CORS+CSRF origin
+APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173   # `*` فقط در dev
+
+# Session (opaque HttpOnly cookie)
+SESSION_TTL_DAYS=30          # sliding
+SESSION_ABSOLUTE_DAYS=90     # hard cap
+
+# Cookies
+COOKIE_SECURE=false          # در production: true
+COOKIE_SAME_SITE=lax
+# COOKIE_DOMAIN=
+
+# Dev-only
+DEV_AUTH=false
+</code></pre>
+<hr />
+<h2 id="h-13">۱۱. نکات و ریسک‌ها</h2>
+<ul>
+<li><strong>گارد گلوبال نداریم:</strong> هر کنترلر جدید پیش‌فرض عمومی است تا <code>@UseGuards</code> بگذاری. توصیه برای فاز بعد: <code>APP_GUARD</code> + <code>@Public</code>.</li>
+<li><code>POST /auth/test/hash-password</code> عمومی است (طبق قرارداد فعلی پروژه). برای production بهتر است گیت شود.</li>
+<li>CORS بر اساس <code>APP_ORIGIN</code> بسته می‌شود (<code>*</code> فقط dev).</li>
+<li><code>passport</code> فقط برای استراتژی‌های ورود آینده (مثل گوگل) نگه داشته شده؛ JWT حذف شده است.</li>
+</ul>
+<hr />
+<h2 id="h-14">۱۲. جمع‌بندی</h2>
+<ol>
+<li><strong>یک سیستم نشست، دو حامل</strong> (کوکی برای وب، Bearer برای موبایل).</li>
+<li><strong>حقیقت در DB</strong> است؛ کوکی فقط یک اشاره‌گر → لغو فوری.</li>
+<li><strong>sliding + absolute</strong> برای تعادل امنیت/تجربه.</li>
+<li><strong>CSRF</strong> فقط برای کوکی؛ Bearer معاف.</li>
+<li><strong>SSR/PWA</strong> بدون هیچ لایه‌ی اضافه کار می‌کند.</li>
+<li>JWT/refresh/rotation حذف شدند؛ برای چرایی به سند <code>auth-passport-vs-sanctum.md</code> نگاه کن.</li>
+</ol>
+
+    </main>
+    <footer class="doc-foot">ساخته‌شده از Markdown — Lio</footer>
+  </div>
+</body>
+</html>

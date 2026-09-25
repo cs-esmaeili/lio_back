@@ -1,10 +1,4 @@
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-
-function loadKey(envPath: string | undefined, fallback: string): string {
-  const p = join(process.cwd(), envPath ?? fallback);
-  return readFileSync(p, 'utf8');
-}
 
 export default () => {
   const port = parseInt(process.env.PORT ?? '3000', 10);
@@ -28,11 +22,11 @@ export default () => {
       uploadsDir: process.env.UPLOADS_DIR ?? join(process.cwd(), 'public', 'uploads'),
       urlPrefix: process.env.UPLOADS_URL_PREFIX ?? '/uploads/',
     },
-    jwt: {
-      privateKey: loadKey(process.env.JWT_PRIVATE_KEY_PATH, 'keys/jwt-private.pem'),
-      publicKey: loadKey(process.env.JWT_PUBLIC_KEY_PATH, 'keys/jwt-public.pem'),
-      accessTtlSeconds: parseInt(process.env.JWT_ACCESS_TTL_SECONDS ?? '900', 10),
-      refreshTtlDays: parseInt(process.env.JWT_REFRESH_TTL_DAYS ?? '30', 10),
+    session: {
+      // Sliding lifetime: extended whenever the session is used.
+      ttlDays: parseInt(process.env.SESSION_TTL_DAYS ?? '30', 10),
+      // Absolute lifetime: hard cap measured from the session's creation.
+      absoluteDays: parseInt(process.env.SESSION_ABSOLUTE_DAYS ?? '90', 10),
     },
     devAuth: {
       enabled: process.env.DEV_AUTH === 'true',
@@ -44,7 +38,7 @@ export default () => {
     },
     otp: {
       ttlSeconds: parseInt(process.env.OTP_TTL_SECONDS ?? '120', 10),
-      length: parseInt(process.env.OTP_LENGTH ?? '6', 10),
+      length: parseInt(process.env.OTP_LENGTH ?? '4', 10),
       maxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS ?? '5', 10),
       maxRequests: parseInt(process.env.OTP_MAX_REQUESTS ?? '10', 10),
       requestWindowSeconds: parseInt(process.env.OTP_REQUEST_WINDOW_SECONDS ?? '900', 10),

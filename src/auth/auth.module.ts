@@ -8,33 +8,17 @@ import { CookieService } from './services/cookie.service';
 import { UsersModule } from 'src/users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { OptionalAuthGuard } from './guards/optional-auth.guard';
+import { SessionAuthGuard } from './guards/session-auth.guard';
+import { OptionalSessionAuthGuard } from './guards/optional-session-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
 import { DevAuthGuard } from './guards/dev-auth.guard';
 import { CsrfService } from './services/csrf.service';
 import { AuthController } from './auth.controller';
 import { SmsModule } from 'src/sms/sms.module';
-import { ConfigService } from '@nestjs/config';
+
 @Module({
   controllers: [AuthController],
-  imports: [
-    UsersModule,
-    SmsModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        privateKey: config.getOrThrow<string>('jwt.privateKey'),
-        signOptions: {
-          algorithm: 'RS256',
-          expiresIn: config.getOrThrow<number>('jwt.accessTtlSeconds'),
-        },
-      }),
-    }),
-  ],
+  imports: [UsersModule, SmsModule, PassportModule],
   providers: [
     AuthService,
     PasswordService,
@@ -44,12 +28,23 @@ import { ConfigService } from '@nestjs/config';
     CookieService,
     CsrfService,
     LocalStrategy,
-    JwtStrategy,
-    JwtAuthGuard,
-    OptionalAuthGuard,
+    SessionAuthGuard,
+    OptionalSessionAuthGuard,
     CsrfGuard,
     DevAuthGuard,
   ],
-  exports: [AuthService, PasswordService, OtpService, TokenService, SessionService, CookieService, CsrfService, JwtAuthGuard, OptionalAuthGuard, CsrfGuard, DevAuthGuard],
+  exports: [
+    AuthService,
+    PasswordService,
+    OtpService,
+    TokenService,
+    SessionService,
+    CookieService,
+    CsrfService,
+    SessionAuthGuard,
+    OptionalSessionAuthGuard,
+    CsrfGuard,
+    DevAuthGuard,
+  ],
 })
 export class AuthModule {}

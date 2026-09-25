@@ -14,7 +14,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { SessionAuthGuard } from 'src/auth/guards/session-auth.guard';
 import { CsrfGuard } from 'src/auth/guards/csrf.guard';
 import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { Permissions } from 'src/authorization/decorators/permissions.decorator';
@@ -34,13 +34,13 @@ import { DeleteFolderResponseDto } from './dtos/deleteFolder/delete-folder-respo
 const MAX_FILES = 20;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-interface JwtUser {
+interface SessionUser {
   userId: number;
   username: string;
   sessionId: string;
 }
 
-@UseGuards(JwtAuthGuard, PermissionsGuard, CsrfGuard)
+@UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('files')
 export class FileManagerController {
   constructor(private readonly fileManager: FileManagerService) {}
@@ -48,7 +48,7 @@ export class FileManagerController {
   @ApiOperation({ summary: 'List files and folders in a directory' })
   @ApiOkResponse({ description: 'Directory entries', type: ListFilesResponseDto })
   @ApiNotFoundResponse({ description: 'Folder not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
   @Get()
@@ -69,7 +69,7 @@ export class FileManagerController {
     },
   })
   @ApiCreatedResponse({ description: 'Uploaded files', type: UploadFilesResponseDto })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
   @UseInterceptors(
@@ -80,7 +80,7 @@ export class FileManagerController {
   )
   @Post('upload')
   async uploadFiles(@UploadedFiles() files: Express.Multer.File[], @Body() body: UploadFilesRequestDto, @Req() req: Request): Promise<UploadFilesResponseDto> {
-    const user = req.user as JwtUser;
+    const user = req.user as SessionUser;
     const records = await this.fileManager.uploadFiles(files, body.path ?? '', user.userId);
     return { files: records.map((record) => this.toFileDto(record)) };
   }
@@ -89,7 +89,7 @@ export class FileManagerController {
   @ApiHeader(CSRF_HEADER)
   @ApiBody({ type: CreateFolderRequestDto })
   @ApiCreatedResponse({ description: 'Folder created', type: CreateFolderResponseDto })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
   @Post('folders')
@@ -100,7 +100,7 @@ export class FileManagerController {
   @ApiOperation({ summary: 'Delete a folder and its contents' })
   @ApiHeader(CSRF_HEADER)
   @ApiOkResponse({ description: 'Folder deleted', type: DeleteFolderResponseDto })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
   @Delete('folders')
@@ -113,7 +113,7 @@ export class FileManagerController {
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'File deleted', type: DeleteFileResponseDto })
   @ApiNotFoundResponse({ description: 'File not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('file:manage')
   @Delete(':id')

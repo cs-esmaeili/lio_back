@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiHeader, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { OptionalAuthGuard } from 'src/auth/guards/optional-auth.guard';
+import { SessionAuthGuard } from 'src/auth/guards/session-auth.guard';
+import { OptionalSessionAuthGuard } from 'src/auth/guards/optional-session-auth.guard';
 import { CsrfGuard } from 'src/auth/guards/csrf.guard';
 import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { Public } from 'src/auth/decorators/public.decorator';
@@ -13,7 +13,7 @@ import { GetByKeyResponseDto } from './dtos/getByKey/get-by-key-response.dto';
 import { UpsertByKeyRequestDto } from './dtos/upsertByKey/upsert-by-key-request.dto';
 import { UpsertByKeyResponseDto } from './dtos/upsertByKey/upsert-by-key-response.dto';
 
-@UseGuards(JwtAuthGuard, PermissionsGuard, CsrfGuard)
+@UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('site-settings')
 export class SiteSettingController {
   constructor(private readonly siteSettings: SiteSettingService) {}
@@ -23,7 +23,7 @@ export class SiteSettingController {
   @ApiOkResponse({ description: 'Setting payload', type: GetByKeyResponseDto })
   @ApiNotFoundResponse({ description: 'Setting not found, or private and the caller is not authenticated' })
   @Public()
-  @UseGuards(OptionalAuthGuard)
+  @UseGuards(OptionalSessionAuthGuard)
   @Get(':key')
   getByKey(@Param('key') key: string, @Req() req: Request): Promise<GetByKeyResponseDto> {
     return this.siteSettings.getByKey(key, Boolean(req.user));
@@ -34,7 +34,7 @@ export class SiteSettingController {
   @ApiParam({ name: 'key', type: String, example: 'logo' })
   @ApiBody({ type: UpsertByKeyRequestDto })
   @ApiOkResponse({ description: 'Upserted setting', type: UpsertByKeyResponseDto })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('site:manage')
   @Put(':key')

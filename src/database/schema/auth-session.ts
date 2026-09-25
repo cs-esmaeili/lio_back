@@ -11,19 +11,13 @@ export const authSessions = pgTable(
     userId: integer('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    refreshTokenHash: text('refresh_token_hash').notNull(),
-    familyId: text('family_id').notNull(),
+    tokenHash: text('token_hash').notNull(),
     expiresAt: timestamp('expires_at', { precision: 3, mode: 'date' }).notNull(),
     revokedAt: timestamp('revoked_at', { precision: 3, mode: 'date' }),
-    replacedById: text('replaced_by_id'),
     lastUsedAt: timestamp('last_used_at', { precision: 3, mode: 'date' }),
     ip: text('ip'),
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at', { precision: 3, mode: 'date' }).defaultNow().notNull(),
   },
-  (table) => [
-    uniqueIndex('auth_sessions_refresh_token_hash_key').on(table.refreshTokenHash),
-    index('auth_sessions_user_id_idx').on(table.userId),
-    index('auth_sessions_family_id_idx').on(table.familyId),
-  ],
+  (table) => [uniqueIndex('auth_sessions_token_hash_key').on(table.tokenHash), index('auth_sessions_user_id_idx').on(table.userId)],
 );

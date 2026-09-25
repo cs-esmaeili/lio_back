@@ -12,11 +12,11 @@ export class VerifyOtpRequestDto {
   username!: string;
 
   @ApiProperty({
-    description: 'Six-digit OTP code',
-    example: '123456',
+    description: 'Four-digit OTP code',
+    example: '1234',
   })
   @IsString()
   @IsNotEmpty()
-  @Length(6, 6)
+  @Length(4, 4)
   code!: string;
 }

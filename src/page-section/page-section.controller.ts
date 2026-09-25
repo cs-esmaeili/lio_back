@@ -11,7 +11,7 @@ import {
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { SessionAuthGuard } from 'src/auth/guards/session-auth.guard';
 import { CsrfGuard } from 'src/auth/guards/csrf.guard';
 import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { Permissions } from 'src/authorization/decorators/permissions.decorator';
@@ -23,7 +23,7 @@ import { GetSectionResponseDto } from './dtos/getSection/get-section-response.dt
 import { UpdatePageSectionDataDto } from './dtos/updateSectionData/update-section-data-request.dto';
 import { UpdateSectionDataResponseDto } from './dtos/updateSectionData/update-section-data-response.dto';
 
-@UseGuards(JwtAuthGuard, PermissionsGuard, CsrfGuard)
+@UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('admin/page-sections')
 export class PageSectionController {
   constructor(private readonly pageSections: PageSectionService) {}
@@ -33,7 +33,7 @@ export class PageSectionController {
   @ApiBody({ type: CreateSectionRequestDto })
   @ApiCreatedResponse({ description: 'Created section', type: CreateSectionResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('page:manage')
   @Post()
@@ -45,7 +45,7 @@ export class PageSectionController {
   @ApiParam({ name: 'id', type: Number, example: 50 })
   @ApiOkResponse({ description: 'Page section', type: GetSectionResponseDto })
   @ApiNotFoundResponse({ description: 'Section not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('page:manage')
   @Get(':id')
@@ -60,7 +60,7 @@ export class PageSectionController {
   @ApiOkResponse({ description: 'Updated section', type: UpdateSectionDataResponseDto })
   @ApiNotFoundResponse({ description: 'Section not found' })
   @ApiBadRequestResponse({ description: 'Invalid section data or unknown files' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('page:manage')
   @Patch(':id/data')

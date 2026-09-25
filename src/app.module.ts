@@ -17,6 +17,7 @@ import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { SmsModule } from './sms/sms.module';
 import { LoggerModule } from './logger/logger.module';
+import { LogViewerModule } from './log-viewer/log-viewer.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import configuration from './config/configuration';
@@ -42,6 +43,7 @@ import configuration from './config/configuration';
     CartModule,
     SmsModule,
     LoggerModule,
+    LogViewerModule,
   ],
   controllers: [AppController],
   providers: [

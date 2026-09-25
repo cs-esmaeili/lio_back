@@ -11,7 +11,7 @@ import {
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { SessionAuthGuard } from 'src/auth/guards/session-auth.guard';
 import { CsrfGuard } from 'src/auth/guards/csrf.guard';
 import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { Permissions } from './decorators/permissions.decorator';
@@ -33,14 +33,14 @@ import { DeletePermissionResponseDto } from './dtos/deletePermission/delete-perm
 import { AssignRoleRequestDto } from './dtos/assignRole/assign-role-request.dto';
 import { AssignRoleResponseDto } from './dtos/assignRole/assign-role-response.dto';
 
-@UseGuards(JwtAuthGuard, PermissionsGuard, CsrfGuard)
+@UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('admin')
 export class AuthorizationController {
   constructor(private readonly authorization: AuthorizationService) {}
 
   @ApiOperation({ summary: 'List all roles with their permissions' })
   @ApiOkResponse({ description: 'Roles', type: ListRolesResponseDto, isArray: true })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:read')
   @Get('roles')
@@ -53,7 +53,7 @@ export class AuthorizationController {
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'Role', type: GetRoleResponseDto })
   @ApiNotFoundResponse({ description: 'Role not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:read')
   @Get('roles/:id')
@@ -67,7 +67,7 @@ export class AuthorizationController {
   @ApiBody({ type: CreateRoleRequestDto })
   @ApiCreatedResponse({ description: 'Created role', type: CreateRoleResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
   @Post('roles')
@@ -82,7 +82,7 @@ export class AuthorizationController {
   @ApiBody({ type: UpdateRoleRequestDto })
   @ApiOkResponse({ description: 'Updated role', type: UpdateRoleResponseDto })
   @ApiNotFoundResponse({ description: 'Role not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
   @Patch('roles/:id')
@@ -96,7 +96,7 @@ export class AuthorizationController {
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'Role deleted', type: DeleteRoleResponseDto })
   @ApiNotFoundResponse({ description: 'Role not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
   @Delete('roles/:id')
@@ -106,7 +106,7 @@ export class AuthorizationController {
 
   @ApiOperation({ summary: 'List all permissions' })
   @ApiOkResponse({ description: 'Permissions', type: ListPermissionsResponseDto, isArray: true })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:read')
   @Get('permissions')
@@ -120,7 +120,7 @@ export class AuthorizationController {
   @ApiBody({ type: CreatePermissionRequestDto })
   @ApiCreatedResponse({ description: 'Created permission', type: CreatePermissionResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:write')
   @Post('permissions')
@@ -135,7 +135,7 @@ export class AuthorizationController {
   @ApiBody({ type: UpdatePermissionRequestDto })
   @ApiOkResponse({ description: 'Updated permission', type: UpdatePermissionResponseDto })
   @ApiNotFoundResponse({ description: 'Permission not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:write')
   @Patch('permissions/:id')
@@ -149,7 +149,7 @@ export class AuthorizationController {
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'Permission deleted', type: DeletePermissionResponseDto })
   @ApiNotFoundResponse({ description: 'Permission not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('permission:write')
   @Delete('permissions/:id')
@@ -163,7 +163,7 @@ export class AuthorizationController {
   @ApiBody({ type: AssignRoleRequestDto })
   @ApiOkResponse({ description: 'Role assigned', type: AssignRoleResponseDto })
   @ApiNotFoundResponse({ description: 'Role not found' })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('user:role:manage')
   @Patch('users/:userId/role')

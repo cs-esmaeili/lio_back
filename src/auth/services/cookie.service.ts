@@ -6,57 +6,29 @@ import type { Response } from 'express';
 export class CookieService {
   constructor(private readonly config: ConfigService) {}
 
-  accessTokenName(): string {
-    return this.prefixed('access_token');
+  sessionTokenName(): string {
+    return this.prefixed('session');
   }
 
-  refreshTokenName(): string {
-    return this.prefixed('refresh_token');
-  }
-
-  setAccessToken(res: Response, token: string): void {
-    res.cookie(this.accessTokenName(), token, {
+  setSession(res: Response, token: string): void {
+    res.cookie(this.sessionTokenName(), token, {
       httpOnly: true,
       secure: this.secure,
       sameSite: this.sameSite,
       path: '/',
-      maxAge: this.accessTtlSeconds * 1000,
+      maxAge: this.ttlMs,
       ...(this.domain ? { domain: this.domain } : {}),
     });
   }
 
-  setRefreshToken(res: Response, token: string): void {
-    res.cookie(this.refreshTokenName(), token, {
+  clearSession(res: Response): void {
+    res.clearCookie(this.sessionTokenName(), {
       httpOnly: true,
       secure: this.secure,
       sameSite: this.sameSite,
       path: '/',
-      maxAge: this.refreshTtlDays * 24 * 60 * 60 * 1000,
       ...(this.domain ? { domain: this.domain } : {}),
     });
-  }
-
-  clearAccessToken(res: Response): void {
-    res.clearCookie(this.accessTokenName(), {
-      httpOnly: true,
-      secure: this.secure,
-      sameSite: this.sameSite,
-      path: '/',
-    });
-  }
-
-  clearRefreshToken(res: Response): void {
-    res.clearCookie(this.refreshTokenName(), {
-      httpOnly: true,
-      secure: this.secure,
-      sameSite: this.sameSite,
-      path: '/',
-    });
-  }
-
-  clearAuthCookies(res: Response): void {
-    this.clearAccessToken(res);
-    this.clearRefreshToken(res);
   }
 
   private prefixed(base: string): string {
@@ -77,11 +49,7 @@ export class CookieService {
     return this.config.get<string>('cookie.domain');
   }
 
-  private get accessTtlSeconds(): number {
-    return this.config.getOrThrow<number>('jwt.accessTtlSeconds');
-  }
-
-  private get refreshTtlDays(): number {
-    return this.config.getOrThrow<number>('jwt.refreshTtlDays');
+  private get ttlMs(): number {
+    return this.config.getOrThrow<number>('session.ttlDays') * 24 * 60 * 60 * 1000;
   }
 }

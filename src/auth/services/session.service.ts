@@ -1,6 +1,5 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'node:crypto';
 import { DateTime } from 'luxon';
 import type { Request, Response } from 'express';
 import { and, eq, isNull, ne } from 'drizzle-orm';
@@ -11,19 +10,20 @@ import { TokenService } from './token.service';
 import { CookieService } from './cookie.service';
 import { CsrfService } from './csrf.service';
 
-interface SessionRef {
-  id: string;
-  userId: number;
-  familyId: string;
-  revokedAt: Date | null;
-  expiresAt: Date;
-}
+type SessionRecord = typeof authSessions.$inferSelect;
 
 export interface AuthUser {
   id: number;
   username: string;
   name: string | null;
   lastName: string | null;
+}
+
+export interface ResolvedSession {
+  user: AuthUser;
+  sessionId: string;
+  // True when the sliding expiry was pushed forward during this request.
+  extended: boolean;
 }
 
 @Injectable()
@@ -37,81 +37,68 @@ export class SessionService {
     private readonly csrf: CsrfService,
   ) {}
 
-  async create(input: { userId: number; refreshTokenHash: string; ip?: string; userAgent?: string }) {
+  // Full login handshake: mint an opaque session token, persist it, set the
+  // HttpOnly session cookie, rotate the CSRF token, and return the user.
+  async establishSession(user: AuthUser, req: Request, res: Response): Promise<AuthUser> {
+    const { raw, hash } = this.tokens.generateSessionToken();
+    await this.create({
+      userId: user.id,
+      tokenHash: hash,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    this.cookies.setSession(res, raw);
+    this.csrf.generateCsrfToken(res); // fresh CSRF per session (anti-fixation)
+
+    return this.publicUser(user);
+  }
+
+  // Validate a raw session token: existence, revocation, sliding and absolute
+  // expiry, and the owning account status. Extends the sliding expiry and
+  // returns the resolved user, or null when the session is not usable.
+  async resolve(raw: string): Promise<ResolvedSession | null> {
+    const session = await this.findByTokenHash(this.tokens.hashSessionToken(raw));
+    if (!session || !this.isActive(session)) {
+      return null;
+    }
+
+    if (this.isAbsolutelyExpired(session)) {
+      await this.revokeOne(session.id);
+      return null;
+    }
+
+    const user = await this.users.findById(session.userId);
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      await this.revokeAllForUser(session.userId);
+      return null;
+    }
+
+    const extended = await this.extendIfNeeded(session);
+
+    return { user: this.publicUser(user), sessionId: session.id, extended };
+  }
+
+  // Logout: revoke the current session (if any) and clear the session cookie.
+  async logout(sessionId: string | undefined, res: Response): Promise<void> {
+    if (sessionId) {
+      await this.revokeOne(sessionId);
+    }
+    this.cookies.clearSession(res);
+  }
+
+  private async create(input: { userId: number; tokenHash: string; ip?: string; userAgent?: string }) {
     const [session] = await this.db
       .insert(authSessions)
       .values({
         userId: input.userId,
-        refreshTokenHash: input.refreshTokenHash,
-        familyId: randomUUID(),
+        tokenHash: input.tokenHash,
         expiresAt: this.newExpiry(),
         ip: input.ip ?? null,
         userAgent: input.userAgent ?? null,
       })
       .returning();
     return session;
-  }
-
-  // Full login handshake: mint a refresh token, persist the session, set auth
-  // cookies, rotate the CSRF token, and return the public user for the body.
-  async establishSession(user: AuthUser, req: Request, res: Response): Promise<AuthUser> {
-    const { raw, hash } = this.tokens.generateRefreshToken();
-    const session = await this.create({
-      userId: user.id,
-      refreshTokenHash: hash,
-      ip: req.ip,
-      userAgent: req.get('user-agent'),
-    });
-
-    const accessToken = this.tokens.signAccessToken({
-      sub: String(user.id),
-      sid: session.id,
-      jti: this.tokens.newJti(),
-    });
-    this.cookies.setAccessToken(res, accessToken);
-    this.cookies.setRefreshToken(res, raw);
-    this.csrf.generateCsrfToken(res); // fresh CSRF per session (anti-fixation)
-
-    return this.publicUser(user);
-  }
-
-  // Refresh: consume the refresh-token cookie, rotate the session within its
-  // family, reissue access/refresh cookies and CSRF, and return the user.
-  async refresh(req: Request, res: Response): Promise<AuthUser> {
-    const cookies = req.cookies as Record<string, string | undefined> | undefined;
-    const raw = cookies?.[this.cookies.refreshTokenName()];
-    if (!raw) throw new UnauthorizedException('No refresh token');
-
-    const session = await this.findByRefreshHash(this.tokens.hashRefreshToken(raw));
-    if (!session) throw new UnauthorizedException('Invalid refresh token');
-
-    const user = await this.users.findById(session.userId);
-    if (!user || user.status !== UserStatus.ACTIVE) {
-      await this.revokeAllForUser(session.userId);
-      throw new UnauthorizedException('Account not active');
-    }
-
-    const next = this.tokens.generateRefreshToken();
-    const newSession = await this.rotate(session, next.hash, req.ip, req.get('user-agent'));
-
-    const accessToken = this.tokens.signAccessToken({
-      sub: String(user.id),
-      sid: newSession.id,
-      jti: this.tokens.newJti(),
-    });
-    this.cookies.setAccessToken(res, accessToken);
-    this.cookies.setRefreshToken(res, next.raw);
-    this.csrf.generateCsrfToken(res);
-
-    return this.publicUser(user);
-  }
-
-  // Logout: revoke the current session (if any) and clear auth cookies.
-  async logout(sessionId: string | undefined, res: Response): Promise<void> {
-    if (sessionId) {
-      await this.revokeOne(sessionId);
-    }
-    this.cookies.clearAuthCookies(res);
   }
 
   private publicUser(user: AuthUser): AuthUser {
@@ -123,52 +110,31 @@ export class SessionService {
     };
   }
 
-  findByRefreshHash(refreshTokenHash: string) {
-    return this.db.query.authSessions.findFirst({ where: eq(authSessions.refreshTokenHash, refreshTokenHash) });
+  private findByTokenHash(tokenHash: string) {
+    return this.db.query.authSessions.findFirst({ where: eq(authSessions.tokenHash, tokenHash) });
   }
 
-  findById(id: string) {
-    return this.db.query.authSessions.findFirst({ where: eq(authSessions.id, id) });
-  }
-
-  isActive(session: { revokedAt: Date | null; expiresAt: Date }): boolean {
+  private isActive(session: Pick<SessionRecord, 'revokedAt' | 'expiresAt'>): boolean {
     return !session.revokedAt && session.expiresAt > DateTime.now().toJSDate();
   }
 
-  // Consume an old refresh token and issue its successor in the same family.
-  // Any sign of reuse revokes the entire family.
-  async rotate(oldSession: SessionRef, newHash: string, ip?: string, userAgent?: string) {
-    const now = DateTime.now().toJSDate();
-    if (oldSession.revokedAt || oldSession.expiresAt <= now) {
-      await this.revokeFamily(oldSession.familyId);
-      throw new UnauthorizedException('Refresh token reuse detected');
+  private isAbsolutelyExpired(session: Pick<SessionRecord, 'createdAt'>): boolean {
+    const absoluteExpiry = DateTime.fromJSDate(session.createdAt).plus({ days: this.absoluteDays });
+    return DateTime.now() > absoluteExpiry;
+  }
+
+  // Push the sliding expiry forward, but only once the session is past the
+  // halfway point of its lifetime — this keeps writes to at most one per half TTL.
+  private async extendIfNeeded(session: Pick<SessionRecord, 'id' | 'expiresAt'>): Promise<boolean> {
+    const now = DateTime.now();
+    const remainingMs = DateTime.fromJSDate(session.expiresAt).diff(now).as('milliseconds');
+    const halfTtlMs = (this.ttlDays * 24 * 60 * 60 * 1000) / 2;
+    if (remainingMs >= halfTtlMs) {
+      return false;
     }
 
-    // Atomic claim: first refresher wins, concurrent one gets count 0.
-    const claimed = await this.db
-      .update(authSessions)
-      .set({ revokedAt: now, lastUsedAt: now })
-      .where(and(eq(authSessions.id, oldSession.id), isNull(authSessions.revokedAt)))
-      .returning({ id: authSessions.id });
-    if (claimed.length === 0) {
-      await this.revokeFamily(oldSession.familyId);
-      throw new UnauthorizedException('Refresh token reuse detected');
-    }
-
-    const [created] = await this.db
-      .insert(authSessions)
-      .values({
-        userId: oldSession.userId,
-        refreshTokenHash: newHash,
-        familyId: oldSession.familyId,
-        replacedById: oldSession.id,
-        expiresAt: this.newExpiry(),
-        ip: ip ?? null,
-        userAgent: userAgent ?? null,
-      })
-      .returning();
-
-    return created;
+    await this.db.update(authSessions).set({ expiresAt: this.newExpiry(), lastUsedAt: now.toJSDate() }).where(eq(authSessions.id, session.id));
+    return true;
   }
 
   async revokeOne(id: string) {
@@ -189,20 +155,15 @@ export class SessionService {
       .where(and(eq(authSessions.userId, userId), isNull(authSessions.revokedAt), ne(authSessions.id, exceptSessionId)));
   }
 
-  async revokeFamily(familyId: string) {
-    await this.db
-      .update(authSessions)
-      .set({ revokedAt: DateTime.now().toJSDate() })
-      .where(and(eq(authSessions.familyId, familyId), isNull(authSessions.revokedAt)));
-  }
-
-  async touch(id: string) {
-    await this.db.update(authSessions).set({ lastUsedAt: DateTime.now().toJSDate() }).where(eq(authSessions.id, id));
-  }
-
   private newExpiry(): Date {
-    return DateTime.now()
-      .plus({ days: this.config.getOrThrow<number>('jwt.refreshTtlDays') })
-      .toJSDate();
+    return DateTime.now().plus({ days: this.ttlDays }).toJSDate();
+  }
+
+  private get ttlDays(): number {
+    return this.config.getOrThrow<number>('session.ttlDays');
+  }
+
+  private get absoluteDays(): number {
+    return this.config.getOrThrow<number>('session.absoluteDays');
   }
 }

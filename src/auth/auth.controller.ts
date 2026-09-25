@@ -12,11 +12,12 @@ import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
 import { PasswordService } from './services/password.service';
 import { UsersService } from 'src/users/users.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { OptionalAuthGuard } from './guards/optional-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OptionalSessionAuthGuard } from './guards/optional-session-auth.guard';
+import { SessionAuthGuard } from './guards/session-auth.guard';
 import { CsrfGuard } from './guards/csrf.guard';
 import { DevAuthGuard } from './guards/dev-auth.guard';
 import { Public } from './decorators/public.decorator';
+import type { SessionUser } from './session-user';
 import { OtpPurpose, UserStatus } from 'src/database/schema';
 import { RequestOtpRequestDto } from './dtos/requestOtp/request-otp-request.dto';
 import { RequestOtpResponseDto } from './dtos/requestOtp/request-otp-response.dto';
@@ -25,7 +26,6 @@ import { VerifyOtpResponseDto } from './dtos/verifyOtp/verify-otp-response.dto';
 import { IssueCsrfResponseDto } from './dtos/issueCsrf/issue-csrf-response.dto';
 import { LoginRequestDto } from './dtos/login/login-request.dto';
 import { LoginResponseDto } from './dtos/login/login-response.dto';
-import { RefreshResponseDto } from './dtos/refresh/refresh-response.dto';
 import { LogoutResponseDto } from './dtos/logout/logout-response.dto';
 import { MeResponseDto } from './dtos/me/me-response.dto';
 import { ChangePasswordRequestDto } from './dtos/changePassword/change-password-request.dto';
@@ -34,12 +34,6 @@ import { HashPasswordRequestDto } from './dtos/hashPassword/hash-password-reques
 import { HashPasswordResponseDto } from './dtos/hashPassword/hash-password-response.dto';
 import { DevLoginRequestDto } from './dtos/devLogin/dev-login-request.dto';
 import { DevLoginResponseDto } from './dtos/devLogin/dev-login-response.dto';
-
-interface JwtUser {
-  userId: number;
-  username: string;
-  sessionId: string;
-}
 
 @Controller('auth')
 export class AuthController {
@@ -137,30 +131,14 @@ export class AuthController {
     return this.sessions.establishSession(req.user as AuthUser, req, res);
   }
 
-  @ApiOperation({
-    summary: 'Refresh the session using the refresh-token cookie',
-  })
+  @ApiOperation({ summary: 'Revoke the current session and clear the session cookie' })
   @ApiHeader(CSRF_HEADER)
-  @ApiCookieAuth('refresh_token')
-  @ApiOkResponse({ description: 'Authenticated user', type: RefreshResponseDto })
-  @ApiUnauthorizedResponse({
-    description: 'Invalid or expired refresh token',
-  })
-  @Public()
-  @UseGuards(CsrfGuard)
-  @Post('refresh')
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<RefreshResponseDto> {
-    return this.sessions.refresh(req, res);
-  }
-
-  @ApiOperation({ summary: 'Revoke the current session and clear auth cookies' })
-  @ApiHeader(CSRF_HEADER)
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiOkResponse({ description: 'Logged out', type: LogoutResponseDto })
-  @UseGuards(OptionalAuthGuard, CsrfGuard)
+  @UseGuards(OptionalSessionAuthGuard, CsrfGuard)
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
-    const user = req.user as JwtUser | undefined;
+    const user = req.user as SessionUser | undefined;
     await this.sessions.logout(user?.sessionId, res);
     return { ok: true };
   }
@@ -168,12 +146,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Change the current user password' })
   @ApiHeader(CSRF_HEADER)
   @ApiBody({ type: ChangePasswordRequestDto })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiOkResponse({ description: 'Password changed', type: ChangePasswordResponseDto })
-  @UseGuards(JwtAuthGuard, CsrfGuard)
+  @UseGuards(SessionAuthGuard, CsrfGuard)
   @Post('password')
   async changePassword(@Body() body: ChangePasswordRequestDto, @Req() req: Request): Promise<ChangePasswordResponseDto> {
-    const user = req.user as JwtUser;
+    const user = req.user as SessionUser;
     await this.auth.changePassword(user.userId, body.newPassword, user.sessionId);
     return { ok: true };
   }
@@ -181,15 +159,15 @@ export class AuthController {
   @ApiOperation({
     summary: 'Return the current authenticated user (or anonymous status)',
   })
-  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('session')
   @ApiOkResponse({
     description: 'Authentication status and user',
     type: MeResponseDto,
   })
-  @UseGuards(OptionalAuthGuard)
+  @UseGuards(OptionalSessionAuthGuard)
   @Get('me')
   me(@Req() req: Request): MeResponseDto {
-    const user = req.user as JwtUser | undefined;
+    const user = req.user as SessionUser | undefined;
     if (!user) {
       return { authenticated: false, user: null, loading: false };
     }

@@ -64,13 +64,7 @@ function wrapSwaggerEnvelope(document: OpenAPIObject): void {
 }
 
 export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Lio API')
-    .setDescription('Authentication and session management API')
-    .setVersion('1.0')
-    .addCookieAuth('access_token')
-    .addCookieAuth('refresh_token')
-    .build();
+  const swaggerConfig = new DocumentBuilder().setTitle('Lio API').setDescription('Authentication and session management API').setVersion('1.0').addCookieAuth('session').build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   wrapSwaggerEnvelope(document);

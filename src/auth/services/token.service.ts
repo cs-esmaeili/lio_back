@@ -1,31 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
-
-export interface AccessTokenClaims {
-  sub: string;
-  sid: string;
-  jti: string;
-}
+import { createHash, randomBytes } from 'node:crypto';
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly jwtService: JwtService) {}
-
-  signAccessToken(claims: AccessTokenClaims): string {
-    return this.jwtService.sign(claims);
-  }
-
-  generateRefreshToken(): { raw: string; hash: string } {
+  // Mint an opaque session token. Only its hash is persisted; the raw value
+  // travels in the session cookie (or Bearer header for mobile clients).
+  generateSessionToken(): { raw: string; hash: string } {
     const raw = randomBytes(32).toString('base64url');
-    return { raw, hash: this.hashRefreshToken(raw) };
+    return { raw, hash: this.hashSessionToken(raw) };
   }
 
-  hashRefreshToken(raw: string): string {
+  hashSessionToken(raw: string): string {
     return createHash('sha256').update(raw).digest('hex');
-  }
-
-  newJti(): string {
-    return randomUUID();
   }
 }

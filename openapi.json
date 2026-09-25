@@ -145,6 +145,44 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "The OTP was created but the SMS provider failed to send it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 503
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Service Unavailable"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Request an OTP for login",
@@ -387,99 +425,6 @@
         ]
       }
     },
-    "/auth/refresh": {
-      "post": {
-        "operationId": "AuthController_refresh",
-        "parameters": [
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Authenticated user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 200
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/RefreshResponseDto"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "OK"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "data",
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number",
-                      "example": 401
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    },
-                    "details": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "refresh_token": []
-          }
-        ],
-        "summary": "Refresh the session using the refresh-token cookie",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
     "/auth/logout": {
       "post": {
         "operationId": "AuthController_logout",
@@ -526,10 +471,10 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
-        "summary": "Revoke the current session and clear auth cookies",
+        "summary": "Revoke the current session and clear the session cookie",
         "tags": [
           "Auth"
         ]
@@ -591,7 +536,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Change the current user password",
@@ -636,7 +581,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Return the current authenticated user (or anonymous status)",
@@ -822,7 +767,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "List all roles with their permissions",
@@ -961,7 +906,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Create a role",
@@ -1092,7 +1037,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Get a single role by id",
@@ -1240,7 +1185,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Update a role",
@@ -1378,7 +1323,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Delete a role",
@@ -1464,7 +1409,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "List all permissions",
@@ -1603,7 +1548,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Create a permission",
@@ -1753,7 +1698,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Update a permission",
@@ -1891,7 +1836,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Delete a permission",
@@ -2041,7 +1986,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Assign or remove a role on a user",
@@ -2173,7 +2118,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "List files and folders in a directory",
@@ -2290,7 +2235,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Upload one or more files",
@@ -2393,7 +2338,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Create a folder",
@@ -2494,7 +2439,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Delete a folder and its contents",
@@ -2634,7 +2579,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Delete a file by id",
@@ -2832,7 +2777,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Create or update a site setting by key",
@@ -2973,7 +2918,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Create a page section",
@@ -3104,7 +3049,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Get a page section with its typed data",
@@ -3292,7 +3237,7 @@
         },
         "security": [
           {
-            "access_token": []
+            "session": []
           }
         ],
         "summary": "Update the typed data of a page section",
@@ -4043,6 +3988,565 @@
           "CategoryPublic"
         ]
       }
+    },
+    "/cart": {
+      "get": {
+        "operationId": "CartController_getCart",
+        "parameters": [
+          {
+            "name": "x-cart-token",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Cart-Token",
+            "in": "header",
+            "description": "Guest cart id (UUID) generated and stored by the client. Required for cart requests without an authenticated session, and used to merge the guest cart into the user cart on login.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cart for the current user, or the empty cart for a new guest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetCartResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed X-Cart-Token header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get the current cart (user cart or guest cart)",
+        "tags": [
+          "Cart"
+        ]
+      }
+    },
+    "/cart/items": {
+      "post": {
+        "operationId": "CartController_addCartItem",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Cart-Token",
+            "in": "header",
+            "description": "Guest cart id (UUID) generated and stored by the client. Required for cart requests without an authenticated session, and used to merge the guest cart into the user cart on login.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCartItemRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The cart after adding the variant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AddCartItemResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Out of stock, quantity above stock, or missing guest cart token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Variant not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Add a variant to the cart (merges the guest cart first when logged in)",
+        "tags": [
+          "Cart"
+        ]
+      }
+    },
+    "/cart/items/{variantId}": {
+      "patch": {
+        "operationId": "CartController_updateCartItem",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Product variant id",
+            "schema": {
+              "example": 3744,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Cart-Token",
+            "in": "header",
+            "description": "Guest cart id (UUID) generated and stored by the client. Required for cart requests without an authenticated session, and used to merge the guest cart into the user cart on login.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCartItemRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The cart after updating the quantity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateCartItemResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Quantity above stock or missing guest cart token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Variant not found or not present in the cart",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Set the quantity of a variant in the cart",
+        "tags": [
+          "Cart"
+        ]
+      },
+      "delete": {
+        "operationId": "CartController_removeCartItem",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Product variant id",
+            "schema": {
+              "example": 3744,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Cart-Token",
+            "in": "header",
+            "description": "Guest cart id (UUID) generated and stored by the client. Required for cart requests without an authenticated session, and used to merge the guest cart into the user cart on login.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cart after removing the variant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/RemoveCartItemResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing guest cart token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Variant not present in the cart",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Remove a variant from the cart",
+        "tags": [
+          "Cart"
+        ]
+      }
     }
   },
   "info": {
@@ -4058,7 +4562,7 @@
       "cookie": {
         "type": "apiKey",
         "in": "cookie",
-        "name": "refresh_token"
+        "name": "session"
       }
     },
     "schemas": {
@@ -4175,36 +4679,6 @@
         ]
       },
       "LoginResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "username": {
-            "type": "string",
-            "example": "09123456789",
-            "description": "Phone number (login identifier)"
-          },
-          "name": {
-            "type": "object",
-            "example": "Ali",
-            "nullable": true
-          },
-          "lastName": {
-            "type": "object",
-            "example": "Rezaei",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "username",
-          "name",
-          "lastName"
-        ]
-      },
-      "RefreshResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -7354,6 +7828,524 @@
         },
         "required": [
           "filters"
+        ]
+      },
+      "GetCartProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "GetCartVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Current selling price"
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true,
+            "description": "Reference price before discount"
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "GetCartItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "number",
+            "example": 3744,
+            "description": "Product variant id. Also used as the :variantId path parameter."
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Current variant price multiplied by quantity"
+          },
+          "product": {
+            "$ref": "#/components/schemas/GetCartProductDto"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/GetCartVariantDto"
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity",
+          "lineTotal",
+          "product",
+          "variant"
+        ]
+      },
+      "GetCartResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetCartItemDto"
+            }
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Sum of all item quantities"
+          },
+          "distinctItemCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of distinct variants in the cart"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Sum of the line totals, using current variant prices"
+          }
+        },
+        "required": [
+          "items",
+          "itemCount",
+          "distinctItemCount",
+          "subtotal"
+        ]
+      },
+      "AddCartItemRequestDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "number",
+            "example": 3744,
+            "description": "Product variant id to add"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 1,
+            "default": 1,
+            "minimum": 1,
+            "description": "How many units to add. Defaults to 1."
+          }
+        },
+        "required": [
+          "variantId"
+        ]
+      },
+      "AddCartItemProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "AddCartItemVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Current selling price"
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true,
+            "description": "Reference price before discount"
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "AddCartItemItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "number",
+            "example": 3744,
+            "description": "Product variant id. Also used as the :variantId path parameter."
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Current variant price multiplied by quantity"
+          },
+          "product": {
+            "$ref": "#/components/schemas/AddCartItemProductDto"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/AddCartItemVariantDto"
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity",
+          "lineTotal",
+          "product",
+          "variant"
+        ]
+      },
+      "AddCartItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddCartItemItemDto"
+            }
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Sum of all item quantities"
+          },
+          "distinctItemCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of distinct variants in the cart"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Sum of the line totals, using current variant prices"
+          }
+        },
+        "required": [
+          "items",
+          "itemCount",
+          "distinctItemCount",
+          "subtotal"
+        ]
+      },
+      "UpdateCartItemRequestDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "example": 2,
+            "minimum": 1,
+            "description": "New absolute quantity for the variant."
+          }
+        },
+        "required": [
+          "quantity"
+        ]
+      },
+      "UpdateCartItemProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "UpdateCartItemVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Current selling price"
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true,
+            "description": "Reference price before discount"
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "UpdateCartItemItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "number",
+            "example": 3744,
+            "description": "Product variant id. Also used as the :variantId path parameter."
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Current variant price multiplied by quantity"
+          },
+          "product": {
+            "$ref": "#/components/schemas/UpdateCartItemProductDto"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/UpdateCartItemVariantDto"
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity",
+          "lineTotal",
+          "product",
+          "variant"
+        ]
+      },
+      "UpdateCartItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateCartItemItemDto"
+            }
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Sum of all item quantities"
+          },
+          "distinctItemCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of distinct variants in the cart"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Sum of the line totals, using current variant prices"
+          }
+        },
+        "required": [
+          "items",
+          "itemCount",
+          "distinctItemCount",
+          "subtotal"
+        ]
+      },
+      "RemoveCartItemProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "RemoveCartItemVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Current selling price"
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true,
+            "description": "Reference price before discount"
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "RemoveCartItemItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "number",
+            "example": 3744,
+            "description": "Product variant id. Also used as the :variantId path parameter."
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Current variant price multiplied by quantity"
+          },
+          "product": {
+            "$ref": "#/components/schemas/RemoveCartItemProductDto"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/RemoveCartItemVariantDto"
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity",
+          "lineTotal",
+          "product",
+          "variant"
+        ]
+      },
+      "RemoveCartItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RemoveCartItemItemDto"
+            }
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Sum of all item quantities"
+          },
+          "distinctItemCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of distinct variants in the cart"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Sum of the line totals, using current variant prices"
+          }
+        },
+        "required": [
+          "items",
+          "itemCount",
+          "distinctItemCount",
+          "subtotal"
         ]
       }
     }

@@ -37,6 +37,15 @@ const SITE_SETTINGS: SiteSettingSeed[] = [
     },
     isPrivate: false,
   },
+  {
+    key: 'shipping',
+    data: {
+      enabled: true,
+      cost: 0,
+      freeOver: 0,
+    },
+    isPrivate: false,
+  },
 ];
 
 export async function seedSiteSettings(db: SeedDb): Promise<number> {

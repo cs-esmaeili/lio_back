@@ -1,5 +1,8 @@
 import { join } from 'node:path';
 
+const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
+const LOG_REQUESTS_MODES = ['all', 'errors', 'off'] as const;
+
 export default () => {
   const port = parseInt(process.env.PORT ?? '3000', 10);
   const origins = (process.env.APP_ORIGIN ?? 'http://localhost:3000')
@@ -58,6 +61,24 @@ export default () => {
         apiKey: process.env.KAVENEGAR_API_KEY,
         baseUrl: process.env.KAVENEGAR_BASE_URL ?? 'https://api.kavenegar.com',
       },
+    },
+    logger: {
+      // Master switch for the custom structured logger.
+      enabled: process.env.LOG_ENABLED !== 'false',
+      // Logical service name attached to every entry (Loki label).
+      serviceName: process.env.SERVICE_NAME ?? 'lio-back',
+      // Deployment environment attached to every entry.
+      env: process.env.NODE_ENV ?? 'development',
+      // Base directory for the optional file sink.
+      dir: process.env.LOG_DIR ?? join(process.cwd(), 'logs'),
+      // Minimum level written: debug | info | warn | error | fatal.
+      level: (LOG_LEVELS as readonly string[]).includes(process.env.LOG_LEVEL ?? '') ? process.env.LOG_LEVEL : 'info',
+      // Also write entries to files under `dir` (stdout is always on).
+      fileEnabled: process.env.LOG_FILE_ENABLED !== 'false',
+      // Delete log files older than this many days. 0 disables retention.
+      retentionDays: Math.max(0, parseInt(process.env.LOG_RETENTION_DAYS ?? '14', 10) || 0),
+      // Per-request access logging: all | errors | off.
+      requests: (LOG_REQUESTS_MODES as readonly string[]).includes(process.env.LOG_REQUESTS ?? '') ? process.env.LOG_REQUESTS : 'errors',
     },
   };
 };

@@ -1,5 +1,4 @@
 import { hostname } from 'node:os';
-import { join } from 'node:path';
 
 /** Levels `AppLogger` can emit (pino names). */
 export const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
@@ -24,41 +23,13 @@ export const DEFAULT_SCOPE = 'app';
 /** A scope maps to one directory under the log dir, so it must be a safe name. */
 export const SCOPE_RE = /^[a-z0-9-]+$/;
 
-/** Logical service name, attached to every entry (Loki label). */
-export const SERVICE_NAME = process.env.SERVICE_NAME ?? 'lio-back';
-
-/** Deployment environment, attached to every entry (Loki label). */
-export const SERVICE_ENV = process.env.NODE_ENV ?? 'development';
-
 export const SERVICE_HOSTNAME = hostname();
-
-/** Base directory for log files. Overridable with `LOG_DIR`. */
-export const DEFAULT_LOG_DIR = process.env.LOG_DIR ?? join(process.cwd(), 'logs');
-
-/** Minimum level pino writes. Use `debug` in dev to keep debug entries. */
-export const DEFAULT_LOG_LEVEL: LogLevel = (LOG_LEVELS as readonly string[]).includes(process.env.LOG_LEVEL ?? '') ? (process.env.LOG_LEVEL as LogLevel) : 'info';
-
-/**
- * Whether entries are also written to files under `LOG_DIR`.
- *
- * stdout is the primary sink (for Loki); files are a secondary sink kept for
- * local browsing and the log viewer. Set `LOG_FILE_ENABLED=false` to go
- * stdout-only.
- */
-export const LOG_FILE_ENABLED = (process.env.LOG_FILE_ENABLED ?? 'true') !== 'false';
-
-/** Log files older than this many days are pruned. `0` disables retention. */
-export const LOG_RETENTION_DAYS = Math.max(0, Number.parseInt(process.env.LOG_RETENTION_DAYS ?? '14', 10) || 0);
 
 /** How often the lazy prune may run, triggered from the write path. */
 export const LOG_PRUNE_INTERVAL_MS = 60 * 60 * 1000;
 
 /** Request logging mode: `all` every request, `errors` only 4xx/5xx, `off` none. */
 export type LogRequestsMode = 'all' | 'errors' | 'off';
-
-export const LOG_REQUESTS: LogRequestsMode = (['all', 'errors', 'off'] as const).includes((process.env.LOG_REQUESTS ?? '') as LogRequestsMode)
-  ? (process.env.LOG_REQUESTS as LogRequestsMode)
-  : 'errors';
 
 /** Fields redacted from every entry before it is written. */
 export const LOG_REDACT_PATHS = [

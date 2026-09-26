@@ -1,23 +1,26 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { finalize, type Observable } from 'rxjs';
-import { LOG_REQUESTS } from '../logger.constants';
+import { type LogRequestsMode } from '../logger.constants';
 import { AppLogger, type ScopedLogger } from '../logger.service';
 
 /**
- * Logs one line per HTTP request, gated by `LOG_REQUESTS` (`all` | `errors` | `off`).
+ * Logs one line per HTTP request, gated by `logger.requests` (`all` | `errors` | `off`).
  * Only metadata is logged; request/response bodies are never touched.
  */
 @Injectable()
 export class RequestLoggingInterceptor implements NestInterceptor {
   private readonly logger: ScopedLogger;
+  private readonly mode: LogRequestsMode;
 
-  constructor(appLogger: AppLogger) {
+  constructor(appLogger: AppLogger, config: ConfigService) {
     this.logger = appLogger.scope('http');
+    this.mode = (config.get<string>('logger.requests') ?? 'errors') as LogRequestsMode;
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (LOG_REQUESTS === 'off') {
+    if (this.mode === 'off') {
       return next.handle();
     }
 
@@ -29,7 +32,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     return next.handle().pipe(
       finalize(() => {
         const status = res.statusCode;
-        if (LOG_REQUESTS === 'errors' && status < 400) return;
+        if (this.mode === 'errors' && status < 400) return;
 
         const path = req.originalUrl ?? req.url;
         const meta = { method: req.method, path, status, durationMs: Date.now() - startedAt };

@@ -1,32 +1,19 @@
 import { Injectable, LoggerService, OnApplicationShutdown } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DateTime } from 'luxon';
 import { readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import pino from 'pino';
 import { requestContext } from './context/request-context';
-import {
-  COMBINED_SCOPE,
-  DEFAULT_LOG_DIR,
-  DEFAULT_LOG_LEVEL,
-  DEFAULT_SCOPE,
-  LOG_FILE_ENABLED,
-  LOG_PRUNE_INTERVAL_MS,
-  LOG_REDACT_PATHS,
-  LOG_RETENTION_DAYS,
-  SCOPE_RE,
-  SERVICE_ENV,
-  SERVICE_HOSTNAME,
-  SERVICE_NAME,
-  type LogLevel,
-} from './logger.constants';
+import { COMBINED_SCOPE, DEFAULT_SCOPE, LOG_PRUNE_INTERVAL_MS, LOG_REDACT_PATHS, SCOPE_RE, SERVICE_HOSTNAME, type LogLevel } from './logger.constants';
 
-type Destination = ReturnType<typeof pino.destination>;
+type FileDestination = ReturnType<typeof pino.destination>;
 
 interface FileWriter {
   /** Absolute path of the scope file this writer appends to. */
   file: string;
   logger: pino.Logger;
-  destinations: Destination[];
+  destinations: FileDestination[];
 }
 
 /** A logger bound to a scope (service), e.g. `logger.scope('sms')`. */
@@ -44,21 +31,37 @@ export interface ScopedLogger {
  * Every entry is one JSON line written to:
  * - stdout (primary sink, for Loki/Grafana);
  * - `logs/combined/<yyyy-MM-dd>.log` and `logs/<scope>/<yyyy-MM-dd>.log`
- *   when `LOG_FILE_ENABLED` is on (secondary sink for local browsing/viewer).
+ *   when `logger.fileEnabled` is on (secondary sink for local browsing/viewer).
  *
  * The `scope` comes from `AppLogger#scope()` or, when Nest delegates
  * `new Logger(Context)`, from that context. Unknown scopes fall back to `app`.
  * While a request is in flight, `requestId`/`userId` are attached automatically.
+ *
+ * All settings come from the `logger` config section (`ConfigService`).
  */
 @Injectable()
 export class AppLogger implements LoggerService, OnApplicationShutdown {
-  private readonly stdout: Destination;
+  private readonly enabled: boolean;
+  private readonly stdout: pino.DestinationStream;
   private readonly writers = new Map<string, FileWriter>();
-  private readonly combined = new Map<string, Destination>();
+  private readonly combined = new Map<string, FileDestination>();
+  private readonly logDirPath: string;
+  private readonly level: LogLevel;
+  private readonly fileEnabled: boolean;
+  private readonly retentionDays: number;
+  private readonly service: string;
+  private readonly env: string;
   private lastPruneAt = 0;
   private pruning: Promise<void> | null = null;
 
-  constructor() {
+  constructor(config: ConfigService) {
+    this.enabled = config.get<boolean>('logger.enabled') ?? true;
+    this.logDirPath = config.get<string>('logger.dir') ?? join(process.cwd(), 'logs');
+    this.level = (config.get<string>('logger.level') ?? 'info') as LogLevel;
+    this.fileEnabled = config.get<boolean>('logger.fileEnabled') ?? true;
+    this.retentionDays = config.get<number>('logger.retentionDays') ?? 14;
+    this.service = config.get<string>('logger.serviceName') ?? 'lio-back';
+    this.env = config.get<string>('logger.env') ?? 'development';
     this.stdout = pino.destination({ dest: 1, sync: false });
   }
 
@@ -115,6 +118,8 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
    * @returns the absolute path of the scope file (or the combined file).
    */
   write(scope: string, level: LogLevel, message: unknown, meta: Record<string, unknown> = {}): string {
+    if (!this.enabled) return '';
+
     const now = new Date();
     const name = this.normalizeScope(scope);
     const entry = this.buildEntry(name, message, meta);
@@ -127,7 +132,9 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
 
   /** Flushes every sink. */
   flush(): void {
-    this.stdout.flushSync?.();
+    if (!this.enabled) return;
+
+    (this.stdout as { flushSync?: () => void }).flushSync?.();
     for (const writer of this.writers.values()) {
       for (const destination of writer.destinations) destination.flushSync?.();
     }
@@ -142,10 +149,10 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
 
   private pinoOptions(): pino.LoggerOptions {
     return {
-      level: DEFAULT_LOG_LEVEL,
+      level: this.level,
       messageKey: 'message',
       timestamp: pino.stdTimeFunctions.isoTime,
-      base: { service: SERVICE_NAME, env: SERVICE_ENV, pid: process.pid, hostname: SERVICE_HOSTNAME },
+      base: { service: this.service, env: this.env, pid: process.pid, hostname: SERVICE_HOSTNAME },
       formatters: { level: (label, number) => ({ level: label, levelNumber: number }) },
       redact: { paths: LOG_REDACT_PATHS, censor: '[redacted]' },
       mixin: () => this.requestFields(),
@@ -179,14 +186,14 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
     const cached = this.writers.get(key);
     if (cached) return cached;
 
-    const streams: Destination[] = [this.stdout];
-    const destinations: Destination[] = [];
+    const streams: pino.DestinationStream[] = [this.stdout];
+    const destinations: FileDestination[] = [];
 
     const combined = this.combinedDestination(date);
     if (combined) streams.push(combined);
 
-    const file = join(DEFAULT_LOG_DIR, scope, `${date}.log`);
-    if (LOG_FILE_ENABLED && scope !== COMBINED_SCOPE) {
+    const file = join(this.logDirPath, scope, `${date}.log`);
+    if (this.fileEnabled && scope !== COMBINED_SCOPE) {
       const scopeDestination = pino.destination({ dest: file, mkdir: true, sync: true });
       destinations.push(scopeDestination);
       streams.push(scopeDestination);
@@ -210,13 +217,13 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
     return writer;
   }
 
-  private combinedDestination(date: string): Destination | null {
-    if (!LOG_FILE_ENABLED) return null;
+  private combinedDestination(date: string): FileDestination | null {
+    if (!this.fileEnabled) return null;
 
     const cached = this.combined.get(date);
     if (cached) return cached;
 
-    const destination = pino.destination({ dest: join(DEFAULT_LOG_DIR, COMBINED_SCOPE, `${date}.log`), mkdir: true, sync: true });
+    const destination = pino.destination({ dest: join(this.logDirPath, COMBINED_SCOPE, `${date}.log`), mkdir: true, sync: true });
     this.combined.set(date, destination);
 
     for (const [otherDate, other] of this.combined) {
@@ -263,7 +270,7 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
 
   /** Runs the day-based retention lazily, at most once per interval. */
   private maybePrune(nowMs: number): void {
-    if (!LOG_FILE_ENABLED || LOG_RETENTION_DAYS <= 0 || this.pruning) return;
+    if (!this.fileEnabled || this.retentionDays <= 0 || this.pruning) return;
     if (nowMs - this.lastPruneAt < LOG_PRUNE_INTERVAL_MS) return;
 
     this.lastPruneAt = nowMs;
@@ -274,14 +281,14 @@ export class AppLogger implements LoggerService, OnApplicationShutdown {
       });
   }
 
-  /** Deletes `logs/<scope>/<date>.log` files older than `LOG_RETENTION_DAYS`. */
+  /** Deletes `logs/<scope>/<date>.log` files older than `logger.retentionDays`. */
   private async prune(nowMs: number): Promise<void> {
-    const cutoff = DateTime.fromMillis(nowMs).minus({ days: LOG_RETENTION_DAYS }).toFormat('yyyy-MM-dd');
-    const entries = await readdir(DEFAULT_LOG_DIR, { withFileTypes: true });
+    const cutoff = DateTime.fromMillis(nowMs).minus({ days: this.retentionDays }).toFormat('yyyy-MM-dd');
+    const entries = await readdir(this.logDirPath, { withFileTypes: true });
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      const dir = join(DEFAULT_LOG_DIR, entry.name);
+      const dir = join(this.logDirPath, entry.name);
       const files = await readdir(dir).catch(() => [] as string[]);
 
       for (const file of files) {

@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { readdir, readFile } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import { join } from 'node:path';
 import { PaginationService } from 'src/common/services/pagination.service';
-import { COMBINED_SCOPE, DEFAULT_LOG_DIR, SCOPE_RE } from 'src/logger/logger.constants';
+import { COMBINED_SCOPE, SCOPE_RE } from 'src/logger/logger.constants';
 import type { ListLogMetaResponseDto } from './dtos/listLogMeta/list-log-meta-response.dto';
 import type { ReadLogEntriesRequestDto } from './dtos/readLogEntries/read-log-entries-request.dto';
 import type { LogEntryDto, ReadLogEntriesResponseDto } from './dtos/readLogEntries/read-log-entries-response.dto';
@@ -19,17 +20,24 @@ const DATE_FILE_RE = /^(\d{4}-\d{2}-\d{2})\.log$/;
  */
 @Injectable()
 export class LogViewerService {
-  constructor(private readonly pagination: PaginationService) {}
+  private readonly logsDir: string;
+
+  constructor(
+    private readonly pagination: PaginationService,
+    config: ConfigService,
+  ) {
+    this.logsDir = config.get<string>('logger.dir') ?? join(process.cwd(), 'logs');
+  }
 
   /** Available dates (newest first) and the sources that can be opened. */
   async listMeta(): Promise<ListLogMetaResponseDto> {
-    const entries = await readdir(DEFAULT_LOG_DIR, { withFileTypes: true }).catch((): Dirent[] => []);
+    const entries = await readdir(this.logsDir, { withFileTypes: true }).catch((): Dirent[] => []);
     const scopes = entries
       .filter((entry) => entry.isDirectory() && SCOPE_RE.test(entry.name))
       .map((entry) => entry.name)
       .sort((a, b) => (a === COMBINED_SCOPE ? -1 : b === COMBINED_SCOPE ? 1 : a.localeCompare(b)));
 
-    const files = await readdir(join(DEFAULT_LOG_DIR, COMBINED_SCOPE)).catch(() => [] as string[]);
+    const files = await readdir(join(this.logsDir, COMBINED_SCOPE)).catch(() => [] as string[]);
     const dates = files
       .map((name) => DATE_FILE_RE.exec(name)?.[1])
       .filter((date): date is string => Boolean(date))
@@ -41,7 +49,7 @@ export class LogViewerService {
   /** Read, filter and paginate one date of one source, newest first. */
   async readEntries(query: ReadLogEntriesRequestDto): Promise<ReadLogEntriesResponseDto> {
     const source = query.source && SCOPE_RE.test(query.source) ? query.source : COMBINED_SCOPE;
-    const file = join(DEFAULT_LOG_DIR, source, `${query.date}.log`);
+    const file = join(this.logsDir, source, `${query.date}.log`);
     const content = await readFile(file, 'utf8').catch(() => {
       throw new NotFoundException(`No logs found for ${query.date} in ${source}`);
     });

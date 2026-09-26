@@ -17,6 +17,7 @@
     "swagger:split": "pnpm swagger:build && node dist-scripts/scripts/split-openapi.js",
     "swagger:docs": "pnpm swagger:build && node dist-scripts/scripts/generate-openapi.js && node dist-scripts/scripts/split-openapi.js",
     "db:seed": "tsx src/database/seed/index.ts",
+    "db:push": "drizzle-kit push",
     "studio": "drizzle-kit studio",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",

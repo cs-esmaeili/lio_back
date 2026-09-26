@@ -90,3 +90,22 @@ export const UserStatus = {
 } as const;
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 export const userStatus = pgEnum('UserStatus', Object.values(UserStatus) as [UserStatus, ...UserStatus[]]);
+
+export const OrderStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PAID: 'PAID',
+  CANCELED: 'CANCELED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED',
+} as const;
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
+export const orderStatus = pgEnum('OrderStatus', Object.values(OrderStatus) as [OrderStatus, ...OrderStatus[]]);
+
+export const PaymentStatus = {
+  INITIATED: 'INITIATED',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED',
+  CANCELED: 'CANCELED',
+} as const;
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
+export const paymentStatus = pgEnum('PaymentStatus', Object.values(PaymentStatus) as [PaymentStatus, ...PaymentStatus[]]);

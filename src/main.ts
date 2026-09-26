@@ -2,11 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { loggerNestOptions, setupLogger } from './logger/setup-logger';
 import { setupSwagger } from './common/swagger/swagger.setup';
 import { setupValidation } from './common/validation/validation.setup';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, loggerNestOptions());
 
   const config = app.get(ConfigService);
   const origins = config.getOrThrow<string[]>('app.origins');
@@ -18,11 +19,16 @@ async function bootstrap() {
 
   setupValidation(app);
   app.use(cookieParser());
-  const swaggerUrl = setupSwagger(app);
 
-  const port = process.env.PORT ?? 3000;
+  const logging = setupLogger(app);
+
+  const port = config.getOrThrow<number>('app.port');
+  const swaggerUrl = setupSwagger(app, port);
+
   await app.listen(port);
-  console.log(`server is running on http://localhost:${port}/`);
-  console.log(swaggerUrl);
+
+  logging.log(`server is running on http://localhost:${port}/`);
+  logging.log(swaggerUrl);
+  logging.log(`log viewer is running on http://localhost:${port}/admin/logs`);
 }
 void bootstrap();

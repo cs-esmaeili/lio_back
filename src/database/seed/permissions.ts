@@ -10,6 +10,7 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'file:manage', description: 'Manage files and folders' },
   { name: 'site:manage', description: 'Manage site settings (header, footer, etc.)' },
   { name: 'page:manage', description: 'Manage page sections and their content' },
+  { name: 'log:read', description: 'View application logs in the log viewer' },
 ];
 
 export async function seedPermissions(db: SeedDb): Promise<number> {

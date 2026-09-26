@@ -71,10 +71,9 @@ export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
   return document;
 }
 
-export function setupSwagger(app: INestApplication): string {
+export function setupSwagger(app: INestApplication, port: number): string {
   const document = createOpenApiDocument(app);
   SwaggerModule.setup(SWAGGER_URL, app, document);
 
-  const port = process.env.PORT ?? 3000;
   return `swagger is running on http://localhost:${port}/${SWAGGER_URL}/`;
 }

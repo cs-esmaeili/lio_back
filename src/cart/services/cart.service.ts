@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { CartRow } from '../repositories/cart.repository';
 import { CartRepository } from '../repositories/cart.repository';
+import { FileUrlService } from 'src/common/services/file-url.service';
 import type { GetCartResponseDto } from '../dtos/getCart/get-cart-response.dto';
 import type { AddCartItemRequestDto } from '../dtos/addCartItem/add-cart-item-request.dto';
 import type { AddCartItemResponseDto } from '../dtos/addCartItem/add-cart-item-response.dto';
@@ -15,7 +16,10 @@ export interface CartIdentity {
 
 @Injectable()
 export class CartService {
-  constructor(private readonly repository: CartRepository) {}
+  constructor(
+    private readonly repository: CartRepository,
+    private readonly fileUrl: FileUrlService,
+  ) {}
 
   async getCart(identity: CartIdentity): Promise<GetCartResponseDto> {
     const cart = await this.repository.resolveCart(identity, { create: false });
@@ -81,7 +85,12 @@ export class CartService {
         variantId: row.variantId,
         quantity: row.quantity,
         lineTotal: price * row.quantity,
-        product: { id: row.productId, name: row.productName, slug: row.productSlug },
+        product: {
+          id: row.productId,
+          name: row.productName,
+          slug: row.productSlug,
+          image: this.fileUrl.toUrl(row.productImagePath),
+        },
         variant: {
           id: row.variantId,
           sku: row.sku,

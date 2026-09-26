@@ -9,6 +9,9 @@ export class UpdateCartItemProductDto {
 
   @ApiProperty({ example: 'kamel-compact-abi' })
   slug!: string;
+
+  @ApiProperty({ type: String, example: '/uploads/images/product-1.png', nullable: true, description: 'Primary product image URL' })
+  image!: string | null;
 }
 
 export class UpdateCartItemVariantDto {

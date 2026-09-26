@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
-import { cartItems, carts, productVariants, products } from 'src/database/schema';
+import { cartItems, carts, files, productImages, productVariants, products } from 'src/database/schema';
 
 export type CartRow = typeof carts.$inferSelect;
 
@@ -15,6 +15,7 @@ export type CartItemRow = {
   productId: number;
   productName: string;
   productSlug: string;
+  productImagePath: string | null;
 };
 
 export type CartVariantRow = {
@@ -64,6 +65,15 @@ export class CartRepository {
         productId: products.id,
         productName: products.name,
         productSlug: products.slug,
+        // Primary product image (falls back to the first by sort order).
+        productImagePath: sql<string | null>`(
+          select ${files.path}
+          from ${productImages}
+          inner join ${files} on ${files.id} = ${productImages.fileId}
+          where ${productImages.productId} = ${products.id}
+          order by ${productImages.isPrimary} desc, ${productImages.sortOrder} asc, ${productImages.id} asc
+          limit 1
+        )`,
       })
       .from(cartItems)
       .innerJoin(productVariants, eq(cartItems.variantId, productVariants.id))

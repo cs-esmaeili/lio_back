@@ -193,13 +193,21 @@ export class AuthController {
   async me(@Req() req: Request): Promise<MeResponseDto> {
     const user = req.user as SessionUser | undefined;
     if (!user) {
-      return { authenticated: false, user: null, loading: false, showAdminPanel: false };
+      return { authenticated: false, user: null, permissions: [], showAdminPanel: false };
     }
+
+    const [record, permissions] = await Promise.all([this.users.findById(user.userId), this.authorization.getUserPermissions(user.userId)]);
+
     return {
       authenticated: true,
-      user: { id: user.userId, username: user.username },
-      loading: false,
-      showAdminPanel: await this.canViewAdminPanel(user.userId),
+      user: {
+        id: user.userId,
+        username: user.username,
+        name: record?.name ?? null,
+        lastName: record?.lastName ?? null,
+      },
+      permissions: [...permissions].sort(),
+      showAdminPanel: permissions.has(ADMIN_PANEL_VIEW_PERMISSION),
     };
   }
 

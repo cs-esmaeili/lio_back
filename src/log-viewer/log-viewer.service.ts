@@ -89,13 +89,14 @@ export class LogViewerService {
       return null;
     }
 
-    const { time, level, scope, message, ...meta } = raw;
+    const { time, level, scope, requestId, message, ...meta } = raw;
     const hasLevel = typeof level === 'number' || typeof level === 'string';
     return {
       time: typeof time === 'string' ? time : null,
       level: hasLevel ? level : null,
       levelName: typeof level === 'string' ? level : null,
       scope: typeof scope === 'string' ? scope : null,
+      requestId: typeof requestId === 'string' ? requestId : null,
       message: message ?? null,
       meta,
     };

@@ -1,25 +1,32 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable, LoggerService, OnApplicationShutdown } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import pino from 'pino';
+import { requestContext } from './context/request-context';
 import {
   COMBINED_SCOPE,
   DEFAULT_LOG_DIR,
   DEFAULT_LOG_LEVEL,
   DEFAULT_SCOPE,
+  LOG_FILE_ENABLED,
   LOG_PRUNE_INTERVAL_MS,
   LOG_REDACT_PATHS,
   LOG_RETENTION_DAYS,
   SCOPE_RE,
+  SERVICE_ENV,
+  SERVICE_HOSTNAME,
+  SERVICE_NAME,
   type LogLevel,
 } from './logger.constants';
 
+type Destination = ReturnType<typeof pino.destination>;
+
 interface FileWriter {
-  /** Absolute path of the file this writer appends to. */
+  /** Absolute path of the scope file this writer appends to. */
   file: string;
   logger: pino.Logger;
-  destination: ReturnType<typeof pino.destination>;
+  destinations: Destination[];
 }
 
 /** A logger bound to a scope (service), e.g. `logger.scope('sms')`. */
@@ -32,20 +39,28 @@ export interface ScopedLogger {
 }
 
 /**
- * File logger built on pino.
+ * Structured logger built on pino.
  *
  * Every entry is one JSON line written to:
- * - `logs/<scope>/<yyyy-MM-dd>.log` — the service's own file, all levels;
- * - `logs/combined/<yyyy-MM-dd>.log` — every entry, for a single timeline.
+ * - stdout (primary sink, for Loki/Grafana);
+ * - `logs/combined/<yyyy-MM-dd>.log` and `logs/<scope>/<yyyy-MM-dd>.log`
+ *   when `LOG_FILE_ENABLED` is on (secondary sink for local browsing/viewer).
  *
  * The `scope` comes from `AppLogger#scope()` or, when Nest delegates
  * `new Logger(Context)`, from that context. Unknown scopes fall back to `app`.
+ * While a request is in flight, `requestId`/`userId` are attached automatically.
  */
 @Injectable()
-export class AppLogger implements LoggerService {
+export class AppLogger implements LoggerService, OnApplicationShutdown {
+  private readonly stdout: Destination;
   private readonly writers = new Map<string, FileWriter>();
+  private readonly combined = new Map<string, Destination>();
   private lastPruneAt = 0;
   private pruning: Promise<void> | null = null;
+
+  constructor() {
+    this.stdout = pino.destination({ dest: 1, sync: false });
+  }
 
   // --- Nest `LoggerService` compatible methods -----------------------------
 
@@ -94,34 +109,54 @@ export class AppLogger implements LoggerService {
   }
 
   /**
-   * Write one entry to `<scope>` and to the combined file.
+   * Write one entry to stdout (and, when enabled, to the combined file and the
+   * scope file).
    *
-   * @returns the absolute path of the scope file the entry was written to.
+   * @returns the absolute path of the scope file (or the combined file).
    */
   write(scope: string, level: LogLevel, message: unknown, meta: Record<string, unknown> = {}): string {
     const now = new Date();
     const name = this.normalizeScope(scope);
     const entry = this.buildEntry(name, message, meta);
+    const writer = this.writerFor(name, now);
 
-    const scopeWriter = this.writerFor(name, now);
-    this.emit(scopeWriter, level, entry);
-    this.emit(this.writerFor(COMBINED_SCOPE, now), level, entry);
-
+    writer.logger[level](entry);
     this.maybePrune(now.getTime());
-    return scopeWriter.file;
+    return writer.file;
   }
 
-  /** Flushes every open file. */
+  /** Flushes every sink. */
   flush(): void {
+    this.stdout.flushSync?.();
     for (const writer of this.writers.values()) {
-      writer.logger.flush();
+      for (const destination of writer.destinations) destination.flushSync?.();
     }
+    for (const destination of this.combined.values()) destination.flushSync?.();
+  }
+
+  onApplicationShutdown(): void {
+    this.flush();
   }
 
   // --- internals -----------------------------------------------------------
 
-  private emit(writer: FileWriter, level: LogLevel, entry: Record<string, unknown>): void {
-    writer.logger[level](entry);
+  private pinoOptions(): pino.LoggerOptions {
+    return {
+      level: DEFAULT_LOG_LEVEL,
+      messageKey: 'message',
+      timestamp: pino.stdTimeFunctions.isoTime,
+      base: { service: SERVICE_NAME, env: SERVICE_ENV, pid: process.pid, hostname: SERVICE_HOSTNAME },
+      formatters: { level: (label, number) => ({ level: label, levelNumber: number }) },
+      redact: { paths: LOG_REDACT_PATHS, censor: '[redacted]' },
+      mixin: () => this.requestFields(),
+    };
+  }
+
+  /** Attaches the current request's correlation fields, if any. */
+  private requestFields(): Record<string, unknown> {
+    const ctx = requestContext.getStore();
+    if (!ctx) return {};
+    return ctx.userId != null ? { requestId: ctx.requestId, userId: ctx.userId } : { requestId: ctx.requestId };
   }
 
   private buildEntry(scope: string, message: unknown, meta: Record<string, unknown>): Record<string, unknown> {
@@ -144,26 +179,30 @@ export class AppLogger implements LoggerService {
     const cached = this.writers.get(key);
     if (cached) return cached;
 
+    const streams: Destination[] = [this.stdout];
+    const destinations: Destination[] = [];
+
+    const combined = this.combinedDestination(date);
+    if (combined) streams.push(combined);
+
     const file = join(DEFAULT_LOG_DIR, scope, `${date}.log`);
-    const destination = pino.destination({ dest: file, mkdir: true, sync: true });
-    const logger = pino(
-      {
-        level: DEFAULT_LOG_LEVEL,
-        messageKey: 'message',
-        timestamp: pino.stdTimeFunctions.isoTime,
-        formatters: { level: (label, number) => ({ level: label, levelNumber: number }) },
-        redact: { paths: LOG_REDACT_PATHS, censor: '[redacted]' },
-      },
-      destination,
-    );
-    const writer: FileWriter = { file, logger, destination };
+    if (LOG_FILE_ENABLED && scope !== COMBINED_SCOPE) {
+      const scopeDestination = pino.destination({ dest: file, mkdir: true, sync: true });
+      destinations.push(scopeDestination);
+      streams.push(scopeDestination);
+    }
+
+    const logger = pino(this.pinoOptions(), pino.multistream(streams));
+    const writer: FileWriter = { file, logger, destinations };
     this.writers.set(key, writer);
 
     // Drop the previous day's writer for this scope so file handles stay bounded.
     for (const [otherKey, other] of this.writers) {
       if (otherKey !== key && otherKey.startsWith(`${scope}:`)) {
-        other.logger.flush();
-        other.destination.end();
+        for (const destination of other.destinations) {
+          destination.flushSync?.();
+          destination.end();
+        }
         this.writers.delete(otherKey);
       }
     }
@@ -171,12 +210,36 @@ export class AppLogger implements LoggerService {
     return writer;
   }
 
+  private combinedDestination(date: string): Destination | null {
+    if (!LOG_FILE_ENABLED) return null;
+
+    const cached = this.combined.get(date);
+    if (cached) return cached;
+
+    const destination = pino.destination({ dest: join(DEFAULT_LOG_DIR, COMBINED_SCOPE, `${date}.log`), mkdir: true, sync: true });
+    this.combined.set(date, destination);
+
+    for (const [otherDate, other] of this.combined) {
+      if (otherDate !== date) {
+        other.flushSync?.();
+        other.end();
+        this.combined.delete(otherDate);
+      }
+    }
+
+    return destination;
+  }
+
   private normalizeScope(scope: string | undefined): string {
     const name = (scope ?? DEFAULT_SCOPE).trim().toLowerCase();
     return SCOPE_RE.test(name) ? name : DEFAULT_SCOPE;
   }
 
-  /** Nest passes the context (and params) as trailing arguments; normalize them. */
+  /**
+   * Nest delegates `new Logger(Context)` calls to these methods with the context
+   * as the trailing argument. Framework logs always land in `app`; the context
+   * is kept as a field. Services that want their own scope call `scope()`.
+   */
   private parseParams(optionalParams: unknown[]): { scope: string; meta: Record<string, unknown> } {
     const strings: string[] = [];
     const meta: Record<string, unknown> = {};
@@ -189,16 +252,18 @@ export class AppLogger implements LoggerService {
     }
 
     // Nest appends the context last; anything before it is a stack/details string.
-    const scope = strings.length ? strings[strings.length - 1] : DEFAULT_SCOPE;
+    if (strings.length) {
+      meta.context = strings[strings.length - 1];
+    }
     if (strings.length > 1) {
       meta.stack = strings.slice(0, -1).join('\n');
     }
-    return { scope: this.normalizeScope(scope), meta };
+    return { scope: DEFAULT_SCOPE, meta };
   }
 
   /** Runs the day-based retention lazily, at most once per interval. */
   private maybePrune(nowMs: number): void {
-    if (LOG_RETENTION_DAYS <= 0 || this.pruning) return;
+    if (!LOG_FILE_ENABLED || LOG_RETENTION_DAYS <= 0 || this.pruning) return;
     if (nowMs - this.lastPruneAt < LOG_PRUNE_INTERVAL_MS) return;
 
     this.lastPruneAt = nowMs;

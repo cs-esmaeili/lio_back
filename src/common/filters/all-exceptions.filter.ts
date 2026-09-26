@@ -1,19 +1,40 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import type { Response } from 'express';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { AppLogger } from 'src/logger/logger.service';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  private readonly logger = new Logger(AllExceptionsFilter.name);
+  constructor(private readonly appLogger: AppLogger) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
+    const http = host.switchToHttp();
+    const request = http.getRequest<Request & { user?: { userId?: number } }>();
+    const response = http.getResponse<Response>();
 
-    if (exception instanceof HttpException) {
-      response.status(exception.getStatus()).json(this.normalizeHttpException(exception));
+    const isHttp = exception instanceof HttpException;
+    const statusCode = isHttp ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const meta = {
+      method: request.method,
+      path: request.originalUrl ?? request.url,
+      status: statusCode,
+      userId: request.user?.userId,
+      context: AllExceptionsFilter.name,
+    };
+
+    // Unexpected errors are `error` (with stack); expected 4xx are `warn`.
+    // `requestId` is attached automatically by the logger's request context.
+    if (statusCode >= 500 || !isHttp) {
+      this.appLogger.scope('app').error(exception, meta);
+    } else {
+      this.appLogger.scope('app').warn(exception instanceof Error ? exception.message : 'Request rejected', meta);
+    }
+
+    if (isHttp) {
+      response.status(statusCode).json(this.normalizeHttpException(exception));
       return;
     }
 
-    this.logger.error(exception);
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal Server Error',

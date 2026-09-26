@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -19,6 +19,9 @@ import { SmsModule } from './sms/sms.module';
 import { LoggerModule } from './logger/logger.module';
 import { LogViewerModule } from './log-viewer/log-viewer.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { RequestLoggingInterceptor } from './logger/interceptors/request-logging.interceptor';
+import { RequestContextMiddleware } from './logger/context/request-context.middleware';
+import { RequestUserContextInterceptor } from './logger/context/request-user-context.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import configuration from './config/configuration';
 
@@ -47,8 +50,14 @@ import configuration from './config/configuration';
   ],
   controllers: [AppController],
   providers: [
+    { provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: RequestUserContextInterceptor },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestContextMiddleware).forRoutes('*');
+  }
+}

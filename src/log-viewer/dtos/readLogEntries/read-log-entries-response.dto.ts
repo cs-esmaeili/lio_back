@@ -13,6 +13,9 @@ export class LogEntryDto {
   @ApiProperty({ description: 'Scope (service) the entry belongs to', nullable: true, example: 'sms' })
   scope!: string | null;
 
+  @ApiProperty({ description: 'Correlation id of the request the entry was logged in', nullable: true, example: '0f1c2e3a-...' })
+  requestId!: string | null;
+
   @ApiProperty({ description: 'Log message (usually a string)', nullable: true })
   message!: unknown;
 

@@ -104,6 +104,7 @@ export function renderLogViewerPage(): string {
   .c-time { white-space: nowrap; color: var(--muted); width: 190px; }
   .c-level { width: 90px; }
   .c-channel { width: 110px; }
+  .c-request { width: 100px; }
   .c-meta { width: 64px; text-align: right; }
   .message { word-break: break-word; cursor: pointer; }
   .badge {
@@ -214,6 +215,7 @@ export function renderLogViewerPage(): string {
           <th class="c-time">Time</th>
           <th class="c-level">Level</th>
           <th class="c-channel">Scope</th>
+          <th class="c-request">Request</th>
           <th>Message</th>
           <th class="c-meta"></th>
         </tr>
@@ -344,6 +346,11 @@ export function renderLogViewerPage(): string {
     chip.textContent = entry.scope || '-';
     scope.appendChild(chip);
 
+    var request = document.createElement('td');
+    request.className = 'c-request mono';
+    request.textContent = entry.requestId ? entry.requestId.slice(0, 8) : '-';
+    request.title = entry.requestId || '';
+
     var message = document.createElement('td');
     message.className = 'message';
     message.textContent = formatMessage(entry.message);
@@ -359,6 +366,7 @@ export function renderLogViewerPage(): string {
     row.appendChild(time);
     row.appendChild(level);
     row.appendChild(scope);
+    row.appendChild(request);
     row.appendChild(message);
     row.appendChild(actions);
 
@@ -366,9 +374,9 @@ export function renderLogViewerPage(): string {
     detail.className = 'detail';
     detail.hidden = true;
     var detailCell = document.createElement('td');
-    detailCell.colSpan = 5;
+    detailCell.colSpan = 6;
     var pre = document.createElement('pre');
-    var full = { time: entry.time, level: entry.level, scope: entry.scope, message: entry.message };
+    var full = { time: entry.time, level: entry.level, scope: entry.scope, requestId: entry.requestId, message: entry.message };
     Object.keys(entry.meta || {}).forEach(function (key) { full[key] = entry.meta[key]; });
     try { pre.textContent = JSON.stringify(full, null, 2); } catch (err) { pre.textContent = String(full); }
     detailCell.appendChild(pre);
@@ -390,7 +398,7 @@ export function renderLogViewerPage(): string {
     if (!result.entries.length) {
       var emptyRow = document.createElement('tr');
       var emptyCell = document.createElement('td');
-      emptyCell.colSpan = 5;
+      emptyCell.colSpan = 6;
       emptyCell.className = 'empty';
       emptyCell.textContent = 'No entries match the current filters.';
       emptyRow.appendChild(emptyCell);

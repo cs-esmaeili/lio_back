@@ -62,6 +62,19 @@ export default () => {
         baseUrl: process.env.KAVENEGAR_BASE_URL ?? 'https://api.kavenegar.com',
       },
     },
+    payment: {
+      // Active backend, selected in PaymentModule.
+      provider: process.env.PAYMENT_PROVIDER ?? 'zarinpal',
+      zarinpal: {
+        // Merchant id from the Zarinpal panel.
+        merchantId: process.env.ZARINPAL_MERCHANT_ID,
+        // Use the Zarinpal sandbox instead of production.
+        sandbox: process.env.ZARINPAL_SANDBOX === 'true',
+        // Optional overrides; the provider falls back to the sandbox/production defaults.
+        baseUrl: process.env.ZARINPAL_BASE_URL,
+        startPayUrl: process.env.ZARINPAL_START_PAY_URL,
+      },
+    },
     logger: {
       // Master switch for the custom structured logger.
       enabled: process.env.LOG_ENABLED !== 'false',

@@ -16,6 +16,7 @@ import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { SmsModule } from './sms/sms.module';
+import { PaymentModule } from './payment/payment.module';
 import { LoggerModule } from './logger/logger.module';
 import { LogViewerModule } from './log-viewer/log-viewer.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -45,6 +46,7 @@ import configuration from './config/configuration';
     ProductModule,
     CartModule,
     SmsModule,
+    PaymentModule,
     LoggerModule,
     LogViewerModule,
   ],

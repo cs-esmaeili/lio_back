@@ -10,11 +10,13 @@ import { seedHome } from './home';
 import { seedHeader } from './header';
 import { seedFooter } from './footer';
 import { seedSiteSettings } from './site-settings';
+import { seedLocation } from './location';
 
 const SEEDS = {
   permissions: seedPermissions,
   role: seedRole,
   admin: seedAdmin,
+  location: seedLocation,
   categories: seedCategories,
   attributes: seedAttributes,
   products: seedProducts,

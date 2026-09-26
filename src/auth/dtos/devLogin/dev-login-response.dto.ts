@@ -23,4 +23,7 @@ export class DevLoginResponseDto {
 
   @ApiProperty({ type: DevLoginUserDto })
   user!: DevLoginUserDto;
+
+  @ApiProperty({ example: false, description: 'Whether the user can open the admin dashboard panel' })
+  showAdminPanel!: boolean;
 }

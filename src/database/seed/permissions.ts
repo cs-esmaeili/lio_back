@@ -1,5 +1,6 @@
 import { permissions } from '../schema';
 import type { SeedDb } from './db';
+import { ADMIN_PANEL_VIEW_PERMISSION } from '../../authorization/authorization.constants';
 
 const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'role:read', description: 'List and view roles' },
@@ -11,6 +12,7 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'site:manage', description: 'Manage site settings (header, footer, etc.)' },
   { name: 'page:manage', description: 'Manage page sections and their content' },
   { name: 'log:read', description: 'View application logs in the log viewer' },
+  { name: ADMIN_PANEL_VIEW_PERMISSION, description: 'View the admin dashboard panel' },
 ];
 
 export async function seedPermissions(db: SeedDb): Promise<number> {

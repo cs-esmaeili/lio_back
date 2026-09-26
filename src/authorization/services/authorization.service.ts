@@ -17,6 +17,11 @@ export class AuthorizationService {
     return new Set(names);
   }
 
+  async hasPermission(userId: number, permission: string): Promise<boolean> {
+    const granted = await this.getUserPermissions(userId);
+    return granted.has(permission);
+  }
+
   listRoles() {
     return this.db.query.roles.findMany({
       with: { permissions: { with: { permission: true } } },

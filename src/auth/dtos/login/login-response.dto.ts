@@ -12,4 +12,7 @@ export class LoginResponseDto {
 
   @ApiProperty({ example: 'Rezaei', nullable: true })
   lastName!: string | null;
+
+  @ApiProperty({ example: false, description: 'Whether the user can open the admin dashboard panel' })
+  showAdminPanel!: boolean;
 }

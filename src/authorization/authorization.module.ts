@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthorizationController } from './authorization.controller';
-import { AuthorizationService } from './services/authorization.service';
+import { AuthorizationAccessModule } from './authorization-access.module';
 import { PermissionsGuard } from './guards/permissions.guard';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, AuthorizationAccessModule],
   controllers: [AuthorizationController],
-  providers: [AuthorizationService, PermissionsGuard],
-  exports: [AuthorizationService, PermissionsGuard],
+  providers: [PermissionsGuard],
+  exports: [AuthorizationAccessModule, PermissionsGuard],
 })
 export class AuthorizationModule {}

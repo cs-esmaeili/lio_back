@@ -1,4 +1,18 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Req, Res, ServiceUnavailableException, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Post,
+  Req,
+  Res,
+  ServiceUnavailableException,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiCookieAuth, ApiHeader, ApiOkResponse, ApiOperation, ApiServiceUnavailableResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
@@ -9,6 +23,8 @@ import { SessionService } from './services/session.service';
 import type { AuthUser } from './services/session.service';
 import { CsrfService } from './services/csrf.service';
 import { CSRF_HEADER } from 'src/common/swagger/csrf-header';
+import { AuthorizationService } from 'src/authorization/services/authorization.service';
+import { ADMIN_PANEL_VIEW_PERMISSION } from 'src/authorization/authorization.constants';
 import { PasswordService } from './services/password.service';
 import { UsersService } from 'src/users/users.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -45,6 +61,7 @@ export class AuthController {
     private readonly sms: SmsService,
     private readonly sessions: SessionService,
     private readonly csrfService: CsrfService,
+    private readonly authorization: AuthorizationService,
     private readonly passwords: PasswordService,
     private readonly users: UsersService,
     private readonly config: ConfigService,
@@ -116,7 +133,8 @@ export class AuthController {
       throw new UnauthorizedException('Account not active');
     }
 
-    return this.sessions.establishSession(user, req, res);
+    const authUser = await this.sessions.establishSession(user, req, res);
+    return { ...authUser, showAdminPanel: await this.canViewAdminPanel(authUser.id) };
   }
 
   @ApiOperation({ summary: 'Login with username and password' })
@@ -131,7 +149,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() _body: LoginRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<LoginResponseDto> {
-    return this.sessions.establishSession(req.user as AuthUser, req, res);
+    const authUser = await this.sessions.establishSession(req.user as AuthUser, req, res);
+    return { ...authUser, showAdminPanel: await this.canViewAdminPanel(authUser.id) };
   }
 
   @ApiOperation({ summary: 'Revoke the current session and clear the session cookie' })
@@ -171,15 +190,16 @@ export class AuthController {
   })
   @UseGuards(OptionalSessionAuthGuard)
   @Get('me')
-  me(@Req() req: Request): MeResponseDto {
+  async me(@Req() req: Request): Promise<MeResponseDto> {
     const user = req.user as SessionUser | undefined;
     if (!user) {
-      return { authenticated: false, user: null, loading: false };
+      return { authenticated: false, user: null, loading: false, showAdminPanel: false };
     }
     return {
       authenticated: true,
       user: { id: user.userId, username: user.username },
       loading: false,
+      showAdminPanel: await this.canViewAdminPanel(user.userId),
     };
   }
 
@@ -203,7 +223,7 @@ export class AuthController {
     const authUser = await this.sessions.establishSession(user, req, res);
     const csrfToken = this.csrfService.generateCsrfToken(res);
 
-    return { csrfToken, user: authUser };
+    return { csrfToken, user: authUser, showAdminPanel: await this.canViewAdminPanel(authUser.id) };
   }
 
   @ApiOperation({ summary: 'Hash a plain password (test/dev only)' })
@@ -215,6 +235,10 @@ export class AuthController {
   async hashPassword(@Body() body: HashPasswordRequestDto): Promise<HashPasswordResponseDto> {
     const hash = await this.passwords.hash(body.password);
     return { hash };
+  }
+
+  private canViewAdminPanel(userId: number): Promise<boolean> {
+    return this.authorization.hasPermission(userId, ADMIN_PANEL_VIEW_PERMISSION);
   }
 
   private normalizeUsername(username: string): string {

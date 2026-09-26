@@ -17,4 +17,7 @@ export class MeResponseDto {
 
   @ApiProperty({ example: false })
   loading!: boolean;
+
+  @ApiProperty({ example: false, description: 'Whether the user can open the admin dashboard panel' })
+  showAdminPanel!: boolean;
 }

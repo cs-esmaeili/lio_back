@@ -7,6 +7,7 @@ export const addresses = pgTable(
   {
     id: serial('id').primaryKey(),
     title: text('title').notNull(),
+    address: text('address').notNull(),
     postalCode: text('postal_code').notNull(),
     isMain: boolean('is_main').default(false).notNull(),
     userId: integer('user_id')

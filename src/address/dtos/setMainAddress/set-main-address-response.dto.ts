@@ -18,6 +18,9 @@ export class SetMainAddressResponseDto {
   @ApiProperty({ example: 'Home' })
   title!: string;
 
+  @ApiProperty({ example: 'خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳' })
+  address!: string;
+
   @ApiProperty({ example: '1234567890' })
   postalCode!: string;
 

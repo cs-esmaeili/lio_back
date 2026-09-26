@@ -28,6 +28,7 @@ export class AddressService {
 
     const row = await this.repository.create(userId, {
       title: dto.title,
+      address: dto.address,
       postalCode: dto.postalCode,
       locationId: dto.locationId,
       isMain: dto.isMain ?? false,
@@ -44,6 +45,7 @@ export class AddressService {
 
     await this.repository.update(id, userId, {
       title: dto.title,
+      address: dto.address,
       postalCode: dto.postalCode,
       locationId: dto.locationId,
       isMain: dto.isMain,
@@ -80,6 +82,7 @@ export class AddressService {
     return {
       id: row.id,
       title: row.title,
+      address: row.address,
       postalCode: row.postalCode,
       isMain: row.isMain,
       locationId: row.locationId,

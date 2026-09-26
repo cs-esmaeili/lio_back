@@ -8,6 +8,7 @@ export type AddressWithLocation = AddressRow & { location: { id: number; provinc
 
 export interface AddressCreateData {
   title: string;
+  address: string;
   postalCode: string;
   locationId: number;
   isMain: boolean;
@@ -15,6 +16,7 @@ export interface AddressCreateData {
 
 export interface AddressUpdateData {
   title?: string;
+  address?: string;
   postalCode?: string;
   locationId?: number;
   isMain?: boolean;
@@ -66,6 +68,7 @@ export class AddressRepository {
 
       const patch: AddressUpdateData = {};
       if (data.title !== undefined) patch.title = data.title;
+      if (data.address !== undefined) patch.address = data.address;
       if (data.postalCode !== undefined) patch.postalCode = data.postalCode;
       if (data.locationId !== undefined) patch.locationId = data.locationId;
       if (data.isMain !== undefined) patch.isMain = data.isMain;

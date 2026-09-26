@@ -8,6 +8,12 @@ export class CreateAddressRequestDto {
   @MaxLength(255)
   title!: string;
 
+  @ApiProperty({ example: 'خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳', description: 'Exact street address (street, alley, number, unit)' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  address!: string;
+
   @ApiProperty({ example: '1234567890' })
   @IsString()
   @IsNotEmpty()

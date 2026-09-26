@@ -12,6 +12,9 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'site:manage', description: 'Manage site settings (header, footer, etc.)' },
   { name: 'page:manage', description: 'Manage page sections and their content' },
   { name: 'log:read', description: 'View application logs in the log viewer' },
+  { name: 'location:create', description: 'Create locations' },
+  { name: 'location:update', description: 'Update locations' },
+  { name: 'location:delete', description: 'Delete locations' },
   { name: ADMIN_PANEL_VIEW_PERMISSION, description: 'View the admin dashboard panel' },
 ];
 

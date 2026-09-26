@@ -65,6 +65,14 @@ export default () => {
     payment: {
       // Active backend, selected in PaymentModule.
       provider: process.env.PAYMENT_PROVIDER ?? 'zarinpal',
+      // Absolute URL the gateway redirects the payer back to. It must point at
+      // this backend's callback route and be reachable from the payer's browser.
+      callbackUrl: process.env.PAYMENT_CALLBACK_URL ?? `http://localhost:${port}/payments/callback`,
+      // Frontend page the payer is sent to after the gateway callback; the
+      // outcome is appended to it as query parameters.
+      frontendResultUrl: process.env.PAYMENT_FRONTEND_RESULT_URL ?? `${origins.find((value) => value !== '*') ?? `http://localhost:${port}`}/payment/result`,
+      // How long an unpaid order keeps its reserved stock (minutes).
+      orderTtlMinutes: Math.max(1, parseInt(process.env.PAYMENT_ORDER_TTL_MINUTES ?? '30', 10) || 30),
       zarinpal: {
         // Merchant id from the Zarinpal panel.
         merchantId: process.env.ZARINPAL_MERCHANT_ID,

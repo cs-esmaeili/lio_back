@@ -70,6 +70,9 @@ export class AddressRepository {
       if (data.locationId !== undefined) patch.locationId = data.locationId;
       if (data.isMain !== undefined) patch.isMain = data.isMain;
 
+      // Nothing to update: avoid an empty SET statement.
+      if (Object.keys(patch).length === 0) return 0;
+
       const rows = await tx
         .update(addresses)
         .set(patch)

@@ -34,6 +34,9 @@ export class LocationRepository {
     if (data.province !== undefined) patch.province = data.province;
     if (data.city !== undefined) patch.city = data.city;
 
+    // Nothing to update: avoid an empty SET statement.
+    if (Object.keys(patch).length === 0) return this.findById(id);
+
     const [row] = await this.db.update(locations).set(patch).where(eq(locations.id, id)).returning();
     return row;
   }

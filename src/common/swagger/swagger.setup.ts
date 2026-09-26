@@ -51,6 +51,9 @@ function wrapSwaggerEnvelope(document: OpenAPIObject): void {
         const code = Number(status);
         if (!Number.isInteger(code)) continue;
 
+        // Redirects carry no JSON body; their contract is the Location header.
+        if (code >= 300 && code < 400) continue;
+
         if (code >= 200 && code < 300) {
           const media = response.content?.['application/json'];
           if (!media?.schema) continue;

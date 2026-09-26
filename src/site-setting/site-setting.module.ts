@@ -8,5 +8,6 @@ import { SiteSettingService } from './services/site-setting.service';
   imports: [AuthModule, AuthorizationModule],
   controllers: [SiteSettingController],
   providers: [SiteSettingService],
+  exports: [SiteSettingService],
 })
 export class SiteSettingModule {}

@@ -15,6 +15,7 @@ import { PageSectionModule } from './page-section/page-section.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
+import { CheckoutModule } from './checkout/checkout.module';
 import { AddressModule } from './address/address.module';
 import { LocationModule } from './location/location.module';
 import { SmsModule } from './sms/sms.module';
@@ -47,6 +48,7 @@ import configuration from './config/configuration';
     CategoryModule,
     ProductModule,
     CartModule,
+    CheckoutModule,
     AddressModule,
     LocationModule,
     SmsModule,

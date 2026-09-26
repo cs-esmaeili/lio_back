@@ -8,6 +8,6 @@ import { AddressRepository } from './repositories/address.repository';
   imports: [AuthModule],
   controllers: [AddressController],
   providers: [AddressRepository, AddressService],
-  exports: [AddressService],
+  exports: [AddressService, AddressRepository],
 })
 export class AddressModule {}

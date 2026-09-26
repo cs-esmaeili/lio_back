@@ -4547,6 +4547,1997 @@
           "Cart"
         ]
       }
+    },
+    "/checkout": {
+      "get": {
+        "operationId": "CheckoutController_getCheckout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Cart lines, pricing breakdown, shipping, customer, addresses and payment gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetCheckoutResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get the checkout page payload for the authenticated user",
+        "tags": [
+          "Checkout"
+        ]
+      }
+    },
+    "/payments": {
+      "post": {
+        "operationId": "PaymentsController_createPayment",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created; redirect the payer to paymentUrl",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CreatePaymentResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Empty cart, invalid address id, or insufficient stock",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The payment gateway rejected the request; the order was canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 502
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Gateway"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create an order from the cart and start a gateway payment",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/payments/callback": {
+      "get": {
+        "description": "Verifies the payment and redirects the payer to the frontend result page with the outcome in the query string.",
+        "operationId": "PaymentsController_paymentCallback",
+        "parameters": [
+          {
+            "name": "Status",
+            "required": false,
+            "in": "query",
+            "description": "Gateway status; `OK` means the payer paid",
+            "schema": {
+              "example": "OK",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authority",
+            "required": false,
+            "in": "query",
+            "description": "Authority returned by the gateway",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to the frontend result page. The outcome is in the Location query string.",
+            "headers": {
+              "Location": {
+                "description": "Frontend result page URL with status, orderId, orderNumber, refId and (on failure) reason",
+                "schema": {
+                  "type": "string",
+                  "example": "https://front.local/payment/result?status=success&orderId=42&orderNumber=ORD-20260926-4F2A9C10BD&refId=123456789"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Payment gateway callback (public)",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/addresses": {
+      "get": {
+        "operationId": "AddressController_listAddresses",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Addresses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListAddressesResponseDto"
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List the current user addresses",
+        "tags": [
+          "Address"
+        ]
+      },
+      "post": {
+        "operationId": "AddressController_createAddress",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAddressRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CreateAddressResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Location not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create an address for the current user",
+        "tags": [
+          "Address"
+        ]
+      }
+    },
+    "/addresses/{id}": {
+      "get": {
+        "operationId": "AddressController_getAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetAddressResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get one of the current user addresses",
+        "tags": [
+          "Address"
+        ]
+      },
+      "patch": {
+        "operationId": "AddressController_updateAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAddressRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateAddressResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address or location not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update one of the current user addresses",
+        "tags": [
+          "Address"
+        ]
+      },
+      "delete": {
+        "operationId": "AddressController_deleteAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DeleteAddressResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Delete one of the current user addresses",
+        "tags": [
+          "Address"
+        ]
+      }
+    },
+    "/addresses/{id}/main": {
+      "patch": {
+        "operationId": "AddressController_setMainAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SetMainAddressResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Set one of the current user addresses as the default",
+        "tags": [
+          "Address"
+        ]
+      }
+    },
+    "/locations": {
+      "get": {
+        "operationId": "LocationController_listLocations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Locations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListLocationsResponseDto"
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List all locations",
+        "tags": [
+          "Location"
+        ]
+      },
+      "post": {
+        "operationId": "LocationController_createLocation",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLocationRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created location",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CreateLocationResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create a location",
+        "tags": [
+          "Location"
+        ]
+      }
+    },
+    "/locations/{id}": {
+      "get": {
+        "operationId": "LocationController_getLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetLocationResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Location not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get a location by id",
+        "tags": [
+          "Location"
+        ]
+      },
+      "patch": {
+        "operationId": "LocationController_updateLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLocationRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated location",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateLocationResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Location not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update a location",
+        "tags": [
+          "Location"
+        ]
+      },
+      "delete": {
+        "operationId": "LocationController_deleteLocation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DeleteLocationResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Location not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Location is in use by an address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Delete a location",
+        "tags": [
+          "Location"
+        ]
+      }
+    },
+    "/logger/test": {
+      "post": {
+        "operationId": "LoggerController_writeTest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteTestRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Log entry written",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/WriteTestResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Write a test log entry (dev only)",
+        "tags": [
+          "Logger"
+        ]
+      }
+    },
+    "/admin/logs/meta": {
+      "get": {
+        "operationId": "LogViewerController_listLogMeta",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Log metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListLogMetaResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not logged in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing log:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List available log dates and channels",
+        "tags": [
+          "LogViewer"
+        ]
+      }
+    },
+    "/admin/logs/entries": {
+      "get": {
+        "operationId": "LogViewerController_readLogEntries",
+        "parameters": [
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "description": "Log date in `yyyy-MM-dd` format",
+            "schema": {
+              "example": "2026-09-25",
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "description": "File to read: `combined` or a service scope",
+            "schema": {
+              "default": "combined",
+              "example": "combined",
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "description": "Only entries of this level",
+            "schema": {
+              "example": "error",
+              "type": "string",
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error",
+                "fatal"
+              ]
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "description": "Only entries from this scope (useful for the combined file)",
+            "schema": {
+              "example": "sms",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive text search across the raw entry",
+            "schema": {
+              "example": "timeout",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Entries per page",
+            "schema": {
+              "maximum": 100,
+              "default": 50,
+              "example": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ReadLogEntriesResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not logged in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing log:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Read filtered, paginated log entries for a date",
+        "tags": [
+          "LogViewer"
+        ]
+      }
     }
   },
   "info": {
@@ -4650,13 +6641,19 @@
             "type": "object",
             "example": "Rezaei",
             "nullable": true
+          },
+          "showAdminPanel": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the user can open the admin dashboard panel"
           }
         },
         "required": [
           "id",
           "username",
           "name",
-          "lastName"
+          "lastName",
+          "showAdminPanel"
         ]
       },
       "LoginRequestDto": {
@@ -4699,13 +6696,19 @@
             "type": "object",
             "example": "Rezaei",
             "nullable": true
+          },
+          "showAdminPanel": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the user can open the admin dashboard panel"
           }
         },
         "required": [
           "id",
           "username",
           "name",
-          "lastName"
+          "lastName",
+          "showAdminPanel"
         ]
       },
       "LogoutResponseDto": {
@@ -4757,11 +6760,23 @@
             "type": "string",
             "example": "09123456789",
             "description": "Phone number (login identifier)"
+          },
+          "name": {
+            "type": "object",
+            "example": "Ali",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "object",
+            "example": "Rezaei",
+            "nullable": true
           }
         },
         "required": [
           "id",
-          "username"
+          "username",
+          "name",
+          "lastName"
         ]
       },
       "MeResponseDto": {
@@ -4780,15 +6795,27 @@
               }
             ]
           },
-          "loading": {
+          "permissions": {
+            "example": [
+              "user:read"
+            ],
+            "description": "Permissions granted to the current user",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "showAdminPanel": {
             "type": "boolean",
-            "example": false
+            "example": false,
+            "description": "Whether the user can open the admin dashboard panel"
           }
         },
         "required": [
           "authenticated",
           "user",
-          "loading"
+          "permissions",
+          "showAdminPanel"
         ]
       },
       "DevLoginRequestDto": {
@@ -4843,11 +6870,17 @@
           },
           "user": {
             "$ref": "#/components/schemas/DevLoginUserDto"
+          },
+          "showAdminPanel": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the user can open the admin dashboard panel"
           }
         },
         "required": [
           "csrfToken",
-          "user"
+          "user",
+          "showAdminPanel"
         ]
       },
       "HashPasswordRequestDto": {
@@ -7844,12 +9877,19 @@
           "slug": {
             "type": "string",
             "example": "kamel-compact-abi"
+          },
+          "image": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true,
+            "description": "Primary product image URL"
           }
         },
         "required": [
           "id",
           "name",
-          "slug"
+          "slug",
+          "image"
         ]
       },
       "GetCartVariantDto": {
@@ -7904,6 +9944,11 @@
             "example": 3388000,
             "description": "Current variant price multiplied by quantity"
           },
+          "discount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Discount for this line versus the compare-at price: (compareAtPrice - price) * quantity. Zero when there is no compare-at price."
+          },
           "product": {
             "$ref": "#/components/schemas/GetCartProductDto"
           },
@@ -7915,6 +9960,7 @@
           "variantId",
           "quantity",
           "lineTotal",
+          "discount",
           "product",
           "variant"
         ]
@@ -7942,13 +9988,19 @@
             "type": "number",
             "example": 3388000,
             "description": "Sum of the line totals, using current variant prices"
+          },
+          "totalDiscount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Total savings versus compare-at prices: the sum of every line discount (\"you saved\"). It does not affect the amount payable."
           }
         },
         "required": [
           "items",
           "itemCount",
           "distinctItemCount",
-          "subtotal"
+          "subtotal",
+          "totalDiscount"
         ]
       },
       "AddCartItemRequestDto": {
@@ -7985,12 +10037,19 @@
           "slug": {
             "type": "string",
             "example": "kamel-compact-abi"
+          },
+          "image": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true,
+            "description": "Primary product image URL"
           }
         },
         "required": [
           "id",
           "name",
-          "slug"
+          "slug",
+          "image"
         ]
       },
       "AddCartItemVariantDto": {
@@ -8045,6 +10104,11 @@
             "example": 3388000,
             "description": "Current variant price multiplied by quantity"
           },
+          "discount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Discount for this line versus the compare-at price: (compareAtPrice - price) * quantity. Zero when there is no compare-at price."
+          },
           "product": {
             "$ref": "#/components/schemas/AddCartItemProductDto"
           },
@@ -8056,6 +10120,7 @@
           "variantId",
           "quantity",
           "lineTotal",
+          "discount",
           "product",
           "variant"
         ]
@@ -8083,13 +10148,19 @@
             "type": "number",
             "example": 3388000,
             "description": "Sum of the line totals, using current variant prices"
+          },
+          "totalDiscount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Total savings versus compare-at prices: the sum of every line discount (\"you saved\"). It does not affect the amount payable."
           }
         },
         "required": [
           "items",
           "itemCount",
           "distinctItemCount",
-          "subtotal"
+          "subtotal",
+          "totalDiscount"
         ]
       },
       "UpdateCartItemRequestDto": {
@@ -8120,12 +10191,19 @@
           "slug": {
             "type": "string",
             "example": "kamel-compact-abi"
+          },
+          "image": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true,
+            "description": "Primary product image URL"
           }
         },
         "required": [
           "id",
           "name",
-          "slug"
+          "slug",
+          "image"
         ]
       },
       "UpdateCartItemVariantDto": {
@@ -8180,6 +10258,11 @@
             "example": 3388000,
             "description": "Current variant price multiplied by quantity"
           },
+          "discount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Discount for this line versus the compare-at price: (compareAtPrice - price) * quantity. Zero when there is no compare-at price."
+          },
           "product": {
             "$ref": "#/components/schemas/UpdateCartItemProductDto"
           },
@@ -8191,6 +10274,7 @@
           "variantId",
           "quantity",
           "lineTotal",
+          "discount",
           "product",
           "variant"
         ]
@@ -8218,13 +10302,19 @@
             "type": "number",
             "example": 3388000,
             "description": "Sum of the line totals, using current variant prices"
+          },
+          "totalDiscount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Total savings versus compare-at prices: the sum of every line discount (\"you saved\"). It does not affect the amount payable."
           }
         },
         "required": [
           "items",
           "itemCount",
           "distinctItemCount",
-          "subtotal"
+          "subtotal",
+          "totalDiscount"
         ]
       },
       "RemoveCartItemProductDto": {
@@ -8241,12 +10331,19 @@
           "slug": {
             "type": "string",
             "example": "kamel-compact-abi"
+          },
+          "image": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true,
+            "description": "Primary product image URL"
           }
         },
         "required": [
           "id",
           "name",
-          "slug"
+          "slug",
+          "image"
         ]
       },
       "RemoveCartItemVariantDto": {
@@ -8301,6 +10398,11 @@
             "example": 3388000,
             "description": "Current variant price multiplied by quantity"
           },
+          "discount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Discount for this line versus the compare-at price: (compareAtPrice - price) * quantity. Zero when there is no compare-at price."
+          },
           "product": {
             "$ref": "#/components/schemas/RemoveCartItemProductDto"
           },
@@ -8312,6 +10414,7 @@
           "variantId",
           "quantity",
           "lineTotal",
+          "discount",
           "product",
           "variant"
         ]
@@ -8339,13 +10442,1218 @@
             "type": "number",
             "example": 3388000,
             "description": "Sum of the line totals, using current variant prices"
+          },
+          "totalDiscount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Total savings versus compare-at prices: the sum of every line discount (\"you saved\"). It does not affect the amount payable."
           }
         },
         "required": [
           "items",
           "itemCount",
           "distinctItemCount",
-          "subtotal"
+          "subtotal",
+          "totalDiscount"
+        ]
+      },
+      "GetCheckoutProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          },
+          "image": {
+            "type": "string",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true,
+            "description": "Primary product image URL"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "image"
+        ]
+      },
+      "GetCheckoutVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744
+          },
+          "sku": {
+            "type": "string",
+            "example": "SEED-SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Current selling price"
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true,
+            "description": "Reference price before discount"
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock"
+        ]
+      },
+      "GetCheckoutItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "number",
+            "example": 3744,
+            "description": "Product variant id"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Current variant price multiplied by quantity"
+          },
+          "discount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Discount for this line versus the compare-at price: (compareAtPrice - price) * quantity. Zero when there is no compare-at price."
+          },
+          "product": {
+            "$ref": "#/components/schemas/GetCheckoutProductDto"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/GetCheckoutVariantDto"
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity",
+          "lineTotal",
+          "discount",
+          "product",
+          "variant"
+        ]
+      },
+      "GetCheckoutShippingDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether shipping is charged at all (the `shipping` site setting)"
+          },
+          "cost": {
+            "type": "number",
+            "example": 50000,
+            "description": "Flat shipping cost. Only charged when enabled and the subtotal is below freeOver."
+          },
+          "freeOver": {
+            "type": "number",
+            "example": 500000,
+            "description": "Order subtotal from which shipping becomes free. Zero means the rule is disabled."
+          }
+        },
+        "required": [
+          "enabled",
+          "cost",
+          "freeOver"
+        ]
+      },
+      "GetCheckoutCustomerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "phone": {
+            "type": "string",
+            "example": "09123456789",
+            "description": "Phone number (the login identifier), used to prefill the contact form"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ali",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Rezaei",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "name",
+          "lastName"
+        ]
+      },
+      "GetCheckoutAddressLocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city"
+        ]
+      },
+      "GetCheckoutAddressDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether this is the default address"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12
+          },
+          "location": {
+            "$ref": "#/components/schemas/GetCheckoutAddressLocationDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "address",
+          "postalCode",
+          "isMain",
+          "locationId",
+          "location",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GetCheckoutPaymentDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "zarinpal",
+            "description": "Active payment gateway name the frontend must redirect to after placing the order"
+          }
+        },
+        "required": [
+          "provider"
+        ]
+      },
+      "GetCheckoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Cart lines with their current live prices",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetCheckoutItemDto"
+            }
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Sum of all item quantities"
+          },
+          "distinctItemCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of distinct variants in the cart"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Sum of the line totals, using current variant prices"
+          },
+          "shippingCost": {
+            "type": "number",
+            "example": 0,
+            "description": "Shipping cost for this order, resolved from the `shipping` setting"
+          },
+          "orderDiscount": {
+            "type": "number",
+            "example": 0,
+            "description": "Order-level reduction (coupon, manual grant, ...). Currently always 0 because no coupon flow exists yet."
+          },
+          "totalDiscount": {
+            "type": "number",
+            "example": 1000000,
+            "description": "Informational savings versus compare-at prices (\"you saved\"). It does not affect `total`."
+          },
+          "total": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Amount payable: subtotal + shippingCost - orderDiscount"
+          },
+          "shipping": {
+            "$ref": "#/components/schemas/GetCheckoutShippingDto"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/GetCheckoutCustomerDto"
+          },
+          "addresses": {
+            "description": "The user addresses, default first. Empty when the user has none.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetCheckoutAddressDto"
+            }
+          },
+          "defaultAddressId": {
+            "type": "number",
+            "example": 1,
+            "nullable": true,
+            "description": "Id of the default (isMain) address, or null when there is none"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/GetCheckoutPaymentDto"
+          }
+        },
+        "required": [
+          "items",
+          "itemCount",
+          "distinctItemCount",
+          "subtotal",
+          "shippingCost",
+          "orderDiscount",
+          "totalDiscount",
+          "total",
+          "shipping",
+          "customer",
+          "addresses",
+          "defaultAddressId",
+          "payment"
+        ]
+      },
+      "CreatePaymentRequestDto": {
+        "type": "object",
+        "properties": {
+          "addressId": {
+            "type": "number",
+            "example": 1,
+            "description": "Shipping address id owned by the current user. Its snapshot is copied onto the order."
+          }
+        },
+        "required": [
+          "addressId"
+        ]
+      },
+      "CreatePaymentResponseDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "number",
+            "example": 42,
+            "description": "Id of the order created from the cart"
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20260926-4F2A9C10BD",
+            "description": "Human-readable order number, also used as the gateway description"
+          },
+          "amount": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Amount payable in Toman (the order total at payment time)"
+          },
+          "provider": {
+            "type": "string",
+            "example": "zarinpal",
+            "description": "Active payment gateway name"
+          },
+          "paymentUrl": {
+            "type": "string",
+            "example": "https://www.zarinpal.com/pg/StartPay/00000000000000000000000000000000000000",
+            "description": "Redirect the payer to this URL to complete the payment. The order is already created and its stock reserved."
+          }
+        },
+        "required": [
+          "orderId",
+          "orderNumber",
+          "amount",
+          "provider",
+          "paymentUrl"
+        ]
+      },
+      "ListAddressLocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city"
+        ]
+      },
+      "ListAddressesResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether this is the default address"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12
+          },
+          "location": {
+            "$ref": "#/components/schemas/ListAddressLocationDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "address",
+          "postalCode",
+          "isMain",
+          "locationId",
+          "location",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GetAddressLocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city"
+        ]
+      },
+      "GetAddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether this is the default address"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12
+          },
+          "location": {
+            "$ref": "#/components/schemas/GetAddressLocationDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "address",
+          "postalCode",
+          "isMain",
+          "locationId",
+          "location",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateAddressRequestDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳",
+            "description": "Exact street address (street, alley, number, unit)"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12,
+            "description": "Location id (province/city)"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": false,
+            "default": false,
+            "description": "Mark this as the default address"
+          }
+        },
+        "required": [
+          "title",
+          "address",
+          "postalCode",
+          "locationId"
+        ]
+      },
+      "CreateAddressLocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city"
+        ]
+      },
+      "CreateAddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether this is the default address"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12
+          },
+          "location": {
+            "$ref": "#/components/schemas/CreateAddressLocationDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "address",
+          "postalCode",
+          "isMain",
+          "locationId",
+          "location",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateAddressRequestDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳",
+            "description": "Exact street address (street, alley, number, unit)"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12,
+            "description": "Location id (province/city)"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": false,
+            "default": false,
+            "description": "Mark this as the default address"
+          }
+        }
+      },
+      "UpdateAddressLocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city"
+        ]
+      },
+      "UpdateAddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether this is the default address"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12
+          },
+          "location": {
+            "$ref": "#/components/schemas/UpdateAddressLocationDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "address",
+          "postalCode",
+          "isMain",
+          "locationId",
+          "location",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SetMainAddressLocationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city"
+        ]
+      },
+      "SetMainAddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Home"
+          },
+          "address": {
+            "type": "string",
+            "example": "خیابان ولیعصر، کوچه بهار، پلاک ۱۲، واحد ۳"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isMain": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether this is the default address"
+          },
+          "locationId": {
+            "type": "number",
+            "example": 12
+          },
+          "location": {
+            "$ref": "#/components/schemas/SetMainAddressLocationDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "address",
+          "postalCode",
+          "isMain",
+          "locationId",
+          "location",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteAddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
+      "ListLocationsResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GetLocationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateLocationRequestDto": {
+        "type": "object",
+        "properties": {
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        },
+        "required": [
+          "province",
+          "city"
+        ]
+      },
+      "CreateLocationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateLocationRequestDto": {
+        "type": "object",
+        "properties": {
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          }
+        }
+      },
+      "UpdateLocationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 12
+          },
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "province",
+          "city",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteLocationResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
+      "WriteTestRequestDto": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "Scope (service) the entry belongs to",
+            "example": "sms",
+            "default": "app"
+          },
+          "level": {
+            "type": "string",
+            "description": "Log level",
+            "enum": [
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "fatal"
+            ],
+            "default": "info"
+          },
+          "message": {
+            "type": "string",
+            "description": "Message to log",
+            "example": "hello from the logger"
+          },
+          "meta": {
+            "type": "object",
+            "description": "Extra structured fields"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "WriteTestResponseDto": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "Scope the entry was written to",
+            "example": "sms"
+          },
+          "level": {
+            "type": "string",
+            "description": "Level of the entry",
+            "enum": [
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "fatal"
+            ],
+            "example": "error"
+          },
+          "file": {
+            "type": "string",
+            "description": "Absolute path of the scope log file",
+            "example": "/app/logs/sms/2026-09-25.log"
+          },
+          "writtenAt": {
+            "type": "string",
+            "description": "ISO timestamp of the write",
+            "example": "2026-09-25T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "scope",
+          "level",
+          "file",
+          "writtenAt"
+        ]
+      },
+      "ListLogMetaResponseDto": {
+        "type": "object",
+        "properties": {
+          "dates": {
+            "description": "Available log dates, newest first",
+            "example": [
+              "2026-09-25",
+              "2026-09-24"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scopes": {
+            "description": "Selectable log sources: the combined file plus every service scope",
+            "example": [
+              "combined",
+              "app",
+              "sms"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "dates",
+          "scopes"
+        ]
+      },
+      "LogEntryDto": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "object",
+            "description": "ISO timestamp of the entry",
+            "nullable": true,
+            "example": "2026-09-25T16:42:31.909Z"
+          },
+          "level": {
+            "type": "object",
+            "description": "Log level: label string on current entries, numeric on older ones",
+            "nullable": true,
+            "examples": [
+              "error",
+              50
+            ]
+          },
+          "levelName": {
+            "type": "object",
+            "description": "Level name",
+            "nullable": true,
+            "example": "error"
+          },
+          "scope": {
+            "type": "object",
+            "description": "Scope (service) the entry belongs to",
+            "nullable": true,
+            "example": "sms"
+          },
+          "requestId": {
+            "type": "object",
+            "description": "Correlation id of the request the entry was logged in",
+            "nullable": true,
+            "example": "0f1c2e3a-..."
+          },
+          "message": {
+            "type": "object",
+            "description": "Log message (usually a string)",
+            "nullable": true
+          },
+          "meta": {
+            "type": "object",
+            "description": "Remaining structured fields of the entry"
+          }
+        },
+        "required": [
+          "time",
+          "level",
+          "levelName",
+          "scope",
+          "requestId",
+          "message",
+          "meta"
+        ]
+      },
+      "ReadLogEntriesResponseDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-09-25"
+          },
+          "source": {
+            "type": "string",
+            "example": "combined"
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 50
+          },
+          "total": {
+            "type": "number",
+            "example": 123
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 3
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEntryDto"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "source",
+          "page",
+          "limit",
+          "total",
+          "totalPages",
+          "entries"
         ]
       }
     }

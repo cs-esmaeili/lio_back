@@ -97,6 +97,7 @@ export interface CartItem {
   variantId: number;          // کلید PATCH/DELETE
   quantity: number;
   lineTotal: number;          // price * quantity
+  discount: number;           // (compareAtPrice - price) * quantity → تخفیف این ردیف، اگر compareAtPrice نبود صفر
   product: CartProduct;
   variant: CartVariant;
 }
@@ -106,7 +107,12 @@ export interface Cart {
   itemCount: number;          // جمع همه‌ی quantityها
   distinctItemCount: number;  // تعداد variantهای متمایز = items.length
   subtotal: number;           // جمع lineTotalها
+  totalDiscount: number;      // جمع discount همه‌ی ردیف‌ها = «سود شما از خرید»
 }
+
+// نکته: totalDiscount فقط جنبه‌ی نمایشی دارد؛ مبلغ قابل پرداخت همان subtotal است
+// (چون price از قبل قیمت فروش است و compareAtPrice فقط قیمت خط‌خورده‌ی مرجع است).
+// تخفیف سطح سفارش (کوپن) مفهوم جداگانه‌ای است و اینجا نیست.
 ```
 
 ---
@@ -118,7 +124,7 @@ export interface Cart {
 - با auth: سبد کاربر (یا سبد خالی اگر ندارد).
 - فقط با `X-Cart-Token`: سبد مهمان (یا سبد خالی اگر وجود ندارد — **خطا نمی‌دهد**).
 - با هر دو: اول مرج، بعد سبد کاربر.
-- بدون هیچ‌کدام: سبد خالی `{ items: [], itemCount: 0, distinctItemCount: 0, subtotal: 0 }` با وضعیت ۲۰۰.
+- بدون هیچ‌کدام: سبد خالی `{ items: [], itemCount: 0, distinctItemCount: 0, subtotal: 0, totalDiscount: 0 }` با وضعیت ۲۰۰.
 
 **پاسخ ۲۰۰:** `data` = `Cart`
 

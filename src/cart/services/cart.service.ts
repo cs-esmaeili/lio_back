@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { CartRow } from '../repositories/cart.repository';
 import { CartRepository } from '../repositories/cart.repository';
+import { CartPricingService } from './cart-pricing.service';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import type { GetCartResponseDto } from '../dtos/getCart/get-cart-response.dto';
 import type { AddCartItemRequestDto } from '../dtos/addCartItem/add-cart-item-request.dto';
@@ -19,11 +20,12 @@ export class CartService {
   constructor(
     private readonly repository: CartRepository,
     private readonly fileUrl: FileUrlService,
+    private readonly pricing: CartPricingService,
   ) {}
 
   async getCart(identity: CartIdentity): Promise<GetCartResponseDto> {
     const cart = await this.repository.resolveCart(identity, { create: false });
-    return cart ? this.buildCart(cart) : { items: [], itemCount: 0, distinctItemCount: 0, subtotal: 0 };
+    return cart ? this.buildCart(cart) : { items: [], itemCount: 0, distinctItemCount: 0, subtotal: 0, totalDiscount: 0 };
   }
 
   async addCartItem(identity: CartIdentity, dto: AddCartItemRequestDto): Promise<AddCartItemResponseDto> {
@@ -79,12 +81,14 @@ export class CartService {
   private async buildCart(cart: CartRow): Promise<GetCartResponseDto> {
     const rows = await this.repository.listItems(cart.id);
 
-    const items = rows.map((row) => {
+    const lines = rows.map((row) => {
       const price = Number(row.price);
+      const compareAtPrice = row.compareAtPrice === null ? null : Number(row.compareAtPrice);
       return {
         variantId: row.variantId,
         quantity: row.quantity,
-        lineTotal: price * row.quantity,
+        unitPrice: price,
+        compareAtPrice,
         product: {
           id: row.productId,
           name: row.productName,
@@ -95,17 +99,27 @@ export class CartService {
           id: row.variantId,
           sku: row.sku,
           price,
-          compareAtPrice: row.compareAtPrice === null ? null : Number(row.compareAtPrice),
+          compareAtPrice,
           stock: row.stock,
         },
       };
     });
 
+    const { lines: priced, itemCount, distinctItemCount, subtotal, totalDiscount } = this.pricing.calculate(lines);
+
     return {
-      items,
-      itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-      distinctItemCount: items.length,
-      subtotal: items.reduce((sum, item) => sum + item.lineTotal, 0),
+      items: priced.map((line) => ({
+        variantId: line.variantId,
+        quantity: line.quantity,
+        lineTotal: line.lineTotal,
+        discount: line.discount,
+        product: line.product,
+        variant: line.variant,
+      })),
+      itemCount,
+      distinctItemCount,
+      subtotal,
+      totalDiscount,
     };
   }
 }

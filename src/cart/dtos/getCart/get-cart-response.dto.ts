@@ -41,6 +41,12 @@ export class GetCartItemDto {
   @ApiProperty({ example: 3388000, description: 'Current variant price multiplied by quantity' })
   lineTotal!: number;
 
+  @ApiProperty({
+    example: 1000000,
+    description: 'Discount for this line versus the compare-at price: (compareAtPrice - price) * quantity. Zero when there is no compare-at price.',
+  })
+  discount!: number;
+
   @ApiProperty({ type: GetCartProductDto })
   product!: GetCartProductDto;
 
@@ -60,4 +66,10 @@ export class GetCartResponseDto {
 
   @ApiProperty({ example: 3388000, description: 'Sum of the line totals, using current variant prices' })
   subtotal!: number;
+
+  @ApiProperty({
+    example: 1000000,
+    description: 'Total savings versus compare-at prices: the sum of every line discount ("you saved"). It does not affect the amount payable.',
+  })
+  totalDiscount!: number;
 }

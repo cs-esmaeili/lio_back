@@ -92,20 +92,6 @@ export class AuthorizationService {
     return permission;
   }
 
-  async createPermission(input: { name: string; description?: string }) {
-    const [permission] = await this.db
-      .insert(permissions)
-      .values({ name: input.name, description: input.description ?? null })
-      .returning();
-    return permission;
-  }
-
-  async updatePermission(id: number, input: { name?: string; description?: string }) {
-    await this.getPermission(id);
-    const [permission] = await this.db.update(permissions).set({ name: input.name, description: input.description }).where(eq(permissions.id, id)).returning();
-    return permission;
-  }
-
   async deletePermission(id: number) {
     await this.getPermission(id);
     await this.db.delete(permissions).where(eq(permissions.id, id));

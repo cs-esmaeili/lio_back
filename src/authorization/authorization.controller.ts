@@ -25,10 +25,6 @@ import { UpdateRoleRequestDto } from './dtos/updateRole/update-role-request.dto'
 import { UpdateRoleResponseDto } from './dtos/updateRole/update-role-response.dto';
 import { DeleteRoleResponseDto } from './dtos/deleteRole/delete-role-response.dto';
 import { ListPermissionsResponseDto } from './dtos/listPermissions/list-permissions-response.dto';
-import { CreatePermissionRequestDto } from './dtos/createPermission/create-permission-request.dto';
-import { CreatePermissionResponseDto } from './dtos/createPermission/create-permission-response.dto';
-import { UpdatePermissionRequestDto } from './dtos/updatePermission/update-permission-request.dto';
-import { UpdatePermissionResponseDto } from './dtos/updatePermission/update-permission-response.dto';
 import { DeletePermissionResponseDto } from './dtos/deletePermission/delete-permission-response.dto';
 import { AssignRoleRequestDto } from './dtos/assignRole/assign-role-request.dto';
 import { AssignRoleResponseDto } from './dtos/assignRole/assign-role-response.dto';
@@ -113,35 +109,6 @@ export class AuthorizationController {
   async listPermissions(): Promise<ListPermissionsResponseDto[]> {
     const permissions = await this.authorization.listPermissions();
     return permissions.map((permission) => this.toPermissionDto(permission));
-  }
-
-  @ApiOperation({ summary: 'Create a permission' })
-  @ApiHeader(CSRF_HEADER)
-  @ApiBody({ type: CreatePermissionRequestDto })
-  @ApiCreatedResponse({ description: 'Created permission', type: CreatePermissionResponseDto })
-  @ApiBadRequestResponse({ description: 'Invalid request data' })
-  @ApiCookieAuth('session')
-  @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('permission:write')
-  @Post('permissions')
-  async createPermission(@Body() body: CreatePermissionRequestDto): Promise<CreatePermissionResponseDto> {
-    const permission = await this.authorization.createPermission(body);
-    return this.toPermissionDto(permission);
-  }
-
-  @ApiOperation({ summary: 'Update a permission' })
-  @ApiHeader(CSRF_HEADER)
-  @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiBody({ type: UpdatePermissionRequestDto })
-  @ApiOkResponse({ description: 'Updated permission', type: UpdatePermissionResponseDto })
-  @ApiNotFoundResponse({ description: 'Permission not found' })
-  @ApiCookieAuth('session')
-  @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('permission:write')
-  @Patch('permissions/:id')
-  async updatePermission(@Param('id', ParseIntPipe) id: number, @Body() body: UpdatePermissionRequestDto): Promise<UpdatePermissionResponseDto> {
-    const permission = await this.authorization.updatePermission(id, body);
-    return this.toPermissionDto(permission);
   }
 
   @ApiOperation({ summary: 'Delete a permission' })

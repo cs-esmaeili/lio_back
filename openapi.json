@@ -3283,8 +3283,8 @@
       }
     },
     "/admin/page-sections/{id}/data": {
-      "patch": {
-        "operationId": "PageSectionController_updateSectionData",
+      "post": {
+        "operationId": "PageSectionController_createSectionData",
         "parameters": [
           {
             "name": "id",
@@ -3310,14 +3310,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePageSectionDataDto"
+                "$ref": "#/components/schemas/PageSectionDataRequestDto"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Updated section",
+          "201": {
+            "description": "Section with the new item",
             "content": {
               "application/json": {
                 "schema": {
@@ -3325,14 +3325,14 @@
                   "properties": {
                     "statusCode": {
                       "type": "number",
-                      "example": 200
+                      "example": 201
                     },
                     "data": {
                       "$ref": "#/components/schemas/UpdateSectionDataResponseDto"
                     },
                     "message": {
                       "type": "string",
-                      "example": "OK"
+                      "example": "Created"
                     }
                   },
                   "required": [
@@ -3464,7 +3464,379 @@
             "session": []
           }
         ],
-        "summary": "Update the typed data of a page section",
+        "summary": "Create a section item",
+        "tags": [
+          "PageSection"
+        ]
+      },
+      "patch": {
+        "operationId": "PageSectionController_updateSectionData",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSectionDataRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated section",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateSectionDataResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid section data or unknown files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Section or item not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update a single item of a page section",
+        "tags": [
+          "PageSection"
+        ]
+      },
+      "delete": {
+        "operationId": "PageSectionController_deleteSectionData",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": false,
+            "in": "query",
+            "description": "Item id to remove. Omitted for singleton sections (INTRODUCTION).",
+            "schema": {
+              "example": 11,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Section without the deleted item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateSectionDataResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "itemId is required for this section type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Section or item not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Delete a single item of a page section",
         "tags": [
           "PageSection"
         ]
@@ -8535,12 +8907,13 @@
           "data"
         ]
       },
-      "UpdateSliderSlideDto": {
+      "SliderSlideInputDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "number",
-            "example": 11
+            "example": 11,
+            "description": "Item id — required when updating, omitted when creating"
           },
           "desktopFileId": {
             "type": "number",
@@ -8557,23 +8930,26 @@
           "url": {
             "type": "object",
             "example": "/products/sale",
-            "nullable": true,
-            "description": "Relative link target for the slide"
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
           }
         },
         "required": [
-          "id",
           "desktopFileId",
           "tabletFileId",
           "mobileFileId"
         ]
       },
-      "UpdateProductListDto": {
+      "ProductListItemInputDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "number",
-            "example": 11
+            "example": 11,
+            "description": "Item id — required when updating, omitted when creating"
           },
           "productId": {
             "type": "number",
@@ -8585,16 +8961,16 @@
           }
         },
         "required": [
-          "id",
           "productId"
         ]
       },
-      "UpdateBannerDto": {
+      "BannerInputDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "number",
-            "example": 11
+            "example": 11,
+            "description": "Item id — required when updating, omitted when creating"
           },
           "title": {
             "type": "string",
@@ -8626,17 +9002,20 @@
           "mobileFileId": {
             "type": "number",
             "example": 103
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
           }
         },
         "required": [
-          "id",
           "title",
           "desktopFileId",
           "tabletFileId",
           "mobileFileId"
         ]
       },
-      "UpdateIntroductionDto": {
+      "IntroductionInputDto": {
         "type": "object",
         "properties": {
           "titles": {
@@ -8669,9 +9048,14 @@
           "desktopFileId"
         ]
       },
-      "UpdateHeaderItemDto": {
+      "HeaderItemInputDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "number",
+            "example": 11,
+            "description": "Item id — required when updating, omitted when creating"
+          },
           "type": {
             "example": "LINK",
             "allOf": [
@@ -8697,25 +9081,14 @@
             "example": 3,
             "nullable": true,
             "description": "Required for CATEGORY items; ignored for LINK items"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
           }
         },
         "required": [
           "type"
-        ]
-      },
-      "UpdateHeaderDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "description": "Top-level header items in display order. The list is replaced in full.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpdateHeaderItemDto"
-            }
-          }
-        },
-        "required": [
-          "items"
         ]
       },
       "FooterSectionType": {
@@ -8725,9 +9098,14 @@
           "CATEGORY"
         ]
       },
-      "UpdateFooterItemDto": {
+      "FooterItemInputDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "number",
+            "example": 11,
+            "description": "Item id — required when updating, omitted when creating"
+          },
           "type": {
             "example": "LINK",
             "allOf": [
@@ -8739,54 +9117,38 @@
           "label": {
             "type": "object",
             "example": "فروشگاه",
-            "nullable": true,
-            "description": "Required for LINK items; optional for CATEGORY items (falls back to the category name)"
+            "nullable": true
           },
           "url": {
             "type": "object",
             "example": "/shop",
-            "nullable": true,
-            "description": "Required for LINK items; ignored for CATEGORY items"
+            "nullable": true
           },
           "description": {
             "type": "object",
             "example": "توضیحات بلند درباره این آیتم",
-            "nullable": true,
-            "description": "Optional long description"
+            "nullable": true
           },
           "fileId": {
             "type": "object",
             "example": 101,
-            "nullable": true,
-            "description": "Optional referenced file id"
+            "nullable": true
           },
           "categoryId": {
             "type": "object",
             "example": 3,
-            "nullable": true,
-            "description": "Required for CATEGORY items; ignored for LINK items"
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
           }
         },
         "required": [
           "type"
         ]
       },
-      "UpdateFooterDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "description": "Top-level footer items in display order. The list is replaced in full.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpdateFooterItemDto"
-            }
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "UpdatePageSectionDataDto": {
+      "PageSectionDataRequestDto": {
         "type": "object",
         "properties": {
           "type": {
@@ -8800,22 +9162,22 @@
           "data": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/UpdateSliderSlideDto"
+                "$ref": "#/components/schemas/SliderSlideInputDto"
               },
               {
-                "$ref": "#/components/schemas/UpdateProductListDto"
+                "$ref": "#/components/schemas/ProductListItemInputDto"
               },
               {
-                "$ref": "#/components/schemas/UpdateBannerDto"
+                "$ref": "#/components/schemas/BannerInputDto"
               },
               {
-                "$ref": "#/components/schemas/UpdateIntroductionDto"
+                "$ref": "#/components/schemas/IntroductionInputDto"
               },
               {
-                "$ref": "#/components/schemas/UpdateHeaderDto"
+                "$ref": "#/components/schemas/HeaderItemInputDto"
               },
               {
-                "$ref": "#/components/schemas/UpdateFooterDto"
+                "$ref": "#/components/schemas/FooterItemInputDto"
               }
             ]
           }

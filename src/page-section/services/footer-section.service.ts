@@ -1,9 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { FooterSectionType, categories, files, footerSections, siteSettings } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
-import type { UpdateFooterDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type { FooterItemInputDto } from '../dtos/sectionData/section-data-request.dto';
 
 const BRANDING_SETTING_KEYS = ['logo', 'description', 'slogan', 'supportPhone'] as const;
 
@@ -81,28 +81,12 @@ export class FooterSectionService {
     return { ...branding, links, categories: categoryItems };
   }
 
-  /** Replace all footer items that belong to the given section. */
-  async update(sectionId: number, dto: UpdateFooterDto): Promise<FooterSectionData> {
-    await this.validate(dto);
-
-    const data = dto.items.map((item, index) => ({
-      sectionId,
-      type: item.type,
-      label: item.label ?? null,
-      url: item.type === FooterSectionType.LINK ? (item.url ?? null) : null,
-      description: item.description ?? null,
-      fileId: item.fileId ?? null,
-      categoryId: item.type === FooterSectionType.CATEGORY ? (item.categoryId ?? null) : null,
-      sortOrder: index,
-    }));
+  /** Append a new footer item to the given section. */
+  async create(sectionId: number, item: FooterItemInputDto): Promise<FooterSectionData> {
+    await this.validateItem(item);
 
     try {
-      await this.db.transaction(async (tx) => {
-        await tx.delete(footerSections).where(eq(footerSections.sectionId, sectionId));
-        if (data.length > 0) {
-          await tx.insert(footerSections).values(data);
-        }
-      });
+      await this.db.insert(footerSections).values(this.toRow(sectionId, item, item.sortOrder ?? (await this.nextSortOrder(sectionId))));
     } catch (error) {
       if (this.isForeignKeyViolation(error)) {
         throw new BadRequestException('One or more referenced files no longer exist');
@@ -111,6 +95,88 @@ export class FooterSectionService {
     }
 
     return this.list(sectionId);
+  }
+
+  /** Update a single footer item that belongs to the given section. */
+  async update(sectionId: number, item: FooterItemInputDto): Promise<FooterSectionData> {
+    const id = this.requireId(item.id);
+    await this.ensureExists(sectionId, id);
+    await this.validateItem(item);
+
+    try {
+      await this.db
+        .update(footerSections)
+        .set({
+          type: item.type,
+          label: item.label ?? null,
+          url: item.type === FooterSectionType.LINK ? (item.url ?? null) : null,
+          description: item.description ?? null,
+          fileId: item.fileId ?? null,
+          categoryId: item.type === FooterSectionType.CATEGORY ? (item.categoryId ?? null) : null,
+          ...(item.sortOrder === undefined ? {} : { sortOrder: item.sortOrder }),
+        })
+        .where(eq(footerSections.id, id));
+    } catch (error) {
+      if (this.isForeignKeyViolation(error)) {
+        throw new BadRequestException('One or more referenced files no longer exist');
+      }
+      throw error;
+    }
+
+    return this.list(sectionId);
+  }
+
+  /** Delete a single footer item that belongs to the given section. */
+  async remove(sectionId: number, id: number): Promise<FooterSectionData> {
+    const deleted = await this.db
+      .delete(footerSections)
+      .where(and(eq(footerSections.id, id), eq(footerSections.sectionId, sectionId)))
+      .returning({ id: footerSections.id });
+
+    if (deleted.length === 0) {
+      throw new NotFoundException('Footer item not found');
+    }
+
+    return this.list(sectionId);
+  }
+
+  private toRow(sectionId: number, item: FooterItemInputDto, sortOrder: number) {
+    return {
+      sectionId,
+      type: item.type,
+      label: item.label ?? null,
+      url: item.type === FooterSectionType.LINK ? (item.url ?? null) : null,
+      description: item.description ?? null,
+      fileId: item.fileId ?? null,
+      categoryId: item.type === FooterSectionType.CATEGORY ? (item.categoryId ?? null) : null,
+      sortOrder,
+    };
+  }
+
+  private requireId(id?: number): number {
+    if (id === undefined) {
+      throw new BadRequestException('id is required when updating an item');
+    }
+    return id;
+  }
+
+  private async ensureExists(sectionId: number, id: number): Promise<void> {
+    const existing = await this.db.query.footerSections.findFirst({
+      where: and(eq(footerSections.id, id), eq(footerSections.sectionId, sectionId)),
+      columns: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Footer item not found');
+    }
+  }
+
+  private async nextSortOrder(sectionId: number): Promise<number> {
+    const last = await this.db.query.footerSections.findFirst({
+      where: eq(footerSections.sectionId, sectionId),
+      columns: { sortOrder: true },
+      orderBy: desc(footerSections.sortOrder),
+    });
+    return (last?.sortOrder ?? -1) + 1;
   }
 
   private categoryUrl(slug: string): string {
@@ -145,44 +211,25 @@ export class FooterSectionService {
     return typeof value === 'string' ? value : null;
   }
 
-  private async validate(dto: UpdateFooterDto): Promise<void> {
-    const categoryIds: number[] = [];
-    const fileIds: number[] = [];
-
-    for (const item of dto.items) {
-      if (item.type === FooterSectionType.LINK) {
-        if (!item.label?.trim() || !item.url?.trim()) {
-          throw new BadRequestException('LINK items require a label and a url');
-        }
-      } else {
-        if (item.categoryId === undefined || item.categoryId === null) {
-          throw new BadRequestException('CATEGORY items require a categoryId');
-        }
-        categoryIds.push(item.categoryId);
+  private async validateItem(item: FooterItemInputDto): Promise<void> {
+    if (item.type === FooterSectionType.LINK) {
+      if (!item.label?.trim() || !item.url?.trim()) {
+        throw new BadRequestException('LINK items require a label and a url');
       }
-
-      if (item.fileId !== undefined && item.fileId !== null) {
-        fileIds.push(item.fileId);
+    } else {
+      if (item.categoryId === undefined || item.categoryId === null) {
+        throw new BadRequestException('CATEGORY items require a categoryId');
+      }
+      const count = await this.db.$count(categories, eq(categories.id, item.categoryId));
+      if (count !== 1) {
+        throw new BadRequestException('Referenced category does not exist');
       }
     }
 
-    const uniqueCategoryIds = new Set(categoryIds);
-    if (uniqueCategoryIds.size !== categoryIds.length) {
-      throw new BadRequestException('Duplicate categoryId in footer items');
-    }
-
-    if (uniqueCategoryIds.size > 0) {
-      const count = await this.db.$count(categories, inArray(categories.id, [...uniqueCategoryIds]));
-      if (count !== uniqueCategoryIds.size) {
-        throw new BadRequestException('One or more referenced categories do not exist');
-      }
-    }
-
-    const uniqueFileIds = new Set(fileIds);
-    if (uniqueFileIds.size > 0) {
-      const count = await this.db.$count(files, inArray(files.id, [...uniqueFileIds]));
-      if (count !== uniqueFileIds.size) {
-        throw new BadRequestException('One or more referenced files do not exist');
+    if (item.fileId !== undefined && item.fileId !== null) {
+      const count = await this.db.$count(files, eq(files.id, item.fileId));
+      if (count !== 1) {
+        throw new BadRequestException('Referenced file does not exist');
       }
     }
   }

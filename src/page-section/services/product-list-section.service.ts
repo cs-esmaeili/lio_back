@@ -1,11 +1,11 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { productListSections, products } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import { ProductRepository } from 'src/product/repositories/product.repository';
 import type { ProductDefaultVariant, ProductSummary } from 'src/product/repositories/product.repository';
-import type { UpdateProductListDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type { ProductListItemInputDto } from '../dtos/sectionData/section-data-request.dto';
 
 export type ProductImageItem = {
   id: number;
@@ -53,30 +53,81 @@ export class ProductListSectionService {
     return { products: this.toProducts(rows, summaries) };
   }
 
-  /** Update a single product row that belongs to the given section. */
-  async update(sectionId: number, product: UpdateProductListDto): Promise<ProductListSectionData> {
-    const existing = await this.db.query.productListSections.findFirst({
-      where: and(eq(productListSections.id, product.id), eq(productListSections.sectionId, sectionId)),
-      columns: { id: true },
-    });
-    if (!existing) {
-      throw new NotFoundException('Product list item not found');
-    }
+  /** Append a new product row to the given section. */
+  async create(sectionId: number, product: ProductListItemInputDto): Promise<ProductListSectionData> {
+    await this.ensureProduct(product.productId);
 
-    const productExists = await this.db.$count(products, eq(products.id, product.productId));
-    if (productExists !== 1) {
-      throw new BadRequestException('Referenced product does not exist');
-    }
+    await this.db.insert(productListSections).values({
+      sectionId,
+      productId: product.productId,
+      sortOrder: product.sortOrder ?? (await this.nextSortOrder(sectionId)),
+    });
+
+    return this.list(sectionId);
+  }
+
+  /** Update a single product row that belongs to the given section. */
+  async update(sectionId: number, product: ProductListItemInputDto): Promise<ProductListSectionData> {
+    const id = this.requireId(product.id);
+    await this.ensureExists(sectionId, id);
+    await this.ensureProduct(product.productId);
 
     await this.db
       .update(productListSections)
       .set({
         productId: product.productId,
-        sortOrder: product.sortOrder ?? 0,
+        ...(product.sortOrder === undefined ? {} : { sortOrder: product.sortOrder }),
       })
-      .where(eq(productListSections.id, product.id));
+      .where(eq(productListSections.id, id));
 
     return this.list(sectionId);
+  }
+
+  /** Delete a single product row that belongs to the given section. */
+  async remove(sectionId: number, id: number): Promise<ProductListSectionData> {
+    const deleted = await this.db
+      .delete(productListSections)
+      .where(and(eq(productListSections.id, id), eq(productListSections.sectionId, sectionId)))
+      .returning({ id: productListSections.id });
+
+    if (deleted.length === 0) {
+      throw new NotFoundException('Product list item not found');
+    }
+
+    return this.list(sectionId);
+  }
+
+  private requireId(id?: number): number {
+    if (id === undefined) {
+      throw new BadRequestException('id is required when updating an item');
+    }
+    return id;
+  }
+
+  private async ensureExists(sectionId: number, id: number): Promise<void> {
+    const existing = await this.db.query.productListSections.findFirst({
+      where: and(eq(productListSections.id, id), eq(productListSections.sectionId, sectionId)),
+      columns: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Product list item not found');
+    }
+  }
+
+  private async ensureProduct(productId: number): Promise<void> {
+    const productExists = await this.db.$count(products, eq(products.id, productId));
+    if (productExists !== 1) {
+      throw new BadRequestException('Referenced product does not exist');
+    }
+  }
+
+  private async nextSortOrder(sectionId: number): Promise<number> {
+    const last = await this.db.query.productListSections.findFirst({
+      where: eq(productListSections.sectionId, sectionId),
+      columns: { sortOrder: true },
+      orderBy: desc(productListSections.sortOrder),
+    });
+    return (last?.sortOrder ?? -1) + 1;
   }
 
   private toProducts(rows: ProductListRow[], summaries: ProductSummary[]): ProductListItem[] {

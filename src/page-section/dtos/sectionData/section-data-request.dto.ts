@@ -1,12 +1,18 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { FooterSectionType, HeaderSectionType, PageSectionType } from 'src/database/schema';
 
-export class UpdateSliderSlideDto {
-  @ApiProperty({ example: 11 })
+/**
+ * Input for a single section item, shared by create (`POST .../data`) and
+ * update (`PATCH .../data`). `id` is required when updating and ignored/forbidden
+ * when creating. `sortOrder` controls display order (append when omitted).
+ */
+export class SliderSlideInputDto {
+  @ApiPropertyOptional({ example: 11, description: 'Item id — required when updating, omitted when creating' })
+  @IsOptional()
   @IsInt()
-  id!: number;
+  id?: number;
 
   @ApiProperty({ example: 101 })
   @IsInt()
@@ -20,16 +26,22 @@ export class UpdateSliderSlideDto {
   @IsInt()
   mobileFileId!: number;
 
-  @ApiPropertyOptional({ example: '/products/sale', nullable: true, description: 'Relative link target for the slide' })
+  @ApiPropertyOptional({ example: '/products/sale', nullable: true })
   @IsOptional()
   @IsString()
   url?: string | null;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @IsInt()
+  sortOrder?: number;
 }
 
-export class UpdateProductListDto {
-  @ApiProperty({ example: 11 })
+export class ProductListItemInputDto {
+  @ApiPropertyOptional({ example: 11, description: 'Item id — required when updating, omitted when creating' })
+  @IsOptional()
   @IsInt()
-  id!: number;
+  id?: number;
 
   @ApiProperty({ example: 42 })
   @IsInt()
@@ -41,10 +53,11 @@ export class UpdateProductListDto {
   sortOrder?: number;
 }
 
-export class UpdateBannerDto {
-  @ApiProperty({ example: 11 })
+export class BannerInputDto {
+  @ApiPropertyOptional({ example: 11, description: 'Item id — required when updating, omitted when creating' })
+  @IsOptional()
   @IsInt()
-  id!: number;
+  id?: number;
 
   @ApiProperty({ example: 'Summer sale' })
   @IsString()
@@ -77,9 +90,14 @@ export class UpdateBannerDto {
   @ApiProperty({ example: 103 })
   @IsInt()
   mobileFileId!: number;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @IsInt()
+  sortOrder?: number;
 }
 
-export class UpdateIntroductionDto {
+export class IntroductionInputDto {
   @ApiProperty({
     type: 'object',
     additionalProperties: { type: 'string' },
@@ -103,7 +121,12 @@ export class UpdateIntroductionDto {
   mobileFileId?: number | null;
 }
 
-export class UpdateHeaderItemDto {
+export class HeaderItemInputDto {
+  @ApiPropertyOptional({ example: 11, description: 'Item id — required when updating, omitted when creating' })
+  @IsOptional()
+  @IsInt()
+  id?: number;
+
   @ApiProperty({ enum: HeaderSectionType, enumName: 'HeaderSectionType', example: HeaderSectionType.LINK })
   @IsEnum(HeaderSectionType)
   type!: HeaderSectionType;
@@ -126,79 +149,72 @@ export class UpdateHeaderItemDto {
   @IsOptional()
   @IsInt()
   categoryId?: number | null;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @IsInt()
+  sortOrder?: number;
 }
 
-export class UpdateHeaderDto {
-  @ApiProperty({
-    type: [UpdateHeaderItemDto],
-    description: 'Top-level header items in display order. The list is replaced in full.',
-  })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateHeaderItemDto)
-  items!: UpdateHeaderItemDto[];
-}
+export class FooterItemInputDto {
+  @ApiPropertyOptional({ example: 11, description: 'Item id — required when updating, omitted when creating' })
+  @IsOptional()
+  @IsInt()
+  id?: number;
 
-export class UpdateFooterItemDto {
   @ApiProperty({ enum: FooterSectionType, enumName: 'FooterSectionType', example: FooterSectionType.LINK })
   @IsEnum(FooterSectionType)
   type!: FooterSectionType;
 
-  @ApiPropertyOptional({
-    example: 'فروشگاه',
-    nullable: true,
-    description: 'Required for LINK items; optional for CATEGORY items (falls back to the category name)',
-  })
+  @ApiPropertyOptional({ example: 'فروشگاه', nullable: true })
   @IsOptional()
   @IsString()
   label?: string | null;
 
-  @ApiPropertyOptional({ example: '/shop', nullable: true, description: 'Required for LINK items; ignored for CATEGORY items' })
+  @ApiPropertyOptional({ example: '/shop', nullable: true })
   @IsOptional()
   @IsString()
   url?: string | null;
 
-  @ApiPropertyOptional({ example: 'توضیحات بلند درباره این آیتم', nullable: true, description: 'Optional long description' })
+  @ApiPropertyOptional({ example: 'توضیحات بلند درباره این آیتم', nullable: true })
   @IsOptional()
   @IsString()
   description?: string | null;
 
-  @ApiPropertyOptional({ example: 101, nullable: true, description: 'Optional referenced file id' })
+  @ApiPropertyOptional({ example: 101, nullable: true })
   @IsOptional()
   @IsInt()
   fileId?: number | null;
 
-  @ApiPropertyOptional({ example: 3, nullable: true, description: 'Required for CATEGORY items; ignored for LINK items' })
+  @ApiPropertyOptional({ example: 3, nullable: true })
   @IsOptional()
   @IsInt()
   categoryId?: number | null;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @IsInt()
+  sortOrder?: number;
 }
 
-export class UpdateFooterDto {
-  @ApiProperty({
-    type: [UpdateFooterItemDto],
-    description: 'Top-level footer items in display order. The list is replaced in full.',
-  })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateFooterItemDto)
-  items!: UpdateFooterItemDto[];
-}
-
-@ApiExtraModels(UpdateSliderSlideDto, UpdateProductListDto, UpdateBannerDto, UpdateIntroductionDto, UpdateHeaderDto, UpdateFooterDto)
-export class UpdatePageSectionDataDto {
+/**
+ * Body of `POST` (create item), `PATCH` (update item) and the query of `DELETE`
+ * on `/admin/page-sections/{id}/data`. `type` selects the section handler.
+ */
+@ApiExtraModels(SliderSlideInputDto, ProductListItemInputDto, BannerInputDto, IntroductionInputDto, HeaderItemInputDto, FooterItemInputDto)
+export class PageSectionDataRequestDto {
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)
   type!: PageSectionType;
 
   @ApiProperty({
     oneOf: [
-      { $ref: getSchemaPath(UpdateSliderSlideDto) },
-      { $ref: getSchemaPath(UpdateProductListDto) },
-      { $ref: getSchemaPath(UpdateBannerDto) },
-      { $ref: getSchemaPath(UpdateIntroductionDto) },
-      { $ref: getSchemaPath(UpdateHeaderDto) },
-      { $ref: getSchemaPath(UpdateFooterDto) },
+      { $ref: getSchemaPath(SliderSlideInputDto) },
+      { $ref: getSchemaPath(ProductListItemInputDto) },
+      { $ref: getSchemaPath(BannerInputDto) },
+      { $ref: getSchemaPath(IntroductionInputDto) },
+      { $ref: getSchemaPath(HeaderItemInputDto) },
+      { $ref: getSchemaPath(FooterItemInputDto) },
     ],
   })
   @IsDefined()
@@ -207,18 +223,32 @@ export class UpdatePageSectionDataDto {
   @Type((obj) => {
     switch (obj?.object?.type) {
       case PageSectionType.PRODUCT_LIST:
-        return UpdateProductListDto;
+        return ProductListItemInputDto;
       case PageSectionType.BANNER:
-        return UpdateBannerDto;
+        return BannerInputDto;
       case PageSectionType.INTRODUCTION:
-        return UpdateIntroductionDto;
+        return IntroductionInputDto;
       case PageSectionType.HEADER:
-        return UpdateHeaderDto;
+        return HeaderItemInputDto;
       case PageSectionType.FOOTER:
-        return UpdateFooterDto;
+        return FooterItemInputDto;
       default:
-        return UpdateSliderSlideDto;
+        return SliderSlideInputDto;
     }
   })
-  data!: UpdateSliderSlideDto | UpdateProductListDto | UpdateBannerDto | UpdateIntroductionDto | UpdateHeaderDto | UpdateFooterDto;
+  data!: SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto;
+}
+
+export type PageSectionItemInput = SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto;
+
+/**
+ * `POST`/`PATCH` send `{ type, data }`. `DELETE` needs only the item id (the
+ * section type is derived from the section itself).
+ */
+export class DeleteSectionDataQueryDto {
+  @ApiPropertyOptional({ example: 11, description: 'Item id to remove. Omitted for singleton sections (INTRODUCTION).' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  itemId?: number;
 }

@@ -1,8 +1,8 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { HeaderSectionType, categories, headerSections, siteSettings } from 'src/database/schema';
-import type { UpdateHeaderDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type { HeaderItemInputDto } from '../dtos/sectionData/section-data-request.dto';
 
 const LOGO_SETTING_KEY = 'logo';
 const SUPPORT_PHONE_SETTING_KEY = 'supportPhone';
@@ -62,25 +62,52 @@ export class HeaderSectionService {
     return { ...branding, items: rows.map((row) => this.toItem(row, categoryRows)) };
   }
 
-  /** Replace all header items that belong to the given section. */
-  async update(sectionId: number, dto: UpdateHeaderDto): Promise<HeaderSectionData> {
-    await this.validate(dto);
+  /** Append a new header item to the given section. */
+  async create(sectionId: number, item: HeaderItemInputDto): Promise<HeaderSectionData> {
+    await this.validateItem(item);
 
-    const data = dto.items.map((item, index) => ({
+    await this.db.insert(headerSections).values({
       sectionId,
       type: item.type,
       label: item.label ?? null,
       url: item.type === HeaderSectionType.LINK ? (item.url ?? null) : null,
       categoryId: item.type === HeaderSectionType.CATEGORY ? (item.categoryId ?? null) : null,
-      sortOrder: index,
-    }));
-
-    await this.db.transaction(async (tx) => {
-      await tx.delete(headerSections).where(eq(headerSections.sectionId, sectionId));
-      if (data.length > 0) {
-        await tx.insert(headerSections).values(data);
-      }
+      sortOrder: item.sortOrder ?? (await this.nextSortOrder(sectionId)),
     });
+
+    return this.list(sectionId);
+  }
+
+  /** Update a single header item that belongs to the given section. */
+  async update(sectionId: number, item: HeaderItemInputDto): Promise<HeaderSectionData> {
+    const id = this.requireId(item.id);
+    await this.ensureExists(sectionId, id);
+    await this.validateItem(item);
+
+    await this.db
+      .update(headerSections)
+      .set({
+        type: item.type,
+        label: item.label ?? null,
+        url: item.type === HeaderSectionType.LINK ? (item.url ?? null) : null,
+        categoryId: item.type === HeaderSectionType.CATEGORY ? (item.categoryId ?? null) : null,
+        ...(item.sortOrder === undefined ? {} : { sortOrder: item.sortOrder }),
+      })
+      .where(eq(headerSections.id, id));
+
+    return this.list(sectionId);
+  }
+
+  /** Delete a single header item that belongs to the given section. */
+  async remove(sectionId: number, id: number): Promise<HeaderSectionData> {
+    const deleted = await this.db
+      .delete(headerSections)
+      .where(and(eq(headerSections.id, id), eq(headerSections.sectionId, sectionId)))
+      .returning({ id: headerSections.id });
+
+    if (deleted.length === 0) {
+      throw new NotFoundException('Header item not found');
+    }
 
     return this.list(sectionId);
   }
@@ -159,32 +186,47 @@ export class HeaderSectionService {
     return typeof value === 'string' ? value : null;
   }
 
-  private async validate(dto: UpdateHeaderDto): Promise<void> {
-    const categoryIds: number[] = [];
-
-    for (const item of dto.items) {
-      if (item.type === HeaderSectionType.LINK) {
-        if (!item.label?.trim() || !item.url?.trim()) {
-          throw new BadRequestException('LINK items require a label and a url');
-        }
-      } else {
-        if (item.categoryId === undefined || item.categoryId === null) {
-          throw new BadRequestException('CATEGORY items require a categoryId');
-        }
-        categoryIds.push(item.categoryId);
+  private async validateItem(item: HeaderItemInputDto): Promise<void> {
+    if (item.type === HeaderSectionType.LINK) {
+      if (!item.label?.trim() || !item.url?.trim()) {
+        throw new BadRequestException('LINK items require a label and a url');
       }
+      return;
     }
 
-    const uniqueIds = new Set(categoryIds);
-    if (uniqueIds.size !== categoryIds.length) {
-      throw new BadRequestException('Duplicate categoryId in header items');
+    if (item.categoryId === undefined || item.categoryId === null) {
+      throw new BadRequestException('CATEGORY items require a categoryId');
     }
 
-    if (uniqueIds.size > 0) {
-      const count = await this.db.$count(categories, inArray(categories.id, [...uniqueIds]));
-      if (count !== uniqueIds.size) {
-        throw new BadRequestException('One or more referenced categories do not exist');
-      }
+    const count = await this.db.$count(categories, eq(categories.id, item.categoryId));
+    if (count !== 1) {
+      throw new BadRequestException('Referenced category does not exist');
     }
+  }
+
+  private requireId(id?: number): number {
+    if (id === undefined) {
+      throw new BadRequestException('id is required when updating an item');
+    }
+    return id;
+  }
+
+  private async ensureExists(sectionId: number, id: number): Promise<void> {
+    const existing = await this.db.query.headerSections.findFirst({
+      where: and(eq(headerSections.id, id), eq(headerSections.sectionId, sectionId)),
+      columns: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Header item not found');
+    }
+  }
+
+  private async nextSortOrder(sectionId: number): Promise<number> {
+    const last = await this.db.query.headerSections.findFirst({
+      where: eq(headerSections.sectionId, sectionId),
+      columns: { sortOrder: true },
+      orderBy: desc(headerSections.sortOrder),
+    });
+    return (last?.sortOrder ?? -1) + 1;
   }
 }

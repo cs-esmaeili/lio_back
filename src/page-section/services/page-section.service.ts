@@ -18,14 +18,15 @@ import type { CreateSectionRequestDto } from '../dtos/createSection/create-secti
 import type { GetSectionQueryDto } from '../dtos/getSection/get-section-query.dto';
 import type { GetPageSectionsQueryDto } from '../dtos/getPageSections/get-page-sections-query.dto';
 import type {
-  UpdateBannerDto,
-  UpdateFooterDto,
-  UpdateHeaderDto,
-  UpdateIntroductionDto,
-  UpdatePageSectionDataDto,
-  UpdateProductListDto,
-  UpdateSliderSlideDto,
-} from '../dtos/updateSectionData/update-section-data-request.dto';
+  BannerInputDto,
+  DeleteSectionDataQueryDto,
+  FooterItemInputDto,
+  HeaderItemInputDto,
+  IntroductionInputDto,
+  PageSectionDataRequestDto,
+  ProductListItemInputDto,
+  SliderSlideInputDto,
+} from '../dtos/sectionData/section-data-request.dto';
 
 type PageSection = typeof pageSections.$inferSelect;
 type Page = typeof pages.$inferSelect;
@@ -97,25 +98,87 @@ export class PageSectionService {
     };
   }
 
-  async updateSectionData(id: number, dto: UpdatePageSectionDataDto) {
+  async createSectionData(id: number, dto: PageSectionDataRequestDto) {
     const section = await this.findSection(id);
+    return this.toResponse(section, await this.createSectionItem(section, dto));
+  }
 
+  async updateSectionData(id: number, dto: PageSectionDataRequestDto) {
+    const section = await this.findSection(id);
+    return this.toResponse(section, await this.updateSectionItem(section, dto));
+  }
+
+  async deleteSectionData(id: number, query: DeleteSectionDataQueryDto) {
+    const section = await this.findSection(id);
+    return this.toResponse(section, await this.removeSectionItem(section, query));
+  }
+
+  // --------------------------------------------------------
+  //  Per-item dispatch — same shape for every section type
+  // --------------------------------------------------------
+
+  private createSectionItem(section: PageSection, dto: PageSectionDataRequestDto) {
     switch (section.type) {
       case PageSectionType.SLIDER:
-        return this.toResponse(section, await this.sliderSectionService.update(section.id, dto.data as UpdateSliderSlideDto));
+        return this.sliderSectionService.create(section.id, dto.data as SliderSlideInputDto);
       case PageSectionType.PRODUCT_LIST:
-        return this.toResponse(section, await this.productListSectionService.update(section.id, dto.data as UpdateProductListDto));
+        return this.productListSectionService.create(section.id, dto.data as ProductListItemInputDto);
       case PageSectionType.BANNER:
-        return this.toResponse(section, await this.bannerSectionService.update(section.id, dto.data as UpdateBannerDto));
+        return this.bannerSectionService.create(section.id, dto.data as BannerInputDto);
       case PageSectionType.INTRODUCTION:
-        return this.toResponse(section, await this.introductionSectionService.update(section.id, dto.data as UpdateIntroductionDto));
+        return this.introductionSectionService.create(section.id, dto.data as IntroductionInputDto);
       case PageSectionType.HEADER:
-        return this.toResponse(section, await this.headerSectionService.update(section.id, dto.data as UpdateHeaderDto));
+        return this.headerSectionService.create(section.id, dto.data as HeaderItemInputDto);
       case PageSectionType.FOOTER:
-        return this.toResponse(section, await this.footerSectionService.update(section.id, dto.data as UpdateFooterDto));
+        return this.footerSectionService.create(section.id, dto.data as FooterItemInputDto);
       default:
         throw new BadRequestException('Unsupported section type');
     }
+  }
+
+  private updateSectionItem(section: PageSection, dto: PageSectionDataRequestDto) {
+    switch (section.type) {
+      case PageSectionType.SLIDER:
+        return this.sliderSectionService.update(section.id, dto.data as SliderSlideInputDto);
+      case PageSectionType.PRODUCT_LIST:
+        return this.productListSectionService.update(section.id, dto.data as ProductListItemInputDto);
+      case PageSectionType.BANNER:
+        return this.bannerSectionService.update(section.id, dto.data as BannerInputDto);
+      case PageSectionType.INTRODUCTION:
+        return this.introductionSectionService.update(section.id, dto.data as IntroductionInputDto);
+      case PageSectionType.HEADER:
+        return this.headerSectionService.update(section.id, dto.data as HeaderItemInputDto);
+      case PageSectionType.FOOTER:
+        return this.footerSectionService.update(section.id, dto.data as FooterItemInputDto);
+      default:
+        throw new BadRequestException('Unsupported section type');
+    }
+  }
+
+  private removeSectionItem(section: PageSection, query: DeleteSectionDataQueryDto) {
+    switch (section.type) {
+      case PageSectionType.SLIDER:
+        return this.sliderSectionService.remove(section.id, this.requireItemId(query));
+      case PageSectionType.PRODUCT_LIST:
+        return this.productListSectionService.remove(section.id, this.requireItemId(query));
+      case PageSectionType.BANNER:
+        return this.bannerSectionService.remove(section.id, this.requireItemId(query));
+      case PageSectionType.INTRODUCTION:
+        return this.introductionSectionService.remove(section.id);
+      case PageSectionType.HEADER:
+        return this.headerSectionService.remove(section.id, this.requireItemId(query));
+      case PageSectionType.FOOTER:
+        return this.footerSectionService.remove(section.id, this.requireItemId(query));
+      default:
+        throw new BadRequestException('Unsupported section type');
+    }
+  }
+
+  private requireItemId(query: DeleteSectionDataQueryDto): number {
+    if (query.itemId === undefined) {
+      throw new BadRequestException('itemId is required for this section type');
+    }
+    return query.itemId;
   }
 
   private async findSection(id: number): Promise<PageSection> {

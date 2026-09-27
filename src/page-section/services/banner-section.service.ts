@@ -1,9 +1,9 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { bannerSections, files } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
-import type { UpdateBannerDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type { BannerInputDto } from '../dtos/sectionData/section-data-request.dto';
 
 export type BannerItem = {
   id: number;
@@ -45,17 +45,37 @@ export class BannerSectionService {
     return { banners: this.toBanners(rows) };
   }
 
-  /** Update a single banner that belongs to the given section. */
-  async update(sectionId: number, banner: UpdateBannerDto): Promise<BannerSectionData> {
+  /** Append a new banner to the given section. */
+  async create(sectionId: number, banner: BannerInputDto): Promise<BannerSectionData> {
     await this.validateFiles(banner);
 
-    const existing = await this.db.query.bannerSections.findFirst({
-      where: and(eq(bannerSections.id, banner.id), eq(bannerSections.sectionId, sectionId)),
-      columns: { id: true },
-    });
-    if (!existing) {
-      throw new NotFoundException('Banner not found');
+    try {
+      await this.db.insert(bannerSections).values({
+        sectionId,
+        sortOrder: banner.sortOrder ?? (await this.nextSortOrder(sectionId)),
+        title: banner.title,
+        subtitle: banner.subtitle ?? null,
+        buttonTitle: banner.buttonTitle ?? null,
+        buttonUrl: banner.buttonUrl ?? null,
+        desktopFileId: banner.desktopFileId,
+        tabletFileId: banner.tabletFileId,
+        mobileFileId: banner.mobileFileId,
+      });
+    } catch (error) {
+      if (this.isForeignKeyViolation(error)) {
+        throw new BadRequestException('One or more referenced files no longer exist');
+      }
+      throw error;
     }
+
+    return this.list(sectionId);
+  }
+
+  /** Update a single banner that belongs to the given section. */
+  async update(sectionId: number, banner: BannerInputDto): Promise<BannerSectionData> {
+    const id = this.requireId(banner.id);
+    await this.validateFiles(banner);
+    await this.ensureExists(sectionId, id);
 
     try {
       await this.db
@@ -68,8 +88,9 @@ export class BannerSectionService {
           desktopFileId: banner.desktopFileId,
           tabletFileId: banner.tabletFileId,
           mobileFileId: banner.mobileFileId,
+          ...(banner.sortOrder === undefined ? {} : { sortOrder: banner.sortOrder }),
         })
-        .where(eq(bannerSections.id, banner.id));
+        .where(eq(bannerSections.id, id));
     } catch (error) {
       if (this.isForeignKeyViolation(error)) {
         throw new BadRequestException('One or more referenced files no longer exist');
@@ -78,6 +99,46 @@ export class BannerSectionService {
     }
 
     return this.list(sectionId);
+  }
+
+  /** Delete a single banner that belongs to the given section. */
+  async remove(sectionId: number, id: number): Promise<BannerSectionData> {
+    const deleted = await this.db
+      .delete(bannerSections)
+      .where(and(eq(bannerSections.id, id), eq(bannerSections.sectionId, sectionId)))
+      .returning({ id: bannerSections.id });
+
+    if (deleted.length === 0) {
+      throw new NotFoundException('Banner not found');
+    }
+
+    return this.list(sectionId);
+  }
+
+  private requireId(id?: number): number {
+    if (id === undefined) {
+      throw new BadRequestException('id is required when updating an item');
+    }
+    return id;
+  }
+
+  private async ensureExists(sectionId: number, id: number): Promise<void> {
+    const existing = await this.db.query.bannerSections.findFirst({
+      where: and(eq(bannerSections.id, id), eq(bannerSections.sectionId, sectionId)),
+      columns: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Banner not found');
+    }
+  }
+
+  private async nextSortOrder(sectionId: number): Promise<number> {
+    const last = await this.db.query.bannerSections.findFirst({
+      where: eq(bannerSections.sectionId, sectionId),
+      columns: { sortOrder: true },
+      orderBy: desc(bannerSections.sortOrder),
+    });
+    return (last?.sortOrder ?? -1) + 1;
   }
 
   private toBanners(rows: BannerRow[]): BannerItem[] {
@@ -96,8 +157,8 @@ export class BannerSectionService {
     }));
   }
 
-  private async validateFiles(banner: UpdateBannerDto) {
-    const ids = [banner.desktopFileId, banner.tabletFileId, banner.mobileFileId].filter((id): id is number => typeof id === 'number');
+  private async validateFiles(banner: BannerInputDto) {
+    const ids = [...new Set([banner.desktopFileId, banner.tabletFileId, banner.mobileFileId].filter((id): id is number => typeof id === 'number'))];
 
     if (ids.length === 0) {
       return;

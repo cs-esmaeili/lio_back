@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -10,6 +10,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { SessionAuthGuard } from 'src/auth/guards/session-auth.guard';
 import { CsrfGuard } from 'src/auth/guards/csrf.guard';
@@ -20,7 +21,7 @@ import { PageSectionService } from './services/page-section.service';
 import { CreateSectionRequestDto } from './dtos/createSection/create-section-request.dto';
 import { CreateSectionResponseDto } from './dtos/createSection/create-section-response.dto';
 import { GetSectionResponseDto } from './dtos/getSection/get-section-response.dto';
-import { UpdatePageSectionDataDto } from './dtos/updateSectionData/update-section-data-request.dto';
+import { DeleteSectionDataQueryDto, PageSectionDataRequestDto } from './dtos/sectionData/section-data-request.dto';
 import { UpdateSectionDataResponseDto } from './dtos/updateSectionData/update-section-data-response.dto';
 
 @UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
@@ -53,18 +54,48 @@ export class PageSectionController {
     return this.pageSections.getSection({ id });
   }
 
-  @ApiOperation({ summary: 'Update the typed data of a page section' })
+  @ApiOperation({ summary: 'Create a section item' })
   @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'id', type: Number, example: 50 })
-  @ApiBody({ type: UpdatePageSectionDataDto })
-  @ApiOkResponse({ description: 'Updated section', type: UpdateSectionDataResponseDto })
+  @ApiBody({ type: PageSectionDataRequestDto })
+  @ApiCreatedResponse({ description: 'Section with the new item', type: UpdateSectionDataResponseDto })
   @ApiNotFoundResponse({ description: 'Section not found' })
   @ApiBadRequestResponse({ description: 'Invalid section data or unknown files' })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('page:manage')
+  @Post(':id/data')
+  createSectionData(@Param('id', ParseIntPipe) id: number, @Body() body: PageSectionDataRequestDto): Promise<UpdateSectionDataResponseDto> {
+    return this.pageSections.createSectionData(id, body);
+  }
+
+  @ApiOperation({ summary: 'Update a single item of a page section' })
+  @ApiHeader(CSRF_HEADER)
+  @ApiParam({ name: 'id', type: Number, example: 50 })
+  @ApiBody({ type: PageSectionDataRequestDto })
+  @ApiOkResponse({ description: 'Updated section', type: UpdateSectionDataResponseDto })
+  @ApiNotFoundResponse({ description: 'Section or item not found' })
+  @ApiBadRequestResponse({ description: 'Invalid section data or unknown files' })
+  @ApiCookieAuth('session')
+  @ApiForbiddenResponse({ description: 'Missing permission' })
+  @Permissions('page:manage')
   @Patch(':id/data')
-  updateSectionData(@Param('id', ParseIntPipe) id: number, @Body() body: UpdatePageSectionDataDto): Promise<UpdateSectionDataResponseDto> {
+  updateSectionData(@Param('id', ParseIntPipe) id: number, @Body() body: PageSectionDataRequestDto): Promise<UpdateSectionDataResponseDto> {
     return this.pageSections.updateSectionData(id, body);
+  }
+
+  @ApiOperation({ summary: 'Delete a single item of a page section' })
+  @ApiHeader(CSRF_HEADER)
+  @ApiParam({ name: 'id', type: Number, example: 50 })
+  @ApiQuery({ name: 'itemId', required: false, type: Number, description: 'Item id to remove. Omitted for singleton sections (INTRODUCTION).' })
+  @ApiOkResponse({ description: 'Section without the deleted item', type: UpdateSectionDataResponseDto })
+  @ApiNotFoundResponse({ description: 'Section or item not found' })
+  @ApiBadRequestResponse({ description: 'itemId is required for this section type' })
+  @ApiCookieAuth('session')
+  @ApiForbiddenResponse({ description: 'Missing permission' })
+  @Permissions('page:manage')
+  @Delete(':id/data')
+  deleteSectionData(@Param('id', ParseIntPipe) id: number, @Query() query: DeleteSectionDataQueryDto): Promise<UpdateSectionDataResponseDto> {
+    return this.pageSections.deleteSectionData(id, query);
   }
 }

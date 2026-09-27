@@ -1,9 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq, inArray } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { files, introductionSections } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
-import type { UpdateIntroductionDto } from '../dtos/updateSectionData/update-section-data-request.dto';
+import type { IntroductionInputDto } from '../dtos/sectionData/section-data-request.dto';
 
 export type IntroductionSectionData = {
   titles: Record<string, string>;
@@ -38,8 +38,24 @@ export class IntroductionSectionService {
     return row ? this.toData(row) : { titles: {}, desktopFileUrl: null, tabletFileUrl: null, mobileFileUrl: null };
   }
 
+  /** Create the introduction record (upsert) for the given section. */
+  create(sectionId: number, dto: IntroductionInputDto): Promise<IntroductionSectionData> {
+    return this.update(sectionId, dto);
+  }
+
+  /** Delete the introduction record of the given section. */
+  async remove(sectionId: number): Promise<IntroductionSectionData> {
+    const deleted = await this.db.delete(introductionSections).where(eq(introductionSections.sectionId, sectionId)).returning({ id: introductionSections.id });
+
+    if (deleted.length === 0) {
+      throw new NotFoundException('Introduction not found');
+    }
+
+    return this.list(sectionId);
+  }
+
   /** Create or replace the introduction that belongs to the given section. */
-  async update(sectionId: number, dto: UpdateIntroductionDto): Promise<IntroductionSectionData> {
+  async update(sectionId: number, dto: IntroductionInputDto): Promise<IntroductionSectionData> {
     await this.validateFiles(dto);
 
     const values = {
@@ -82,8 +98,8 @@ export class IntroductionSectionService {
     };
   }
 
-  private async validateFiles(dto: UpdateIntroductionDto) {
-    const ids = [dto.desktopFileId, dto.tabletFileId, dto.mobileFileId].filter((id): id is number => typeof id === 'number');
+  private async validateFiles(dto: IntroductionInputDto) {
+    const ids = [...new Set([dto.desktopFileId, dto.tabletFileId, dto.mobileFileId].filter((id): id is number => typeof id === 'number'))];
 
     if (ids.length === 0) {
       return;

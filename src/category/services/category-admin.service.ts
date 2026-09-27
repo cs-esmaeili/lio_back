@@ -1,12 +1,14 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { asc, count, eq } from 'drizzle-orm';
+import { asc, count, eq, inArray } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
-import { categories, files, productCategories } from 'src/database/schema';
+import { attributes, categories, categoryAttributes, files, productCategories } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import { AdminCategoryDto } from '../dtos/adminCategory/admin-category.dto';
+import { AdminCategoryAttributeDto } from '../dtos/adminCategoryAttributes/admin-category-attribute.dto';
 import type { CreateCategoryRequestDto } from '../dtos/adminCategory/create-category-request.dto';
 import type { UpdateCategoryRequestDto } from '../dtos/adminCategory/update-category-request.dto';
 import type { DeleteCategoryResponseDto } from '../dtos/adminCategory/delete-category-response.dto';
+import type { SetCategoryAttributesRequestDto } from '../dtos/adminCategoryAttributes/set-category-attributes-request.dto';
 
 type CategoryRow = typeof categories.$inferSelect & { image: { path: string } | null };
 
@@ -106,6 +108,57 @@ export class CategoryAdminService {
     await this.db.delete(categories).where(eq(categories.id, id));
 
     return { ok: true };
+  }
+
+  // --------------------------------------------------------
+  //  Category ↔ attribute assignment
+  // --------------------------------------------------------
+
+  async listCategoryAttributes(categoryId: number): Promise<AdminCategoryAttributeDto[]> {
+    await this.findCategoryOrFail(categoryId);
+
+    const rows = await this.db.query.categoryAttributes.findMany({
+      where: eq(categoryAttributes.categoryId, categoryId),
+      orderBy: [asc(categoryAttributes.sortOrder), asc(categoryAttributes.attributeId)],
+      with: { attribute: true },
+    });
+
+    return rows.map((row) => this.toCategoryAttributeDto(row));
+  }
+
+  /** Replaces the whole assignment of attributes to a category. */
+  async setCategoryAttributes(categoryId: number, dto: SetCategoryAttributesRequestDto): Promise<AdminCategoryAttributeDto[]> {
+    await this.findCategoryOrFail(categoryId);
+
+    const attributeIds = dto.attributes.map((item) => item.attributeId);
+    if (new Set(attributeIds).size !== attributeIds.length) {
+      throw new BadRequestException('Duplicate attribute in the assignment');
+    }
+
+    if (attributeIds.length > 0) {
+      const found = await this.db.query.attributes.findMany({ where: inArray(attributes.id, attributeIds), columns: { id: true } });
+      if (found.length !== attributeIds.length) {
+        throw new BadRequestException('One or more attributes were not found');
+      }
+    }
+
+    await this.db.transaction(async (tx) => {
+      await tx.delete(categoryAttributes).where(eq(categoryAttributes.categoryId, categoryId));
+
+      if (dto.attributes.length > 0) {
+        await tx.insert(categoryAttributes).values(
+          dto.attributes.map((item, index) => ({
+            categoryId,
+            attributeId: item.attributeId,
+            isRequired: item.isRequired ?? false,
+            isFilterable: item.isFilterable ?? false,
+            sortOrder: item.sortOrder ?? index,
+          })),
+        );
+      }
+    });
+
+    return this.listCategoryAttributes(categoryId);
   }
 
   // --------------------------------------------------------
@@ -217,6 +270,20 @@ export class CategoryAdminService {
       productCount,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
+    };
+  }
+
+  private toCategoryAttributeDto(row: typeof categoryAttributes.$inferSelect & { attribute: typeof attributes.$inferSelect }): AdminCategoryAttributeDto {
+    return {
+      attributeId: row.attributeId,
+      name: row.attribute.name,
+      title: row.attribute.title,
+      usage: row.attribute.usage,
+      filterType: row.attribute.filterType,
+      isMultiSelect: row.attribute.isMultiSelect,
+      isRequired: row.isRequired,
+      isFilterable: row.isFilterable,
+      sortOrder: row.sortOrder,
     };
   }
 }

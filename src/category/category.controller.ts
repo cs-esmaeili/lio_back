@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -25,6 +25,9 @@ import { GetAdminCategoryResponseDto } from './dtos/adminCategory/get-admin-cate
 import { CreateCategoryResponseDto } from './dtos/adminCategory/create-category-response.dto';
 import { UpdateCategoryResponseDto } from './dtos/adminCategory/update-category-response.dto';
 import { DeleteCategoryResponseDto } from './dtos/adminCategory/delete-category-response.dto';
+import { ListCategoryAttributesResponseDto } from './dtos/adminCategoryAttributes/list-category-attributes-response.dto';
+import { SetCategoryAttributesRequestDto } from './dtos/adminCategoryAttributes/set-category-attributes-request.dto';
+import { SetCategoryAttributesResponseDto } from './dtos/adminCategoryAttributes/set-category-attributes-response.dto';
 
 @UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('admin/categories')
@@ -95,5 +98,32 @@ export class CategoryController {
   @Delete(':id')
   deleteCategory(@Param('id', ParseIntPipe) id: number): Promise<DeleteCategoryResponseDto> {
     return this.categories.deleteCategory(id);
+  }
+
+  @ApiOperation({ summary: 'List the attributes assigned to a category' })
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiOkResponse({ description: 'Assigned attributes with their flags', type: ListCategoryAttributesResponseDto })
+  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiCookieAuth('session')
+  @ApiForbiddenResponse({ description: 'Missing permission' })
+  @Permissions('category:read')
+  @Get(':id/attributes')
+  async listCategoryAttributes(@Param('id', ParseIntPipe) id: number): Promise<ListCategoryAttributesResponseDto> {
+    return { attributes: await this.categories.listCategoryAttributes(id) };
+  }
+
+  @ApiOperation({ summary: 'Replace the attributes assigned to a category' })
+  @ApiHeader(CSRF_HEADER)
+  @ApiParam({ name: 'id', type: Number, example: 1 })
+  @ApiBody({ type: SetCategoryAttributesRequestDto })
+  @ApiOkResponse({ description: 'The saved assignment', type: SetCategoryAttributesResponseDto })
+  @ApiBadRequestResponse({ description: 'Unknown attribute or duplicate attribute id' })
+  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiCookieAuth('session')
+  @ApiForbiddenResponse({ description: 'Missing permission' })
+  @Permissions('category:manage')
+  @Put(':id/attributes')
+  async setCategoryAttributes(@Param('id', ParseIntPipe) id: number, @Body() body: SetCategoryAttributesRequestDto): Promise<SetCategoryAttributesResponseDto> {
+    return { attributes: await this.categories.setCategoryAttributes(id, body) };
   }
 }

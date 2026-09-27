@@ -4458,6 +4458,901 @@
         ]
       }
     },
+    "/admin/products": {
+      "get": {
+        "operationId": "ProductController_listProducts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive partial match on the product name",
+            "schema": {
+              "example": "کمل",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "Only products linked to this category",
+            "schema": {
+              "example": 3,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated product list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListAdminProductsResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List products with pagination, search and category filter",
+        "tags": [
+          "Product"
+        ]
+      },
+      "post": {
+        "operationId": "ProductController_createProduct",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CreateProductResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid category, file, attribute or variant selection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Slug or SKU already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create a product with its images, attributes and variants",
+        "tags": [
+          "Product"
+        ]
+      }
+    },
+    "/admin/products/available-attributes": {
+      "get": {
+        "operationId": "ProductController_getAvailableAttributes",
+        "parameters": [
+          {
+            "name": "categoryIds",
+            "required": false,
+            "in": "query",
+            "description": "Category ids (comma separated or repeated)",
+            "schema": {
+              "example": [
+                3,
+                8
+              ],
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attributes derived from the category assignment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetAvailableAttributesResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get the attributes available for the given categories",
+        "tags": [
+          "Product"
+        ]
+      }
+    },
+    "/admin/products/{id}": {
+      "get": {
+        "operationId": "ProductController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 3342,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product editor payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetAdminProductResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get a product with its images, attributes and variants",
+        "tags": [
+          "Product"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductController_updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 3342,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateProductResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid category, file, attribute or variant selection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Slug or SKU already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update a product; omitted fields keep their current values",
+        "tags": [
+          "Product"
+        ]
+      },
+      "delete": {
+        "operationId": "ProductController_deleteProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 3342,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DeleteProductResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Delete a product and its images, variants and attribute links",
+        "tags": [
+          "Product"
+        ]
+      }
+    },
     "/categories": {
       "get": {
         "operationId": "CategoryPublicController_getCategories",
@@ -5373,6 +6268,1590 @@
         "summary": "Delete a category",
         "tags": [
           "Category"
+        ]
+      }
+    },
+    "/admin/categories/{id}/attributes": {
+      "get": {
+        "operationId": "CategoryController_listCategoryAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assigned attributes with their flags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListCategoryAttributesResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List the attributes assigned to a category",
+        "tags": [
+          "Category"
+        ]
+      },
+      "put": {
+        "operationId": "CategoryController_setCategoryAttributes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetCategoryAttributesRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved assignment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SetCategoryAttributesResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown attribute or duplicate attribute id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Replace the attributes assigned to a category",
+        "tags": [
+          "Category"
+        ]
+      }
+    },
+    "/admin/attributes": {
+      "get": {
+        "operationId": "AttributeController_listAttributes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Attribute list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListAdminAttributesResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List every attribute with its values",
+        "tags": [
+          "Attribute"
+        ]
+      },
+      "post": {
+        "operationId": "AttributeController_createAttribute",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttributeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created attribute",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CreateAttributeResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Name already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create an attribute",
+        "tags": [
+          "Attribute"
+        ]
+      }
+    },
+    "/admin/attributes/{id}": {
+      "get": {
+        "operationId": "AttributeController_getAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetAdminAttributeResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get a single attribute with its values",
+        "tags": [
+          "Attribute"
+        ]
+      },
+      "patch": {
+        "operationId": "AttributeController_updateAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttributeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated attribute",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateAttributeResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Name already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update an attribute",
+        "tags": [
+          "Attribute"
+        ]
+      },
+      "delete": {
+        "operationId": "AttributeController_deleteAttribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DeleteAttributeResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Attribute is used by one or more products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Delete an attribute that is not used by any product",
+        "tags": [
+          "Attribute"
+        ]
+      }
+    },
+    "/admin/attributes/{id}/values": {
+      "post": {
+        "operationId": "AttributeController_createValue",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttributeValueRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Attribute with the new value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CreateAttributeValueResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The attribute already has this value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Add a value to an attribute",
+        "tags": [
+          "Attribute"
+        ]
+      }
+    },
+    "/admin/attribute-values/{id}": {
+      "patch": {
+        "operationId": "AttributeValueController_updateValue",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttributeValueRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attribute with the updated value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateAttributeValueResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute value not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The attribute already has this value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update an attribute value",
+        "tags": [
+          "AttributeValue"
+        ]
+      },
+      "delete": {
+        "operationId": "AttributeValueController_deleteValue",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute with the value removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DeleteAttributeValueResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute value not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Attribute value is used by one or more products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Delete an attribute value that is not used by any product",
+        "tags": [
+          "AttributeValue"
         ]
       }
     },
@@ -11186,6 +13665,889 @@
           "sections"
         ]
       },
+      "AdminProductListCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 224
+          },
+          "name": {
+            "type": "string",
+            "example": "سیگار"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "AdminProductListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          },
+          "primaryImageUrl": {
+            "type": "object",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductListCategoryDto"
+            }
+          },
+          "variantCount": {
+            "type": "number",
+            "example": 4,
+            "description": "Number of variants"
+          },
+          "priceFrom": {
+            "type": "number",
+            "example": 120000,
+            "nullable": true,
+            "description": "Lowest variant price"
+          },
+          "priceTo": {
+            "type": "number",
+            "example": 180000,
+            "nullable": true,
+            "description": "Highest variant price"
+          },
+          "totalStock": {
+            "type": "number",
+            "example": 37,
+            "description": "Sum of the stock across variants"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "primaryImageUrl",
+          "categories",
+          "variantCount",
+          "priceFrom",
+          "priceTo",
+          "totalStock",
+          "updatedAt"
+        ]
+      },
+      "ListAdminProductsResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductListItemDto"
+            }
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 500
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 25
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "AdminAvailableAttributeValueDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "value": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "sortOrder"
+        ]
+      },
+      "AdminAvailableAttributeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          },
+          "isFilterable": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAvailableAttributeValueDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "isRequired",
+          "isFilterable",
+          "sortOrder",
+          "values"
+        ]
+      },
+      "GetAvailableAttributesResponseDto": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAvailableAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "attributes"
+        ]
+      },
+      "AdminProductCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 224
+          },
+          "name": {
+            "type": "string",
+            "example": "سیگار"
+          },
+          "slug": {
+            "type": "string",
+            "example": "sigar"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "AdminProductImageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 7
+          },
+          "fileId": {
+            "type": "number",
+            "example": 12,
+            "description": "File id in the file manager"
+          },
+          "url": {
+            "type": "object",
+            "example": "/uploads/images/product-1.png",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true
+          },
+          "isThumbnail": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "fileId",
+          "url",
+          "isPrimary",
+          "isThumbnail",
+          "sortOrder"
+        ]
+      },
+      "AdminProductSpecValueDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 3
+          },
+          "attributeValueId": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "attributeId",
+          "attributeValueId"
+        ]
+      },
+      "AdminProductVariantAxisDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1
+          },
+          "valueIds": {
+            "example": [
+              1,
+              2
+            ],
+            "description": "Selected value ids of this axis",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "valueIds"
+        ]
+      },
+      "AdminProductVariantValueDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1
+          },
+          "attributeValueId": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "attributeId",
+          "attributeValueId"
+        ]
+      },
+      "AdminProductVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3744
+          },
+          "sku": {
+            "type": "string",
+            "example": "SKU-1-1"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "description": "One entry per variant axis",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantValueDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "price",
+          "compareAtPrice",
+          "stock",
+          "isDefault",
+          "values"
+        ]
+      },
+      "AdminProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          },
+          "description": {
+            "type": "string",
+            "example": "<p>معرفی محصول</p>",
+            "nullable": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductCategoryDto"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductImageDto"
+            }
+          },
+          "specValues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductSpecValueDto"
+            }
+          },
+          "variantAxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantAxisDto"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "categories",
+          "images",
+          "specValues",
+          "variantAxes",
+          "variants",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GetAdminProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "$ref": "#/components/schemas/AdminProductDto"
+          },
+          "availableAttributes": {
+            "description": "Attributes available for this product, derived from its categories",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAvailableAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "product",
+          "availableAttributes"
+        ]
+      },
+      "ProductImageInputDto": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "number",
+            "example": 12,
+            "description": "File id from the file manager"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true
+          },
+          "isThumbnail": {
+            "type": "boolean",
+            "example": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "fileId"
+        ]
+      },
+      "ProductSpecValueInputDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 3,
+            "description": "A SPEC attribute of one of the product categories"
+          },
+          "attributeValueId": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "attributeId",
+          "attributeValueId"
+        ]
+      },
+      "ProductVariantAxisInputDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1,
+            "description": "A VARIANT attribute of one of the product categories"
+          },
+          "valueIds": {
+            "example": [
+              1,
+              2
+            ],
+            "description": "Selected value ids of this axis",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "attributeId",
+          "valueIds"
+        ]
+      },
+      "ProductVariantValueInputDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1
+          },
+          "attributeValueId": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "attributeId",
+          "attributeValueId"
+        ]
+      },
+      "ProductVariantInputDto": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "example": "SKU-1-1",
+            "description": "Omit or send an empty string to auto-generate from the slug"
+          },
+          "price": {
+            "type": "number",
+            "example": 1694000,
+            "description": "Selling price; 0 means \"call for price\""
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "example": 1744000,
+            "nullable": true
+          },
+          "stock": {
+            "type": "number",
+            "example": 12
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": false
+          },
+          "values": {
+            "description": "One value per variant axis; empty when the product has no variant axes",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantValueInputDto"
+            }
+          }
+        },
+        "required": [
+          "price",
+          "stock",
+          "values"
+        ]
+      },
+      "CreateProductRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi",
+            "description": "Unique URL slug — lowercase letters, digits and dashes"
+          },
+          "description": {
+            "type": "string",
+            "example": "<p>معرفی محصول</p>",
+            "nullable": true
+          },
+          "categoryIds": {
+            "example": [
+              3,
+              8
+            ],
+            "description": "Category ids; drives the available attributes",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductImageInputDto"
+            }
+          },
+          "specValues": {
+            "description": "One entry per selected spec attribute value",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductSpecValueInputDto"
+            }
+          },
+          "variantAxes": {
+            "description": "Variant axes and their selected values",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantAxisInputDto"
+            }
+          },
+          "variants": {
+            "description": "Every combination; each carries its own price and stock",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantInputDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "categoryIds",
+          "images",
+          "specValues",
+          "variantAxes",
+          "variants"
+        ]
+      },
+      "CreateProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          },
+          "description": {
+            "type": "string",
+            "example": "<p>معرفی محصول</p>",
+            "nullable": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductCategoryDto"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductImageDto"
+            }
+          },
+          "specValues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductSpecValueDto"
+            }
+          },
+          "variantAxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantAxisDto"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "categories",
+          "images",
+          "specValues",
+          "variantAxes",
+          "variants",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateProductRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi",
+            "description": "Unique URL slug — lowercase letters, digits and dashes"
+          },
+          "description": {
+            "type": "string",
+            "example": "<p>معرفی محصول</p>",
+            "nullable": true
+          },
+          "categoryIds": {
+            "example": [
+              3,
+              8
+            ],
+            "description": "Category ids; drives the available attributes",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductImageInputDto"
+            }
+          },
+          "specValues": {
+            "description": "One entry per selected spec attribute value",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductSpecValueInputDto"
+            }
+          },
+          "variantAxes": {
+            "description": "Variant axes and their selected values",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantAxisInputDto"
+            }
+          },
+          "variants": {
+            "description": "Every combination; each carries its own price and stock",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantInputDto"
+            }
+          }
+        }
+      },
+      "UpdateProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3342
+          },
+          "name": {
+            "type": "string",
+            "example": "کمل کامپکت آبی ایرانی"
+          },
+          "slug": {
+            "type": "string",
+            "example": "kamel-compact-abi"
+          },
+          "description": {
+            "type": "string",
+            "example": "<p>معرفی محصول</p>",
+            "nullable": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductCategoryDto"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductImageDto"
+            }
+          },
+          "specValues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductSpecValueDto"
+            }
+          },
+          "variantAxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantAxisDto"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductVariantDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "categories",
+          "images",
+          "specValues",
+          "variantAxes",
+          "variants",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
       "CategoryDto": {
         "type": "object",
         "properties": {
@@ -11670,6 +15032,724 @@
         },
         "required": [
           "ok"
+        ]
+      },
+      "AdminCategoryAttributeDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          },
+          "isFilterable": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "attributeId",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "isRequired",
+          "isFilterable",
+          "sortOrder"
+        ]
+      },
+      "ListCategoryAttributesResponseDto": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminCategoryAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "attributes"
+        ]
+      },
+      "SetCategoryAttributeItemDto": {
+        "type": "object",
+        "properties": {
+          "attributeId": {
+            "type": "number",
+            "example": 1
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false,
+            "description": "The product editor must pick a value for this attribute"
+          },
+          "isFilterable": {
+            "type": "boolean",
+            "example": true,
+            "description": "Show this attribute on the public listing filters"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "attributeId"
+        ]
+      },
+      "SetCategoryAttributesRequestDto": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetCategoryAttributeItemDto"
+            }
+          }
+        },
+        "required": [
+          "attributes"
+        ]
+      },
+      "SetCategoryAttributesResponseDto": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminCategoryAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "attributes"
+        ]
+      },
+      "AdminAttributeValueDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "value": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "sortOrder"
+        ]
+      },
+      "AdminAttributeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ListAdminAttributesResponseDto": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeDto"
+            }
+          }
+        },
+        "required": [
+          "attributes"
+        ]
+      },
+      "GetAdminAttributeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateAttributeRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "color",
+            "description": "Unique machine name — lowercase letters, digits and dashes"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the buyer may pick more than one value"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect"
+        ]
+      },
+      "CreateAttributeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateAttributeRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "color",
+            "description": "Unique machine name — lowercase letters, digits and dashes"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the buyer may pick more than one value"
+          }
+        }
+      },
+      "UpdateAttributeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteAttributeResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
+      "CreateAttributeValueRequestDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0,
+            "description": "Display order; defaults to the end of the list"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "CreateAttributeValueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateAttributeValueRequestDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "قرمز"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0,
+            "description": "Display order; defaults to the end of the list"
+          }
+        }
+      },
+      "UpdateAttributeValueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteAttributeValueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "color"
+          },
+          "title": {
+            "type": "string",
+            "example": "رنگ"
+          },
+          "usage": {
+            "example": "VARIANT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttributeUsage"
+              }
+            ]
+          },
+          "filterType": {
+            "example": "CHECKBOX",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilterType"
+              }
+            ]
+          },
+          "isMultiSelect": {
+            "type": "boolean",
+            "example": true
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAttributeValueDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "usage",
+          "filterType",
+          "isMultiSelect",
+          "values",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "GetCartProductDto": {

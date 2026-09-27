@@ -125,6 +125,15 @@ export class IntroductionSectionDataDto {
   })
   titles!: Record<string, string>;
 
+  @ApiProperty({ example: 101, nullable: true })
+  desktopFileId!: number | null;
+
+  @ApiProperty({ example: 102, nullable: true })
+  tabletFileId!: number | null;
+
+  @ApiProperty({ example: 103, nullable: true })
+  mobileFileId!: number | null;
+
   @ApiProperty({ example: '/uploads/images/intro-desktop.png', nullable: true })
   desktopFileUrl!: string | null;
 

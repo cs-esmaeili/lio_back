@@ -8487,6 +8487,21 @@
               "subtitle": "توضیح کوتاه"
             }
           },
+          "desktopFileId": {
+            "type": "object",
+            "example": 101,
+            "nullable": true
+          },
+          "tabletFileId": {
+            "type": "object",
+            "example": 102,
+            "nullable": true
+          },
+          "mobileFileId": {
+            "type": "object",
+            "example": 103,
+            "nullable": true
+          },
           "desktopFileUrl": {
             "type": "object",
             "example": "/uploads/images/intro-desktop.png",
@@ -8505,6 +8520,9 @@
         },
         "required": [
           "titles",
+          "desktopFileId",
+          "tabletFileId",
+          "mobileFileId",
           "desktopFileUrl",
           "tabletFileUrl",
           "mobileFileUrl"

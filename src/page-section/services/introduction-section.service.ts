@@ -7,6 +7,9 @@ import type { IntroductionInputDto } from '../dtos/sectionData/section-data-requ
 
 export type IntroductionSectionData = {
   titles: Record<string, string>;
+  desktopFileId: number | null;
+  tabletFileId: number | null;
+  mobileFileId: number | null;
   desktopFileUrl: string | null;
   tabletFileUrl: string | null;
   mobileFileUrl: string | null;
@@ -35,7 +38,17 @@ export class IntroductionSectionService {
       },
     });
 
-    return row ? this.toData(row) : { titles: {}, desktopFileUrl: null, tabletFileUrl: null, mobileFileUrl: null };
+    return row
+      ? this.toData(row)
+      : {
+          titles: {},
+          desktopFileId: null,
+          tabletFileId: null,
+          mobileFileId: null,
+          desktopFileUrl: null,
+          tabletFileUrl: null,
+          mobileFileUrl: null,
+        };
   }
 
   /** Create the introduction record (upsert) for the given section. */
@@ -92,6 +105,9 @@ export class IntroductionSectionService {
   private toData(row: IntroductionRow): IntroductionSectionData {
     return {
       titles: (row.titles ?? {}) as Record<string, string>,
+      desktopFileId: row.desktopFileId,
+      tabletFileId: row.tabletFileId ?? null,
+      mobileFileId: row.mobileFileId ?? null,
       desktopFileUrl: this.fileUrl.toUrl(row.desktopFile?.path ?? null),
       tabletFileUrl: this.fileUrl.toUrl(row.tabletFile?.path ?? null),
       mobileFileUrl: this.fileUrl.toUrl(row.mobileFile?.path ?? null),

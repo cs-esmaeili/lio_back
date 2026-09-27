@@ -8,6 +8,8 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'permission:read', description: 'List permissions' },
   { name: 'permission:write', description: 'Create, update, and delete permissions' },
   { name: 'user:role:manage', description: 'Assign and remove roles on users' },
+  { name: 'user:read', description: 'View users' },
+  { name: 'user:manage', description: 'Update user status' },
   { name: 'file:manage', description: 'Manage files and folders' },
   { name: 'file:read', description: 'View and select files and folders' },
   { name: 'file:upload', description: 'Upload files' },

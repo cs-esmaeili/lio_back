@@ -5,6 +5,15 @@ export class SliderSlideDto {
   @ApiProperty({ example: 11 })
   id!: number;
 
+  @ApiProperty({ example: 101 })
+  desktopFileId!: number;
+
+  @ApiProperty({ example: 102 })
+  tabletFileId!: number;
+
+  @ApiProperty({ example: 103 })
+  mobileFileId!: number;
+
   @ApiProperty({ example: '/uploads/images/hero-desktop.png', nullable: true })
   desktopFileUrl!: string | null;
 

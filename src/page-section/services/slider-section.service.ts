@@ -7,6 +7,9 @@ import type { SliderSlideInputDto } from '../dtos/sectionData/section-data-reque
 
 export type SliderSlide = {
   id: number;
+  desktopFileId: number;
+  tabletFileId: number;
+  mobileFileId: number;
   desktopFileUrl: string | null;
   tabletFileUrl: string | null;
   mobileFileUrl: string | null;
@@ -136,6 +139,9 @@ export class SliderSectionService {
 
     return rows.map((slide) => ({
       id: slide.id,
+      desktopFileId: slide.desktopFileId,
+      tabletFileId: slide.tabletFileId,
+      mobileFileId: slide.mobileFileId,
       desktopFileUrl: toUrl(slide.desktopFile),
       tabletFileUrl: toUrl(slide.tabletFile),
       mobileFileUrl: toUrl(slide.mobileFile),

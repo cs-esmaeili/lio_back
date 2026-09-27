@@ -15,6 +15,8 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'file:delete', description: 'Delete files and folders' },
   { name: 'site:manage', description: 'Manage site settings (header, footer, etc.)' },
   { name: 'page:manage', description: 'Manage page sections and their content' },
+  { name: 'category:read', description: 'List and view product categories' },
+  { name: 'category:manage', description: 'Create, update, and delete product categories' },
   { name: 'log:read', description: 'View application logs in the log viewer' },
   { name: 'location:create', description: 'Create locations' },
   { name: 'location:update', description: 'Update locations' },

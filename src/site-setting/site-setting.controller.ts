@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiHeader, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { SessionAuthGuard } from 'src/auth/guards/session-auth.guard';
@@ -10,13 +10,25 @@ import { Permissions } from 'src/authorization/decorators/permissions.decorator'
 import { PermissionsGuard } from 'src/authorization/guards/permissions.guard';
 import { SiteSettingService } from './services/site-setting.service';
 import { GetByKeyResponseDto } from './dtos/getByKey/get-by-key-response.dto';
+import { ListSettingsResponseDto } from './dtos/listSettings/list-settings-response.dto';
 import { UpsertByKeyRequestDto } from './dtos/upsertByKey/upsert-by-key-request.dto';
 import { UpsertByKeyResponseDto } from './dtos/upsertByKey/upsert-by-key-response.dto';
+import { DeleteByKeyResponseDto } from './dtos/deleteByKey/delete-by-key-response.dto';
 
 @UseGuards(SessionAuthGuard, PermissionsGuard, CsrfGuard)
 @Controller('site-settings')
 export class SiteSettingController {
   constructor(private readonly siteSettings: SiteSettingService) {}
+
+  @ApiOperation({ summary: 'List all site settings' })
+  @ApiOkResponse({ description: 'Settings list', type: ListSettingsResponseDto, isArray: true })
+  @ApiCookieAuth('session')
+  @ApiForbiddenResponse({ description: 'Missing permission' })
+  @Permissions('site:manage')
+  @Get()
+  listSettings(): Promise<ListSettingsResponseDto[]> {
+    return this.siteSettings.listAll();
+  }
 
   @ApiOperation({ summary: 'Get a site setting by key (e.g. logo, description, slogan)' })
   @ApiParam({ name: 'key', type: String, example: 'logo' })
@@ -40,5 +52,18 @@ export class SiteSettingController {
   @Put(':key')
   upsertByKey(@Param('key') key: string, @Body() body: UpsertByKeyRequestDto): Promise<UpsertByKeyResponseDto> {
     return this.siteSettings.upsertByKey(key, body.data, body.isPrivate);
+  }
+
+  @ApiOperation({ summary: 'Delete a site setting by key' })
+  @ApiHeader(CSRF_HEADER)
+  @ApiParam({ name: 'key', type: String, example: 'logo' })
+  @ApiOkResponse({ description: 'Setting deleted', type: DeleteByKeyResponseDto })
+  @ApiNotFoundResponse({ description: 'Setting not found' })
+  @ApiCookieAuth('session')
+  @ApiForbiddenResponse({ description: 'Missing permission' })
+  @Permissions('site:manage')
+  @Delete(':key')
+  deleteByKey(@Param('key') key: string): Promise<DeleteByKeyResponseDto> {
+    return this.siteSettings.deleteByKey(key);
   }
 }

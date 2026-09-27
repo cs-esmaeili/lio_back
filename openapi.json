@@ -9515,7 +9515,13 @@
         "properties": {
           "id": {
             "type": "number",
-            "example": 3
+            "example": 11,
+            "description": "Footer row id"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3,
+            "description": "Referenced category id"
           },
           "name": {
             "type": "string",
@@ -9529,6 +9535,7 @@
         },
         "required": [
           "id",
+          "categoryId",
           "name",
           "url"
         ]

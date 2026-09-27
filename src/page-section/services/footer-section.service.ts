@@ -17,7 +17,10 @@ export type FooterLink = {
 };
 
 export type FooterCategory = {
+  /** Footer row id — needed to update or delete the item. */
   id: number;
+  /** Referenced category id. */
+  categoryId: number;
   name: string;
   url: string | null;
 };
@@ -61,7 +64,8 @@ export class FooterSectionService {
       if (row.type === FooterSectionType.CATEGORY && row.categoryId !== null) {
         const category = categoryRows.find((candidate) => candidate.id === row.categoryId);
         categoryItems.push({
-          id: row.categoryId,
+          id: row.id,
+          categoryId: row.categoryId,
           name: category?.name ?? '',
           url: category ? this.categoryUrl(category.slug) : null,
         });

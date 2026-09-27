@@ -245,8 +245,11 @@ export class FooterLinkDto {
 }
 
 export class FooterCategoryDto {
-  @ApiProperty({ example: 3 })
+  @ApiProperty({ example: 11, description: 'Footer row id' })
   id!: number;
+
+  @ApiProperty({ example: 3, description: 'Referenced category id' })
+  categoryId!: number;
 
   @ApiProperty({ example: 'موبایل' })
   name!: string;

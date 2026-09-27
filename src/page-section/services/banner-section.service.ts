@@ -12,6 +12,9 @@ export type BannerItem = {
   subtitle: string | null;
   buttonTitle: string | null;
   buttonUrl: string | null;
+  desktopFileId: number;
+  tabletFileId: number;
+  mobileFileId: number;
   desktopFileUrl: string | null;
   tabletFileUrl: string | null;
   mobileFileUrl: string | null;
@@ -151,6 +154,9 @@ export class BannerSectionService {
       subtitle: banner.subtitle,
       buttonTitle: banner.buttonTitle,
       buttonUrl: banner.buttonUrl,
+      desktopFileId: banner.desktopFileId,
+      tabletFileId: banner.tabletFileId,
+      mobileFileId: banner.mobileFileId,
       desktopFileUrl: toUrl(banner.desktopFile),
       tabletFileUrl: toUrl(banner.tabletFile),
       mobileFileUrl: toUrl(banner.mobileFile),

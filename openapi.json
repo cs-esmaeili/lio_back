@@ -8417,6 +8417,18 @@
             "example": "/products/sale",
             "nullable": true
           },
+          "desktopFileId": {
+            "type": "number",
+            "example": 101
+          },
+          "tabletFileId": {
+            "type": "number",
+            "example": 102
+          },
+          "mobileFileId": {
+            "type": "number",
+            "example": 103
+          },
           "desktopFileUrl": {
             "type": "object",
             "example": "/uploads/images/banner-desktop.png",
@@ -8440,6 +8452,9 @@
           "subtitle",
           "buttonTitle",
           "buttonUrl",
+          "desktopFileId",
+          "tabletFileId",
+          "mobileFileId",
           "desktopFileUrl",
           "tabletFileUrl",
           "mobileFileUrl"

@@ -93,6 +93,15 @@ export class BannerItemDto {
   @ApiProperty({ example: '/products/sale', nullable: true })
   buttonUrl!: string | null;
 
+  @ApiProperty({ example: 101 })
+  desktopFileId!: number;
+
+  @ApiProperty({ example: 102 })
+  tabletFileId!: number;
+
+  @ApiProperty({ example: 103 })
+  mobileFileId!: number;
+
   @ApiProperty({ example: '/uploads/images/banner-desktop.png', nullable: true })
   desktopFileUrl!: string | null;
 

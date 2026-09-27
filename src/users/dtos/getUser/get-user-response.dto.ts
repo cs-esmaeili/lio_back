@@ -31,8 +31,8 @@ export class GetUserResponseDto {
   @ApiProperty({ enum: UserStatus, enumName: 'UserStatus', example: UserStatus.ACTIVE })
   status!: UserStatus;
 
-  @ApiProperty({ type: AdminUserRoleDto, nullable: true })
-  role!: AdminUserRoleDto | null;
+  @ApiProperty({ type: AdminUserRoleDto })
+  role!: AdminUserRoleDto;
 
   @ApiProperty({ example: '2026-08-30T12:00:00.000Z' })
   createdAt!: string;

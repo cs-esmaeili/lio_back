@@ -1771,6 +1771,44 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Role is assigned to users and cannot be deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2111,7 +2149,7 @@
             }
           },
           "404": {
-            "description": "Role not found",
+            "description": "Role or user not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -2154,7 +2192,7 @@
             "session": []
           }
         ],
-        "summary": "Assign or remove a role on a user",
+        "summary": "Assign a role to a user",
         "tags": [
           "Authorization"
         ]
@@ -11006,13 +11044,7 @@
             ]
           },
           "role": {
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminUserRoleDto"
-              }
-            ]
+            "$ref": "#/components/schemas/AdminUserRoleDto"
           },
           "createdAt": {
             "type": "string",
@@ -11104,13 +11136,7 @@
             ]
           },
           "role": {
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminUserRoleDto"
-              }
-            ]
+            "$ref": "#/components/schemas/AdminUserRoleDto"
           },
           "createdAt": {
             "type": "string",
@@ -11184,13 +11210,7 @@
             ]
           },
           "role": {
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AdminUserRoleDto"
-              }
-            ]
+            "$ref": "#/components/schemas/AdminUserRoleDto"
           },
           "createdAt": {
             "type": "string",
@@ -11462,10 +11482,9 @@
         "type": "object",
         "properties": {
           "roleId": {
-            "type": "object",
-            "description": "Role id, or null to remove the role",
-            "example": 1,
-            "nullable": true
+            "type": "number",
+            "description": "Role id to assign to the user",
+            "example": 1
           }
         },
         "required": [

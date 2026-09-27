@@ -12,7 +12,9 @@ export const users = pgTable(
     lastName: text('last_name'),
     passwordHash: text('password_hash'),
     status: userStatus('status').default('ACTIVE').notNull(),
-    roleId: integer('role_id').references(() => roles.id, { onDelete: 'set null' }),
+    roleId: integer('role_id')
+      .notNull()
+      .references(() => roles.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { precision: 3, mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { precision: 3, mode: 'date' })
       .$defaultFn(() => new Date())

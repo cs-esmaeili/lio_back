@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { and, desc, eq, ilike, or, type SQL } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { roles, users, type UserStatus } from 'src/database/schema';
@@ -29,7 +29,7 @@ interface AdminUserRow {
   status: UserStatus;
   createdAt: Date;
   updatedAt: Date;
-  role: { id: number; name: string; description: string | null } | null;
+  role: { id: number; name: string; description: string | null };
 }
 
 @Injectable()
@@ -46,10 +46,10 @@ export class UsersService {
 
   async createByUsername(username: string) {
     const role = await this.db.query.roles.findFirst({ where: eq(roles.name, DEFAULT_USER_ROLE_NAME) });
-    const [user] = await this.db
-      .insert(users)
-      .values({ username, roleId: role?.id ?? null })
-      .returning();
+    if (!role) {
+      throw new InternalServerErrorException(`Default role "${DEFAULT_USER_ROLE_NAME}" is not configured`);
+    }
+    const [user] = await this.db.insert(users).values({ username, roleId: role.id }).returning();
     return user;
   }
 
@@ -134,7 +134,7 @@ export class UsersService {
       lastName: user.lastName,
       nationalCode: user.nationalCode,
       status: user.status,
-      role: user.role ? { id: user.role.id, name: user.role.name, description: user.role.description } : null,
+      role: { id: user.role.id, name: user.role.name, description: user.role.description },
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

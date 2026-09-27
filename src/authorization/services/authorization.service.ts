@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { asc, eq } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { permissions, rolePermissions, roles, users } from 'src/database/schema';
@@ -76,6 +76,12 @@ export class AuthorizationService {
 
   async deleteRole(id: number) {
     await this.getRole(id);
+
+    const assignedUsers = await this.db.$count(users, eq(users.roleId, id));
+    if (assignedUsers > 0) {
+      throw new ConflictException('Role is assigned to users and cannot be deleted');
+    }
+
     await this.db.delete(roles).where(eq(roles.id, id));
     return { ok: true };
   }
@@ -98,13 +104,12 @@ export class AuthorizationService {
     return { ok: true };
   }
 
-  async assignRole(userId: number, roleId: number | null) {
-    if (roleId !== null) {
-      await this.getRole(roleId);
-    }
+  async assignRole(userId: number, roleId: number) {
+    await this.getRole(roleId);
+
     const updated = await this.db.update(users).set({ roleId }).where(eq(users.id, userId)).returning({ id: users.id });
     if (updated.length === 0) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
     return { ok: true };
   }

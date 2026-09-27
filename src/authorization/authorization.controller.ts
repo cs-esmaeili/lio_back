@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGua
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -92,6 +93,7 @@ export class AuthorizationController {
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({ description: 'Role deleted', type: DeleteRoleResponseDto })
   @ApiNotFoundResponse({ description: 'Role not found' })
+  @ApiConflictResponse({ description: 'Role is assigned to users and cannot be deleted' })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('role:write')
@@ -124,12 +126,12 @@ export class AuthorizationController {
     return this.authorization.deletePermission(id);
   }
 
-  @ApiOperation({ summary: 'Assign or remove a role on a user' })
+  @ApiOperation({ summary: 'Assign a role to a user' })
   @ApiHeader(CSRF_HEADER)
   @ApiParam({ name: 'userId', type: Number, example: 1 })
   @ApiBody({ type: AssignRoleRequestDto })
   @ApiOkResponse({ description: 'Role assigned', type: AssignRoleResponseDto })
-  @ApiNotFoundResponse({ description: 'Role not found' })
+  @ApiNotFoundResponse({ description: 'Role or user not found' })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
   @Permissions('user:role:manage')

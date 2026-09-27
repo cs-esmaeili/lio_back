@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { rolePermissions, roles } from '../schema';
+import { eq, isNull } from 'drizzle-orm';
+import { rolePermissions, roles, users } from '../schema';
 import type { SeedDb } from './db';
 import { DEFAULT_USER_ROLE_NAME } from '../../authorization/authorization.constants';
 
@@ -13,10 +13,14 @@ export async function seedRole(db: SeedDb): Promise<number> {
     .onConflictDoUpdate({ target: roles.name, set: { description: ADMIN_ROLE.description } })
     .returning();
 
-  await db
+  const [userRole] = await db
     .insert(roles)
     .values(USER_ROLE)
-    .onConflictDoUpdate({ target: roles.name, set: { description: USER_ROLE.description } });
+    .onConflictDoUpdate({ target: roles.name, set: { description: USER_ROLE.description } })
+    .returning();
+
+  // Every user must have a role: backfill legacy users created before the role became mandatory.
+  await db.update(users).set({ roleId: userRole.id }).where(isNull(users.roleId));
 
   const allPermissions = await db.query.permissions.findMany();
   await db.delete(rolePermissions).where(eq(rolePermissions.roleId, adminRole.id));

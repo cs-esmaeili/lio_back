@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, ValidateIf } from 'class-validator';
+import { IsInt } from 'class-validator';
 
 export class AssignRoleRequestDto {
-  @ApiProperty({ description: 'Role id, or null to remove the role', example: 1, nullable: true })
-  @ValidateIf((_object, value) => value !== null)
+  @ApiProperty({ description: 'Role id to assign to the user', example: 1 })
   @IsInt()
-  roleId!: number | null;
+  roleId!: number;
 }

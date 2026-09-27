@@ -50,7 +50,7 @@ export class FileManagerController {
   @ApiNotFoundResponse({ description: 'Folder not found' })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('file:manage')
+  @Permissions('file:read')
   @Get()
   listFiles(@Query() query: ListFilesRequestDto): Promise<ListFilesResponseDto> {
     return this.fileManager.listFiles(query.path ?? '');
@@ -71,7 +71,7 @@ export class FileManagerController {
   @ApiCreatedResponse({ description: 'Uploaded files', type: UploadFilesResponseDto })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('file:manage')
+  @Permissions('file:upload')
   @UseInterceptors(
     FilesInterceptor('files', MAX_FILES, {
       storage: memoryStorage(),
@@ -91,7 +91,7 @@ export class FileManagerController {
   @ApiCreatedResponse({ description: 'Folder created', type: CreateFolderResponseDto })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('file:manage')
+  @Permissions('file:create')
   @Post('folders')
   createFolder(@Body() body: CreateFolderRequestDto): Promise<CreateFolderResponseDto> {
     return this.fileManager.createFolder(body.path);
@@ -102,7 +102,7 @@ export class FileManagerController {
   @ApiOkResponse({ description: 'Folder deleted', type: DeleteFolderResponseDto })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('file:manage')
+  @Permissions('file:delete')
   @Delete('folders')
   deleteFolder(@Query() query: DeleteFolderRequestDto): Promise<DeleteFolderResponseDto> {
     return this.fileManager.deleteFolder(query.path);
@@ -115,7 +115,7 @@ export class FileManagerController {
   @ApiNotFoundResponse({ description: 'File not found' })
   @ApiCookieAuth('session')
   @ApiForbiddenResponse({ description: 'Missing permission' })
-  @Permissions('file:manage')
+  @Permissions('file:delete')
   @Delete(':id')
   deleteFile(@Param('id', ParseIntPipe) id: number): Promise<DeleteFileResponseDto> {
     return this.fileManager.deleteFile(id);

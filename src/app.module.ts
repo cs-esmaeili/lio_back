@@ -10,6 +10,7 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AdminUsersModule } from './users/admin-users.module';
+import { ProfileModule } from './users/profile.module';
 import { AuthorizationModule } from './authorization/authorization.module';
 import { FileManagerModule } from './file-manager/file-manager.module';
 import { SiteSettingModule } from './site-setting/site-setting.module';
@@ -47,6 +48,7 @@ import configuration from './config/configuration';
     AuthModule,
     UsersModule,
     AdminUsersModule,
+    ProfileModule,
     AuthorizationModule,
     FileManagerModule,
     SiteSettingModule,

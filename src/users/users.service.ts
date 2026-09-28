@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { and, desc, eq, ilike, or, type SQL } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { roles, users, type UserStatus } from 'src/database/schema';
@@ -7,6 +7,11 @@ import type { ListUsersRequestDto } from './dtos/listUsers/list-users-request.dt
 import type { ListUsersResponseDto } from './dtos/listUsers/list-users-response.dto';
 import type { GetUserResponseDto } from './dtos/getUser/get-user-response.dto';
 import type { UpdateUserStatusResponseDto } from './dtos/updateUserStatus/update-user-status-response.dto';
+import type { GetProfileResponseDto } from './dtos/getProfile/get-profile-response.dto';
+import type { UpdateProfileRequestDto } from './dtos/updateProfile/update-profile-request.dto';
+import type { UpdateProfileResponseDto } from './dtos/updateProfile/update-profile-response.dto';
+
+type UserRow = typeof users.$inferSelect;
 
 /** Selected user columns projected into the admin user contract. */
 const ADMIN_USER_COLUMNS = {
@@ -56,6 +61,59 @@ export class UsersService {
   async setPassword(userId: number, passwordHash: string) {
     const [user] = await this.db.update(users).set({ passwordHash }).where(eq(users.id, userId)).returning();
     return user;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /*  Current user profile                                                    */
+  /* ------------------------------------------------------------------------ */
+
+  async getProfile(userId: number): Promise<GetProfileResponseDto> {
+    return this.toProfile(await this.requireUser(userId));
+  }
+
+  async updateProfile(userId: number, dto: UpdateProfileRequestDto): Promise<UpdateProfileResponseDto> {
+    if (dto.nationalCode !== undefined) {
+      await this.assertNationalCodeAvailable(dto.nationalCode, userId);
+    }
+
+    // Only the fields explicitly present in the body are touched.
+    const patch: { name?: string; lastName?: string; nationalCode?: string } = {};
+    if (dto.name !== undefined) patch.name = dto.name;
+    if (dto.lastName !== undefined) patch.lastName = dto.lastName;
+    if (dto.nationalCode !== undefined) patch.nationalCode = dto.nationalCode;
+
+    if (Object.keys(patch).length > 0) {
+      await this.db.update(users).set(patch).where(eq(users.id, userId));
+    }
+
+    return this.getProfile(userId);
+  }
+
+  private async requireUser(id: number): Promise<UserRow> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  private async assertNationalCodeAvailable(nationalCode: string, ownerId: number): Promise<void> {
+    const existing = await this.db.query.users.findFirst({ where: eq(users.nationalCode, nationalCode), columns: { id: true } });
+    if (existing && existing.id !== ownerId) {
+      throw new ConflictException('National code is already in use');
+    }
+  }
+
+  private toProfile(user: UserRow): GetProfileResponseDto {
+    return {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      lastName: user.lastName,
+      nationalCode: user.nationalCode,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+    };
   }
 
   /* ------------------------------------------------------------------------ */

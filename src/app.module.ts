@@ -18,6 +18,7 @@ import { AttributeModule } from './attribute/attribute.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { OrdersModule } from './orders/orders.module';
 import { AddressModule } from './address/address.module';
 import { LocationModule } from './location/location.module';
 import { SmsModule } from './sms/sms.module';
@@ -53,6 +54,7 @@ import configuration from './config/configuration';
     ProductModule,
     CartModule,
     CheckoutModule,
+    OrdersModule,
     AddressModule,
     LocationModule,
     SmsModule,

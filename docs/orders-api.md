@@ -48,7 +48,7 @@ pnpm db:seed role
 ## ۳. انواع (TypeScript)
 
 ```ts
-type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'CANCELED' | 'EXPIRED' | 'FAILED';
+type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'CANCELED' | 'EXPIRED';
 
 interface OrderListItem {
   id: number;

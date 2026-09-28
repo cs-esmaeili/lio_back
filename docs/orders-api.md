@@ -5,6 +5,7 @@
 | متد | مسیر | هویت | دسترسی | `data` |
 |---|---|---|---|---|
 | GET | `/profile/orders` | نشست کاربر (اجباری) | فقط سفارش‌های خودِ کاربر | لیست صفحه‌بندی‌شده |
+| GET | `/profile/orders/summary` | نشست کاربر (اجباری) | فقط سفارش‌های خودِ کاربر | شمارش به‌تفکیک وضعیت |
 | GET | `/profile/orders/{orderNumber}` | نشست کاربر (اجباری) | فقط سفارش خودِ کاربر | جزئیات سفارش |
 | GET | `/admin/orders` | نشست کاربر + مجوز `order:read` | سفارش همه‌ی کاربران | لیست صفحه‌بندی‌شده |
 | GET | `/admin/orders/{id}` | نشست کاربر + مجوز `order:read` | سفارش همه‌ی کاربران | جزئیات سفارش |
@@ -113,6 +114,15 @@ interface OrderDetail {
   // فقط در قرارداد ادمین:
   userId?: number | null;
   username?: string | null;
+}
+```
+
+**خلاصه‌ی داشبورد (`GET /profile/orders/summary`):**
+
+```ts
+interface OrderStatusSummary {
+  total: number;                                       // مجموع سفارش‌های کاربر
+  items: { status: OrderStatus; count: number }[];     // همه‌ی وضعیت‌ها، حتی با count = 0
 }
 ```
 

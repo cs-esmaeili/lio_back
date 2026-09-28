@@ -7,6 +7,7 @@ import type { SessionUser } from 'src/auth/session-user';
 import { OrdersService } from './services/orders.service';
 import { ListMyOrdersRequestDto } from './dtos/listMyOrders/list-my-orders-request.dto';
 import { ListMyOrdersResponseDto } from './dtos/listMyOrders/list-my-orders-response.dto';
+import { GetMyOrderSummaryResponseDto } from './dtos/getMyOrderSummary/get-my-order-summary-response.dto';
 import { GetMyOrderResponseDto } from './dtos/getMyOrder/get-my-order-response.dto';
 
 /**
@@ -26,6 +27,15 @@ export class ProfileOrdersController {
   @Get()
   listMyOrders(@Req() req: Request, @Query() query: ListMyOrdersRequestDto): Promise<ListMyOrdersResponseDto> {
     return this.orders.listMyOrders((req.user as SessionUser).userId, query);
+  }
+
+  @ApiOperation({ summary: "Counts of the authenticated user's orders grouped by status" })
+  @ApiOkResponse({ description: 'Order count per status for the current user', type: GetMyOrderSummaryResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Authentication required' })
+  @ApiCookieAuth('session')
+  @Get('summary')
+  getMyOrderSummary(@Req() req: Request): Promise<GetMyOrderSummaryResponseDto> {
+    return this.orders.getMyOrderSummary((req.user as SessionUser).userId);
   }
 
   @ApiOperation({ summary: "Get one of the authenticated user's orders" })

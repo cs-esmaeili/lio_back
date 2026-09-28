@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, desc, eq, ilike, or, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { orderItems, orders, OrderStatus, payments, productImages } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
@@ -11,6 +11,7 @@ import type { ListOrdersResponseDto } from '../dtos/listOrders/list-orders-respo
 import type { GetOrderResponseDto } from '../dtos/getOrder/get-order-response.dto';
 import type { ShipOrderResponseDto } from '../dtos/shipOrder/ship-order-response.dto';
 import type { CompleteOrderResponseDto } from '../dtos/completeOrder/complete-order-response.dto';
+import type { GetMyOrderSummaryResponseDto } from '../dtos/getMyOrderSummary/get-my-order-summary-response.dto';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -81,6 +82,27 @@ export class OrdersService {
     }
 
     return this.toOrderDetail(row);
+  }
+
+  /**
+   * Counts of the current user's orders grouped by status, used by the profile
+   * dashboard. Every status is returned, including the ones with a zero count,
+   * so the UI can render a stable set of cards.
+   */
+  async getMyOrderSummary(userId: number): Promise<GetMyOrderSummaryResponseDto> {
+    const rows = await this.db
+      .select({ status: orders.status, count: sql<number>`count(*)::int` })
+      .from(orders)
+      .where(eq(orders.userId, userId))
+      .groupBy(orders.status);
+
+    const counts = new Map(rows.map((row) => [row.status, Number(row.count)]));
+    const items = Object.values(OrderStatus).map((status) => ({ status, count: counts.get(status) ?? 0 }));
+
+    return {
+      total: items.reduce((sum, item) => sum + item.count, 0),
+      items,
+    };
   }
 
   /* ------------------------------------------------------------------------ */

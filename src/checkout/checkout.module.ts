@@ -9,11 +9,12 @@ import { CheckoutController } from './checkout.controller';
 import { PaymentsController } from './payments.controller';
 import { CheckoutService } from './services/checkout.service';
 import { CheckoutPaymentService } from './services/checkout-payment.service';
+import { OrderExpiryService } from './services/order-expiry.service';
 import { CheckoutPaymentRepository } from './repositories/checkout-payment.repository';
 
 @Module({
   imports: [AuthModule, CartModule, AddressModule, SiteSettingModule, UsersModule, PaymentModule],
   controllers: [CheckoutController, PaymentsController],
-  providers: [CheckoutService, CheckoutPaymentService, CheckoutPaymentRepository],
+  providers: [CheckoutService, CheckoutPaymentService, OrderExpiryService, CheckoutPaymentRepository],
 })
 export class CheckoutModule {}

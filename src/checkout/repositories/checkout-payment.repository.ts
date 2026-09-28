@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
 import { cartItems, carts, OrderStatus, orderItems, orders, PaymentStatus, payments, productVariants } from 'src/database/schema';
 
@@ -230,6 +230,66 @@ export class CheckoutPaymentRepository {
       }
 
       await tx.update(payments).set({ status: input.paymentStatus, verifyPayload: input.verifyPayload }).where(eq(payments.id, input.paymentId));
+
+      return true;
+    });
+  }
+
+  /**
+   * Expire every unpaid order whose reservation window has passed and release
+   * its reserved stock. Bounded per tick so a single run cannot lock an
+   * unbounded number of rows. Returns how many orders actually moved to
+   * `EXPIRED` (a concurrent callback may have won the race for some of them).
+   */
+  async expireStaleOrders(now: Date): Promise<number> {
+    const candidates = await this.db.query.orders.findMany({
+      where: and(eq(orders.status, OrderStatus.PENDING_PAYMENT), lte(orders.expiresAt, now)),
+      columns: { id: true },
+      limit: 500,
+    });
+
+    let expired = 0;
+    for (const candidate of candidates) {
+      if (await this.expireOrder(candidate.id)) expired += 1;
+    }
+
+    return expired;
+  }
+
+  /**
+   * Move one unpaid order to `EXPIRED` and return its reserved units to stock.
+   * Claims the order with a guarded `PENDING_PAYMENT -> EXPIRED` update so a
+   * late gateway callback can never release the same units twice; pending
+   * payment attempts are canceled in the same transaction.
+   *
+   * Variants are locked in the same ascending id order as {@link createOrder},
+   * so an expiry and a reserve running at the same time cannot deadlock.
+   */
+  private expireOrder(orderId: number): Promise<boolean> {
+    return this.db.transaction(async (tx) => {
+      const claimed = await tx
+        .update(orders)
+        .set({ status: OrderStatus.EXPIRED })
+        .where(and(eq(orders.id, orderId), eq(orders.status, OrderStatus.PENDING_PAYMENT)))
+        .returning({ id: orders.id });
+      if (claimed.length === 0) return false;
+
+      const items = await tx.select({ variantId: orderItems.variantId, quantity: orderItems.quantity }).from(orderItems).where(eq(orderItems.orderId, orderId));
+
+      const release = items.filter((item): item is { variantId: number; quantity: number } => item.variantId !== null).sort((a, b) => a.variantId - b.variantId);
+
+      for (const item of release) {
+        await tx.select({ id: productVariants.id }).from(productVariants).where(eq(productVariants.id, item.variantId)).for('update');
+        await tx
+          .update(productVariants)
+          .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
+          .where(eq(productVariants.id, item.variantId));
+      }
+
+      await tx
+        .update(payments)
+        .set({ status: PaymentStatus.CANCELED })
+        .where(and(eq(payments.orderId, orderId), eq(payments.status, PaymentStatus.INITIATED)));
 
       return true;
     });

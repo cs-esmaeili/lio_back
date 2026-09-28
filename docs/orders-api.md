@@ -129,4 +129,4 @@ interface OrderDetail {
 3. **`imageUrl` ممکن است `null` باشد:** محصول حذف‌شده یا بدون تصویر. UI باید placeholder داشته باشد.
 4. **مبالغ snapshot هستند:** قیمت‌ها در لحظه‌ی ثبت سفارش کپی شده‌اند؛ بعد از تغییر محصول عوض نمی‌شوند.
 5. **`orderNumber` شناسه‌ی مسیر پنل کاربر است، نه `id`:** لینک جزئیات `/profile/orders/{orderNumber}` است (مثل `ORD-20260926-4F2A9C10BD`). در ادمین مسیر با `id` عددی است: `/admin/orders/{id}`.
-6. **`status` و `paidAt` را جدا نگه دار:** `PAID` معادل پرداخت‌شده است؛ `PENDING_PAYMENT` یعنی هنوز پرداخت نشده و با گذشت `expiresAt` به `EXPIRED` می‌رود.
+6. **`status` و `paidAt` را جدا نگه دار:** `PAID` معادل پرداخت‌شده است؛ `PENDING_PAYMENT` یعنی هنوز پرداخت نشده و با گذشت `expiresAt` به `EXPIRED` می‌رود (جزئیات: `docs/order-expiry.md`).

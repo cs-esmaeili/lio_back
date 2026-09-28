@@ -37,6 +37,11 @@ export const orders = pgTable(
     postalCode: text('postal_code').notNull(),
     paidAt: timestamp('paid_at', { precision: 3, mode: 'date' }),
     canceledAt: timestamp('canceled_at', { precision: 3, mode: 'date' }),
+    // Fulfilment: the admin records the postal tracking code when shipping and
+    // the moment the order is completed.
+    trackingCode: text('tracking_code'),
+    shippedAt: timestamp('shipped_at', { precision: 3, mode: 'date' }),
+    completedAt: timestamp('completed_at', { precision: 3, mode: 'date' }),
     // Reserved stock is released once this moment passes and the order is still unpaid.
     expiresAt: timestamp('expires_at', { precision: 3, mode: 'date' }).notNull(),
     paidSmsSentAt: timestamp('paid_sms_sent_at', { precision: 3, mode: 'date' }),

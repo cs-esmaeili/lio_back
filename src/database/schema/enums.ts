@@ -96,6 +96,8 @@ export const OrderStatus = {
   PAID: 'PAID',
   CANCELED: 'CANCELED',
   EXPIRED: 'EXPIRED',
+  SHIPPED: 'SHIPPED',
+  COMPLETED: 'COMPLETED',
 } as const;
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 export const orderStatus = pgEnum('OrderStatus', Object.values(OrderStatus) as [OrderStatus, ...OrderStatus[]]);

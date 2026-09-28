@@ -115,6 +115,15 @@ export class GetMyOrderResponseDto {
   @ApiPropertyOptional({ example: null, nullable: true })
   canceledAt!: string | null;
 
+  @ApiProperty({ example: '12345678901234567890', nullable: true, description: 'Postal tracking code, set when the order is shipped' })
+  trackingCode!: string | null;
+
+  @ApiPropertyOptional({ example: '2026-08-31T09:00:00.000Z', nullable: true, description: 'Moment the order was shipped' })
+  shippedAt!: string | null;
+
+  @ApiPropertyOptional({ example: null, nullable: true, description: 'Moment the order was completed' })
+  completedAt!: string | null;
+
   @ApiProperty({ example: '2026-08-30T12:30:00.000Z', description: 'Moment the reserved stock is released if still unpaid' })
   expiresAt!: string;
 }

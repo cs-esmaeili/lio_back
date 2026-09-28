@@ -24,6 +24,7 @@ const PERMISSIONS: Array<{ name: string; description: string }> = [
   { name: 'attribute:read', description: 'List and view product attributes and their values' },
   { name: 'attribute:manage', description: 'Create, update, and delete product attributes and their values' },
   { name: 'order:read', description: 'View every order in the admin panel' },
+  { name: 'order:manage', description: 'Ship and complete orders' },
   { name: 'log:read', description: 'View application logs in the log viewer' },
   { name: 'location:create', description: 'Create locations' },
   { name: 'location:update', description: 'Update locations' },

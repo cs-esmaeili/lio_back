@@ -1,7 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, desc, eq, ilike, or, type SQL } from 'drizzle-orm';
 import { DATABASE, type Database } from 'src/database/database.constants';
-import { orderItems, orders, payments, productImages } from 'src/database/schema';
+import { orderItems, orders, OrderStatus, payments, productImages } from 'src/database/schema';
 import { FileUrlService } from 'src/common/services/file-url.service';
 import type { ListMyOrdersRequestDto } from '../dtos/listMyOrders/list-my-orders-request.dto';
 import type { ListMyOrdersResponseDto } from '../dtos/listMyOrders/list-my-orders-response.dto';
@@ -9,6 +9,8 @@ import type { GetMyOrderResponseDto } from '../dtos/getMyOrder/get-my-order-resp
 import type { ListOrdersRequestDto } from '../dtos/listOrders/list-orders-request.dto';
 import type { ListOrdersResponseDto } from '../dtos/listOrders/list-orders-response.dto';
 import type { GetOrderResponseDto } from '../dtos/getOrder/get-order-response.dto';
+import type { ShipOrderResponseDto } from '../dtos/shipOrder/ship-order-response.dto';
+import type { CompleteOrderResponseDto } from '../dtos/completeOrder/complete-order-response.dto';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -158,6 +160,48 @@ export class OrdersService {
     return { ...this.toOrderDetail(row), userId: row.userId, username: row.user?.username ?? null };
   }
 
+  /**
+   * Mark a paid order as shipped and record the carrier tracking code. Guarded
+   * by `PAID -> SHIPPED`, so a completed/expired/canceled order cannot be shipped.
+   */
+  async shipOrder(id: number, trackingCode: string): Promise<ShipOrderResponseDto> {
+    const updated = await this.db
+      .update(orders)
+      .set({ status: OrderStatus.SHIPPED, trackingCode, shippedAt: new Date() })
+      .where(and(eq(orders.id, id), eq(orders.status, OrderStatus.PAID)))
+      .returning({ id: orders.id });
+
+    if (updated.length === 0) {
+      await this.assertExists(id);
+      throw new BadRequestException('Only a paid order can be shipped');
+    }
+
+    return { ok: true };
+  }
+
+  /** Mark a shipped order as completed. Guarded by `SHIPPED -> COMPLETED`. */
+  async completeOrder(id: number): Promise<CompleteOrderResponseDto> {
+    const updated = await this.db
+      .update(orders)
+      .set({ status: OrderStatus.COMPLETED, completedAt: new Date() })
+      .where(and(eq(orders.id, id), eq(orders.status, OrderStatus.SHIPPED)))
+      .returning({ id: orders.id });
+
+    if (updated.length === 0) {
+      await this.assertExists(id);
+      throw new BadRequestException('Only a shipped order can be completed');
+    }
+
+    return { ok: true };
+  }
+
+  private async assertExists(id: number): Promise<void> {
+    const existing = await this.db.query.orders.findFirst({ where: eq(orders.id, id), columns: { id: true } });
+    if (!existing) {
+      throw new NotFoundException('Order not found');
+    }
+  }
+
   /* ------------------------------------------------------------------------ */
   /*  Shared                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -239,6 +283,9 @@ export class OrdersService {
       updatedAt: row.updatedAt.toISOString(),
       paidAt: row.paidAt?.toISOString() ?? null,
       canceledAt: row.canceledAt?.toISOString() ?? null,
+      trackingCode: row.trackingCode,
+      shippedAt: row.shippedAt?.toISOString() ?? null,
+      completedAt: row.completedAt?.toISOString() ?? null,
       expiresAt: row.expiresAt.toISOString(),
     };
   }

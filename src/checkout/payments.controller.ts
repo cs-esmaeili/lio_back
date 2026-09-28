@@ -3,6 +3,7 @@ import {
   ApiBadGatewayResponse,
   ApiBadRequestResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiHeader,
@@ -38,6 +39,9 @@ export class PaymentsController {
   @ApiBody({ type: CreatePaymentRequestDto })
   @ApiCreatedResponse({ description: 'Order created; redirect the payer to paymentUrl', type: CreatePaymentResponseDto })
   @ApiBadRequestResponse({ description: 'Empty cart, invalid address id, or insufficient stock' })
+  @ApiConflictResponse({
+    description: 'Payment requirements are not met. The body carries `code: PAYMENT_NOT_ALLOWED` and a `reasons` array of `{ code, message, fields? }`.',
+  })
   @ApiNotFoundResponse({ description: 'Address not found' })
   @ApiUnauthorizedResponse({ description: 'Authentication required' })
   @ApiBadGatewayResponse({ description: 'The payment gateway rejected the request; the order was canceled' })

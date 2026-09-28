@@ -110,6 +110,17 @@ export interface CheckoutPayment {
   provider: string;           // درگاه فعال؛ فعلاً "zarinpal"
 }
 
+export interface CheckoutPaymentEligibilityReason {
+  code: string;               // کد پایدار، مثلاً "PROFILE_INCOMPLETE"
+  message: string;
+  fields?: string[];          // فیلدهای مرتبط، وقتی دلیل به فیلد خاصی اشاره دارد
+}
+
+export interface CheckoutPaymentEligibility {
+  eligible: boolean;          // آیا کاربر مجاز به شروع پرداخت است
+  reasons: CheckoutPaymentEligibilityReason[]; // شرط‌های برقرارنشده؛ وقتی eligible=true خالی است
+}
+
 export interface Checkout {
   items: CheckoutItem[];
   itemCount: number;          // جمع همه‌ی quantityها
@@ -124,6 +135,7 @@ export interface Checkout {
   addresses: CheckoutAddress[];   // default اول لیست
   defaultAddressId: number | null;
   payment: CheckoutPayment;
+  paymentEligibility: CheckoutPaymentEligibility; // شرایط پرداخت (مثلاً پروفایل کامل)
 }
 ```
 
@@ -184,7 +196,8 @@ curl -s http://localhost:3000/checkout -b 'session=...'
       }
     ],
     "defaultAddressId": 1,
-    "payment": { "provider": "zarinpal" }
+    "payment": { "provider": "zarinpal" },
+    "paymentEligibility": { "eligible": true, "reasons": [] }
   },
   "message": "OK"
 }
@@ -213,7 +226,7 @@ async function getCheckout(): Promise<Checkout> {
 
 - پیش‌فرم فرم تماس با `customer` (شماره همیشه هست؛ `name`/`lastName` ممکن است `null` باشند).
 - انتخاب آدرس با `addresses` و پیش‌انتخاب `defaultAddressId`.
-- پیش از کلیک پرداخت، از `itemCount > 0` مطمئن شو.
+- پیش از کلیک پرداخت، از `itemCount > 0` و `paymentEligibility.eligible` مطمئن شو (شرایط پرداخت: `docs/payment-eligibility-api.md`).
 
 ---
 
@@ -229,6 +242,7 @@ async function getCheckout(): Promise<Checkout> {
 8. **`orderDiscount` فعلاً همیشه ۰ است؛** `totalDiscount` فقط «سود شما»ی نمایشی است و روی `total` اثر ندارد. این دو را قاطی نکن.
 9. **تنظیمات ارسال از site-setting خوانده می‌شود:** اگر کلید `shipping` نباشد یا خراب باشد، checkout به‌صورت امن «ارسال غیرفعال/رایگان» (`enabled:false`, `cost:0`، `freeOver:0`) برمی‌گرداند و خطا نمی‌دهد.
 10. **`payment.provider` نام درگاه است، نه متن نمایشی.** فرانت باید آن را به برند/متن فارسی نگاشت کند؛ فعلاً فقط `zarinpal` وجود دارد.
+11. **`paymentEligibility` را جدی بگیر:** اگر `eligible: false` است دکمه‌ی پرداخت را غیرفعال کن و `reasons` را نشان بده. این شرط دوباره روی `POST /payments` هم چک می‌شود و آنجا `409 PAYMENT_NOT_ALLOWED` می‌گیری (شرح در `docs/payment-eligibility-api.md`). روی `code` سوییچ کن، نه `message`.
 
 ---
 

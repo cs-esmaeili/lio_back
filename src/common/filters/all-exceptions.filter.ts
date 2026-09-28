@@ -50,19 +50,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (typeof body === 'object' && body !== null) {
-      const { message, details } = body as {
+      const { message, details, reasons, code } = body as {
         message?: string | string[];
         details?: Array<{ field: string; message: string }>;
+        reasons?: Array<{ code: string; message: string; fields?: string[] }>;
+        code?: string;
       };
 
-      if (Array.isArray(details)) {
-        return { statusCode, message, details };
-      }
-
-      return {
+      const normalized: Record<string, unknown> = {
         statusCode,
         message: Array.isArray(message) ? message.join(', ') : (message ?? exception.message),
       };
+
+      // Optional structured fields, passed through only when the thrower set them.
+      if (code) normalized.code = code;
+      if (Array.isArray(details)) normalized.details = details;
+      if (Array.isArray(reasons)) normalized.reasons = reasons;
+
+      return normalized;
     }
 
     return { statusCode, message: exception.message };

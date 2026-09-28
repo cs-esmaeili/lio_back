@@ -7,6 +7,7 @@ import type { CreatePaymentRequestDto } from '../dtos/createPayment/create-payme
 import type { CreatePaymentResponseDto } from '../dtos/createPayment/create-payment-response.dto';
 import { CheckoutPaymentRepository } from '../repositories/checkout-payment.repository';
 import { CheckoutService } from './checkout.service';
+import { PaymentEligibilityService } from './payment-eligibility.service';
 
 /** Outcome of a gateway callback, later serialized into the frontend result URL. */
 interface PaymentCallbackResult {
@@ -33,6 +34,7 @@ export class CheckoutPaymentService {
     private readonly checkout: CheckoutService,
     private readonly payment: PaymentService,
     private readonly repository: CheckoutPaymentRepository,
+    private readonly eligibility: PaymentEligibilityService,
     config: ConfigService,
   ) {
     this.callbackUrl = config.getOrThrow<string>('payment.callbackUrl');
@@ -50,6 +52,10 @@ export class CheckoutPaymentService {
     if (checkout.items.length === 0) {
       throw new BadRequestException('Cart is empty');
     }
+
+    // Every payment precondition must hold before stock is reserved or an order
+    // is created: a blocked user must not leave a pending order behind.
+    this.eligibility.assertEligible(checkout.paymentEligibility);
 
     const address = checkout.addresses.find((item) => item.id === dto.addressId);
     if (!address) {

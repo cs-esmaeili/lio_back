@@ -6,6 +6,7 @@ import { SiteSettingService } from 'src/site-setting/services/site-setting.servi
 import { AddressRepository } from 'src/address/repositories/address.repository';
 import { UsersService } from 'src/users/users.service';
 import { PaymentService } from 'src/payment/payment.service';
+import { PaymentEligibilityService } from './payment-eligibility.service';
 import type { GetCheckoutResponseDto } from '../dtos/getCheckout/get-checkout-response.dto';
 
 /** Key of the site setting that carries the shipping rule. */
@@ -26,6 +27,7 @@ export class CheckoutService {
     private readonly address: AddressRepository,
     private readonly users: UsersService,
     private readonly payment: PaymentService,
+    private readonly eligibility: PaymentEligibilityService,
   ) {}
 
   async getCheckout(userId: number): Promise<GetCheckoutResponseDto> {
@@ -46,7 +48,7 @@ export class CheckoutService {
     }));
     const priced = this.pricing.calculate(lines, lines.length > 0 ? { shipping: shipping.policy } : {});
 
-    const [user, addressRows] = await Promise.all([this.users.findById(userId), this.address.listByUser(userId)]);
+    const [user, addressRows, paymentEligibility] = await Promise.all([this.users.findById(userId), this.address.listByUser(userId), this.eligibility.check(userId)]);
     if (!user) throw new UnauthorizedException();
 
     // Decoupled from the address endpoint DTO: checkout owns its own address
@@ -84,6 +86,7 @@ export class CheckoutService {
       addresses,
       defaultAddressId: addresses.find((address) => address.isMain)?.id ?? null,
       payment: { provider: this.payment.providerName },
+      paymentEligibility,
     };
   }
 

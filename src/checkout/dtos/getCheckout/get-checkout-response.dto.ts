@@ -124,6 +124,30 @@ export class GetCheckoutPaymentDto {
   provider!: string;
 }
 
+export class GetCheckoutPaymentEligibilityReasonDto {
+  @ApiProperty({ example: 'PROFILE_INCOMPLETE', description: 'Stable machine-readable reason code; switch on this, not on the message' })
+  code!: string;
+
+  @ApiProperty({ example: 'Complete your profile (name, lastName and nationalCode) before paying' })
+  message!: string;
+
+  @ApiProperty({
+    type: [String],
+    example: ['nationalCode'],
+    required: false,
+    description: 'Fields that must be fixed for this reason, when applicable',
+  })
+  fields?: string[];
+}
+
+export class GetCheckoutPaymentEligibilityDto {
+  @ApiProperty({ example: false, description: 'Whether the current user may start a payment right now' })
+  eligible!: boolean;
+
+  @ApiProperty({ type: [GetCheckoutPaymentEligibilityReasonDto], description: 'Unmet payment requirements; empty when the user is eligible' })
+  reasons!: GetCheckoutPaymentEligibilityReasonDto[];
+}
+
 export class GetCheckoutResponseDto {
   @ApiProperty({ type: [GetCheckoutItemDto], description: 'Cart lines with their current live prices' })
   items!: GetCheckoutItemDto[];
@@ -169,4 +193,10 @@ export class GetCheckoutResponseDto {
 
   @ApiProperty({ type: GetCheckoutPaymentDto })
   payment!: GetCheckoutPaymentDto;
+
+  @ApiProperty({
+    type: GetCheckoutPaymentEligibilityDto,
+    description: 'Preconditions that must hold before the user can pay. Disable the pay button and show the reasons when eligible is false.',
+  })
+  paymentEligibility!: GetCheckoutPaymentEligibilityDto;
 }

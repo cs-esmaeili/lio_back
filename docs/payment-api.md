@@ -50,6 +50,18 @@
 { "statusCode": 400, "message": "Cart is empty" }
 ```
 
+```jsonc
+// 409 — شرایط پرداخت برقرار نیست (مثلاً پروفایل ناقص)
+{
+  "statusCode": 409,
+  "message": "Payment requirements are not met",
+  "code": "PAYMENT_NOT_ALLOWED",
+  "reasons": [
+    { "code": "PROFILE_INCOMPLETE", "message": "Complete your profile (name, lastName and nationalCode) before paying", "fields": ["nationalCode"] }
+  ]
+}
+```
+
 `GET /payments/callback` هیچ JSON برنمی‌گرداند؛ پاسخش `302 Location: <صفحه‌ی نتیجه فرانت>` است.
 
 ---
@@ -98,6 +110,7 @@ export interface CreatePayment {
   - `400` سبد خالی (`Cart is empty`)، `addressId` نامعتبر، یا موجودی کافی نبودن یک قلم.
   - `401` بدون نشست معتبر.
   - `404` آدرس پیدا نشد یا متعلق به کاربر نیست.
+  - `409` شرایط پرداخت برقرار نیست (`code: PAYMENT_NOT_ALLOWED` + آرایه‌ی `reasons`). در این حالت **سفارش ساخته نمی‌شود و موجودی رزرو نمی‌شود**. جزئیات: `docs/payment-eligibility-api.md`.
   - `502` درگاه درخواست را رد کرد. در این حالت سفارش **لغو** و موجودی **آزاد** شده است.
 
 ```bash
@@ -208,6 +221,7 @@ const reason = params.get('reason');
 9. **callback ایدمپوتنت است:** اگر بانک/مرورگر دوباره callback را بزند، سفارش دوباره پرداخت نمی‌شود و همان نتیجه‌ی موفق برمی‌گردد.
 10. **کلید مبلغ تومان است:** `amount` به تومان است؛ تبدیل به ریال کار درگاه است، فرانت کاری نکند.
 11. **`PAYMENT_FRONTEND_RESULT_URL` روی بک تنظیم می‌شود:** باید absolute باشد و به صفحه‌ی نتیجه در فرانت اشاره کند. `PAYMENT_CALLBACK_URL` هم باید از دید مرورگر کاربر قابل دسترس باشد (نه `localhost`، در production).
+12. **شرایط پرداخت قبل از ساخت سفارش چک می‌شود:** اگر `409` با `code: PAYMENT_NOT_ALLOWED` گرفتی، هیچ سفارشی ساخته نشده و موجودی رزرو نشده؛ `reasons` را نشان بده و بعد از رفع شرط دوباره تلاش کن. شرط فعلی «تکمیل پروفایل (نام/نام خانوادگی/کد ملی)» است. جزئیات: `docs/payment-eligibility-api.md`.
 
 ---
 
@@ -232,5 +246,6 @@ const reason = params.get('reason');
 | POST | `/payments` | — | — | 400 | سبد خالی / آدرس نامعتبر / کمبود موجودی |
 | POST | `/payments` | — | — | 401 | بدون نشست |
 | POST | `/payments` | — | — | 404 | آدرس پیدا نشد |
+| POST | `/payments` | — | — | 409 | شرایط پرداخت برقرار نیست (`PAYMENT_NOT_ALLOWED` + `reasons`) |
 | POST | `/payments` | — | — | 502 | رد درخواست توسط درگاه (سفارش لغو شد) |
 | GET | `/payments/callback` | عمومی (بانک) | — | 302 | ریدایرکت به صفحه‌ی نتیجه فرانت |

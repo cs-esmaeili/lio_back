@@ -316,8 +316,8 @@ function onLoggedOut(): void {
 
 ### تله ۹ — CORS و Origin
 - فرانت باید `credentials: 'include'` بزند تا کوکی‌ها بروند.
-- `assertOrigin` در CSRF، هدر `Origin` را با لیست allow شده (`APP_ORIGIN`) چک می‌کند. اگر origin فرانت در لیست نباشد → `403 Invalid origin` (برای همه‌ی mutationها، نه فقط سبد).
-- `APP_ORIGIN` می‌تواند کاما-جدا چند origin باشد: `APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173`. مقدار `*` چک را غیرفعال می‌کند (فقط dev؛ هرگز در پروداکشن). بعد از تغییر، بک را restart کن.
+- `assertOrigin` در CSRF، هدر `Origin` را با لیست allow شده (`ALLOWED_ORIGINS`) چک می‌کند. اگر origin فرانت در لیست نباشد → `403 Invalid origin` (برای همه‌ی mutationها، نه فقط سبد).
+- `ALLOWED_ORIGINS` می‌تواند کاما-جدا چند origin باشد: `ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`. مقدار `*` چک را غیرفعال می‌کند (فقط dev؛ هرگز در پروداکشن). بعد از تغییر، بک را restart کن.
 - اگر فرانت و API روی سایت‌های متفاوت‌اند (نه فقط پورت متفاوت)، با `SameSite=Lax` پیش‌فرض کوکی ردوبدل نمی‌شود؛ باید `SameSite=None; Secure` ست شود (تنظیمات env سمت بک).
 
 ### تله ۱۰ — قیمت **لحظه‌ای** است، نه snapshot
@@ -347,7 +347,7 @@ function onLoggedOut(): void {
 - [ ] ارسال `X-Cart-Token` در همه‌ی درخواست‌های سبد.
 - [ ] خواندن تازه‌ی `csrf_token` از کوکی برای هر mutation (بدون cache).
 - [ ] بعد از login/otpVerify، CSRF را دوباره sync کن؛ اولین درخواست سبد را با `X-Cart-Token` بزن (مرج)، بعد توکن مهمان را پاک کن.
-- [ ] `credentials: 'include'` و هم‌راستایی origin با `APP_ORIGIN` بک.
+- [ ] `credentials: 'include'` و هم‌راستایی origin با `ALLOWED_ORIGINS` بک.
 - [ ] خواندن payload از `body.data` و خطا از `body.message` / `body.details`.
 - [ ] مدیریت وضعیت نشست (با `GET /auth/me`) تا کاربر با نشست باطل بی‌صدا مهمان نشود.
 - [ ] استفاده از `variantId` برای PATCH/DELETE و فرستادن `quantity >= 1`؛ حذف فقط با DELETE.

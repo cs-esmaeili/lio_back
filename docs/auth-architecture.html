@@ -379,7 +379,7 @@ created_at    timestamptz         ← مبنای سقف مطلق
 <h2 id="h-7">۵. CSRF</h2>
 <ul>
 <li><code>CsrfGuard</code> روی <code>GET/HEAD/OPTIONS</code> معاف است.</li>
-<li>برای درخواست‌های تغییردهنده: <code>assertOrigin</code> (هدر Origin در <code>APP_ORIGIN</code>) + <code>validate</code> (هدر <code>X-CSRF-Token</code> == کوکی <code>csrf_token</code>).</li>
+<li>برای درخواست‌های تغییردهنده: <code>assertOrigin</code> (هدر Origin در <code>ALLOWED_ORIGINS</code>) + <code>validate</code> (هدر <code>X-CSRF-Token</code> == کوکی <code>csrf_token</code>).</li>
 <li>اگر درخواست با <strong>Bearer</strong> احراز شده باشد، CSRF معاف است (چون مرورگر هدر را خودکار نمی‌فرستد).</li>
 <li><code>csrf_token</code> بعد از <code>login</code>، <code>otp/verify</code> و <code>dev/login</code> می‌چرخد.</li>
 </ul>
@@ -422,7 +422,7 @@ rotate csrf_token
 <hr />
 <h2 id="h-12">۱۰. متغیرهای محیطی</h2>
 <pre lang="dotenv"><code># App / CORS+CSRF origin
-APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173   # `*` فقط در dev
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173   # `*` فقط در dev
 
 # Session (opaque HttpOnly cookie)
 SESSION_TTL_DAYS=30          # sliding
@@ -441,7 +441,7 @@ DEV_AUTH=false
 <ul>
 <li><strong>گارد گلوبال نداریم:</strong> هر کنترلر جدید پیش‌فرض عمومی است تا <code>@UseGuards</code> بگذاری. توصیه برای فاز بعد: <code>APP_GUARD</code> + <code>@Public</code>.</li>
 <li><code>POST /auth/test/hash-password</code> عمومی است (طبق قرارداد فعلی پروژه). برای production بهتر است گیت شود.</li>
-<li>CORS بر اساس <code>APP_ORIGIN</code> بسته می‌شود (<code>*</code> فقط dev).</li>
+<li>CORS بر اساس <code>ALLOWED_ORIGINS</code> بسته می‌شود (<code>*</code> فقط dev).</li>
 <li><code>passport</code> فقط برای استراتژی‌های ورود آینده (مثل گوگل) نگه داشته شده؛ JWT حذف شده است.</li>
 </ul>
 <hr />

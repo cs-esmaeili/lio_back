@@ -39,7 +39,7 @@ export class CsrfService {
   assertOrigin(req: Request): void {
     const origin = req.get('origin');
     if (!origin) return; // non-browser client
-    const allowed = this.config.getOrThrow<string[]>('app.origins');
+    const allowed = this.config.getOrThrow<string[]>('app.allowedOrigins');
     if (allowed.includes('*') || allowed.includes(origin)) {
       return;
     }

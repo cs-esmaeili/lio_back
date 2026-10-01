@@ -10,10 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, loggerNestOptions());
 
   const config = app.get(ConfigService);
-  const origins = config.getOrThrow<string[]>('app.origins');
+  const allowedOrigins = config.getOrThrow<string[]>('app.allowedOrigins');
   app.enableCors({
     // `*` (dev only) reflects any origin; otherwise an explicit allow-list.
-    origin: origins.includes('*') ? true : origins,
+    origin: allowedOrigins.includes('*') ? true : allowedOrigins,
     credentials: true,
   });
 

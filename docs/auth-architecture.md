@@ -118,7 +118,7 @@ created_at    timestamptz         ← مبنای سقف مطلق
 ## ۵. CSRF
 
 - `CsrfGuard` روی `GET/HEAD/OPTIONS` معاف است.
-- برای درخواست‌های تغییردهنده: `assertOrigin` (هدر Origin در `APP_ORIGIN`) + `validate` (هدر `X-CSRF-Token` == کوکی `csrf_token`).
+- برای درخواست‌های تغییردهنده: `assertOrigin` (هدر Origin در `ALLOWED_ORIGINS`) + `validate` (هدر `X-CSRF-Token` == کوکی `csrf_token`).
 - اگر درخواست با **Bearer** احراز شده باشد، CSRF معاف است (چون مرورگر هدر را خودکار نمی‌فرستد).
 - `csrf_token` بعد از `login`، `otp/verify` و `dev/login` می‌چرخد.
 
@@ -177,7 +177,7 @@ rotate csrf_token
 
 ```dotenv
 # App / CORS+CSRF origin
-APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173   # `*` فقط در dev
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173   # `*` فقط در dev
 
 # Session (opaque HttpOnly cookie)
 SESSION_TTL_DAYS=30          # sliding
@@ -198,7 +198,7 @@ DEV_AUTH=false
 
 - **گارد گلوبال نداریم:** هر کنترلر جدید پیش‌فرض عمومی است تا `@UseGuards` بگذاری. توصیه برای فاز بعد: `APP_GUARD` + `@Public`.
 - `POST /auth/test/hash-password` عمومی است (طبق قرارداد فعلی پروژه). برای production بهتر است گیت شود.
-- CORS بر اساس `APP_ORIGIN` بسته می‌شود (`*` فقط dev).
+- CORS بر اساس `ALLOWED_ORIGINS` بسته می‌شود (`*` فقط dev).
 - `passport` فقط برای استراتژی‌های ورود آینده (مثل گوگل) نگه داشته شده؛ JWT حذف شده است.
 
 ---

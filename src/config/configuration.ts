@@ -13,7 +13,9 @@ export const PHONE_NUMBER_EXAMPLE = '09123456789';
 
 export default () => {
   const port = parseInt(process.env.PORT ?? '3000', 10);
-  const origins = (process.env.APP_ORIGIN ?? 'http://localhost:3000')
+  // Public base URL this backend is served from, used to build absolute file URLs.
+  const appUrl = process.env.APP_URL ?? `http://localhost:${port}`;
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:3000')
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
@@ -21,12 +23,11 @@ export default () => {
   return {
     app: {
       port,
-      // Comma-separated allow-list for the CSRF origin check. A single `*`
+      // Public base URL this backend is served from.
+      url: appUrl,
+      // Browser origins allowed by the CSRF origin check. A single `*`
       // disables the check (dev only); double-submit CSRF still applies.
-      origins,
-      // First concrete origin, used to build absolute file URLs. `*` is not a
-      // usable URL, so fall back to the local server origin.
-      origin: origins.find((value) => value !== '*') ?? `http://localhost:${port}`,
+      allowedOrigins,
     },
     seed: {
       // Login identifier of the seeded admin user. Reused as the Swagger
@@ -83,7 +84,7 @@ export default () => {
       callbackUrl: process.env.PAYMENT_CALLBACK_URL ?? `http://localhost:${port}/payments/callback`,
       // Frontend page the payer is sent to after the gateway callback; the
       // outcome is appended to it as query parameters.
-      frontendResultUrl: process.env.PAYMENT_FRONTEND_RESULT_URL ?? `${origins.find((value) => value !== '*') ?? `http://localhost:${port}`}/payment/result`,
+      frontendResultUrl: process.env.PAYMENT_FRONTEND_RESULT_URL ?? `${allowedOrigins.find((value) => value !== '*') ?? appUrl}/payment/result`,
       // How long an unpaid order keeps its reserved stock (minutes).
       orderTtlMinutes: Math.max(1, parseInt(process.env.PAYMENT_ORDER_TTL_MINUTES ?? '30', 10) || 30),
       zarinpal: {

@@ -249,7 +249,7 @@ async function getCheckout(): Promise<Checkout> {
 ## ۷. چک‌لیست فرانت
 
 - [ ] فقط برای کاربر لاگین‌شده صدا بزن؛ روی `401` به لاگین ببر.
-- [ ] `credentials: 'include'` و هم‌راستایی origin با `APP_ORIGIN` بک.
+- [ ] `credentials: 'include'` و هم‌راستایی origin با `ALLOWED_ORIGINS` بک.
 - [ ] قبل از checkout، مرج سبد مهمان را با یک `GET /cart` + `X-Cart-Token` انجام بده.
 - [ ] payload را از `body.data` و خطا را از `body.message` بخوان.
 - [ ] فرم تماس را با `customer` پیش‌پر کن و `null` بودن `name`/`lastName` را هندل کن.

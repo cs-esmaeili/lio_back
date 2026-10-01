@@ -59,6 +59,7 @@ export const PageSectionType = {
   HEADER: 'HEADER',
   FOOTER: 'FOOTER',
   CONTACT: 'CONTACT',
+  ABOUT: 'ABOUT',
 } as const;
 export type PageSectionType = (typeof PageSectionType)[keyof typeof PageSectionType];
 export const pageSectionType = pgEnum('PageSectionType', Object.values(PageSectionType) as [PageSectionType, ...PageSectionType[]]);
@@ -74,6 +75,7 @@ export const PageSectionLocation = {
   HEADER: 'HEADER',
   FOOTER: 'FOOTER',
   CONTACT: 'CONTACT',
+  ABOUT: 'ABOUT',
 } as const;
 export type PageSectionLocation = (typeof PageSectionLocation)[keyof typeof PageSectionLocation];
 export const pageSectionLocation = pgEnum('PageSectionLocation', Object.values(PageSectionLocation) as [PageSectionLocation, ...PageSectionLocation[]]);

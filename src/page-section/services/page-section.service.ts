@@ -9,6 +9,7 @@ import { IntroductionSectionService } from './introduction-section.service';
 import { HeaderSectionService } from './header-section.service';
 import { FooterSectionService } from './footer-section.service';
 import { ContactSectionService } from './contact-section.service';
+import { AboutSectionService } from './about-section.service';
 import type { SliderSectionData } from './slider-section.service';
 import type { ProductListSectionData } from './product-list-section.service';
 import type { BannerSectionData } from './banner-section.service';
@@ -16,10 +17,12 @@ import type { IntroductionSectionData } from './introduction-section.service';
 import type { HeaderSectionData } from './header-section.service';
 import type { FooterSectionData } from './footer-section.service';
 import type { ContactSectionData } from './contact-section.service';
+import type { AboutSectionData } from './about-section.service';
 import type { CreateSectionRequestDto } from '../dtos/createSection/create-section-request.dto';
 import type { GetSectionQueryDto } from '../dtos/getSection/get-section-query.dto';
 import type { GetPageSectionsQueryDto } from '../dtos/getPageSections/get-page-sections-query.dto';
 import type {
+  AboutInputDto,
   BannerInputDto,
   ContactInputDto,
   DeleteSectionDataQueryDto,
@@ -42,6 +45,7 @@ const DEFAULT_LOCATION: Record<PageSectionType, PageSectionLocation> = {
   [PageSectionType.HEADER]: PageSectionLocation.HEADER,
   [PageSectionType.FOOTER]: PageSectionLocation.FOOTER,
   [PageSectionType.CONTACT]: PageSectionLocation.CONTACT,
+  [PageSectionType.ABOUT]: PageSectionLocation.ABOUT,
 };
 
 @Injectable()
@@ -55,6 +59,7 @@ export class PageSectionService {
     private readonly headerSectionService: HeaderSectionService,
     private readonly footerSectionService: FooterSectionService,
     private readonly contactSectionService: ContactSectionService,
+    private readonly aboutSectionService: AboutSectionService,
   ) {}
 
   async createSection(dto: CreateSectionRequestDto) {
@@ -138,6 +143,8 @@ export class PageSectionService {
         return this.footerSectionService.create(section.id, dto.data as FooterItemInputDto);
       case PageSectionType.CONTACT:
         return this.contactSectionService.create(section.id, dto.data as ContactInputDto);
+      case PageSectionType.ABOUT:
+        return this.aboutSectionService.create(section.id, dto.data as AboutInputDto);
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -159,6 +166,8 @@ export class PageSectionService {
         return this.footerSectionService.update(section.id, dto.data as FooterItemInputDto);
       case PageSectionType.CONTACT:
         return this.contactSectionService.update(section.id, dto.data as ContactInputDto);
+      case PageSectionType.ABOUT:
+        return this.aboutSectionService.update(section.id, dto.data as AboutInputDto);
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -180,6 +189,8 @@ export class PageSectionService {
         return this.footerSectionService.remove(section.id, this.requireItemId(query));
       case PageSectionType.CONTACT:
         return this.contactSectionService.remove(section.id);
+      case PageSectionType.ABOUT:
+        return this.aboutSectionService.remove(section.id);
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -239,6 +250,8 @@ export class PageSectionService {
         return this.footerSectionService.list(section.id);
       case PageSectionType.CONTACT:
         return this.contactSectionService.list(section.id);
+      case PageSectionType.ABOUT:
+        return this.aboutSectionService.list(section.id);
       default:
         throw new BadRequestException('Unsupported section type');
     }
@@ -246,7 +259,7 @@ export class PageSectionService {
 
   private toResponse(
     section: PageSection,
-    data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData | HeaderSectionData | FooterSectionData | ContactSectionData,
+    data: SliderSectionData | ProductListSectionData | BannerSectionData | IntroductionSectionData | HeaderSectionData | FooterSectionData | ContactSectionData | AboutSectionData,
   ) {
     return {
       id: section.id,

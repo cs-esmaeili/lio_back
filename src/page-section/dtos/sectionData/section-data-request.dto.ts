@@ -1,6 +1,6 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDefined, IsEmail, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsDefined, IsEmail, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { FooterSectionType, HeaderSectionType, PageSectionType } from 'src/database/schema';
 
 /**
@@ -224,11 +224,97 @@ export class ContactInputDto {
   mapLng?: number | null;
 }
 
+export class AboutStatisticInputDto {
+  @ApiPropertyOptional({ example: 'مشتری راضی', nullable: true })
+  @IsOptional()
+  @IsString()
+  title?: string | null;
+
+  @ApiPropertyOptional({ example: 'از سراسر ایران', nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string | null;
+
+  @ApiPropertyOptional({ example: 10000, nullable: true })
+  @IsOptional()
+  @IsInt()
+  number?: number | null;
+}
+
+export class AboutInputDto {
+  @ApiPropertyOptional({ example: 'درباره لیو', nullable: true })
+  @IsOptional()
+  @IsString()
+  headerTitle?: string | null;
+
+  @ApiPropertyOptional({ example: '<p>متن معرفی...</p>', nullable: true })
+  @IsOptional()
+  @IsString()
+  headerDescription?: string | null;
+
+  @ApiPropertyOptional({ example: 101, nullable: true })
+  @IsOptional()
+  @IsInt()
+  headerFileId?: number | null;
+
+  @ApiPropertyOptional({ example: 'تاریخچه ما', nullable: true })
+  @IsOptional()
+  @IsString()
+  historyTitle?: string | null;
+
+  @ApiPropertyOptional({ example: '<p>تاریخچه...</p>', nullable: true })
+  @IsOptional()
+  @IsString()
+  historyDescription?: string | null;
+
+  @ApiPropertyOptional({ example: 'پیام موسس', nullable: true })
+  @IsOptional()
+  @IsString()
+  founderTitle?: string | null;
+
+  @ApiPropertyOptional({ example: 'مدیرعامل لیو', nullable: true })
+  @IsOptional()
+  @IsString()
+  founderSubtitle?: string | null;
+
+  @ApiPropertyOptional({ example: '<p>متن پیام...</p>', nullable: true })
+  @IsOptional()
+  @IsString()
+  founderDescription?: string | null;
+
+  @ApiPropertyOptional({ example: 102, nullable: true })
+  @IsOptional()
+  @IsInt()
+  founderFileId?: number | null;
+
+  @ApiPropertyOptional({ example: 103, nullable: true })
+  @IsOptional()
+  @IsInt()
+  founderSignatureFileId?: number | null;
+
+  @ApiPropertyOptional({ type: [AboutStatisticInputDto], description: 'Counter items (full replacement list)' })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AboutStatisticInputDto)
+  statistics?: AboutStatisticInputDto[];
+}
+
 /**
  * Body of `POST` (create item), `PATCH` (update item) and the query of `DELETE`
  * on `/admin/page-sections/{id}/data`. `type` selects the section handler.
  */
-@ApiExtraModels(SliderSlideInputDto, ProductListItemInputDto, BannerInputDto, IntroductionInputDto, HeaderItemInputDto, FooterItemInputDto, ContactInputDto)
+@ApiExtraModels(
+  SliderSlideInputDto,
+  ProductListItemInputDto,
+  BannerInputDto,
+  IntroductionInputDto,
+  HeaderItemInputDto,
+  FooterItemInputDto,
+  ContactInputDto,
+  AboutStatisticInputDto,
+  AboutInputDto,
+)
 export class PageSectionDataRequestDto {
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)
@@ -243,6 +329,7 @@ export class PageSectionDataRequestDto {
       { $ref: getSchemaPath(HeaderItemInputDto) },
       { $ref: getSchemaPath(FooterItemInputDto) },
       { $ref: getSchemaPath(ContactInputDto) },
+      { $ref: getSchemaPath(AboutInputDto) },
     ],
   })
   @IsDefined()
@@ -262,15 +349,17 @@ export class PageSectionDataRequestDto {
         return FooterItemInputDto;
       case PageSectionType.CONTACT:
         return ContactInputDto;
+      case PageSectionType.ABOUT:
+        return AboutInputDto;
       default:
         return SliderSlideInputDto;
     }
   })
-  data!: SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto | ContactInputDto;
+  data!: SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto | ContactInputDto | AboutInputDto;
 }
 
 export type PageSectionItemInput =
-  SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto | ContactInputDto;
+  SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto | ContactInputDto | AboutInputDto;
 
 /**
  * `POST`/`PATCH` send `{ type, data }`. `DELETE` needs only the item id (the

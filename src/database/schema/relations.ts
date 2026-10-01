@@ -1,4 +1,5 @@
 import { relations } from 'drizzle-orm';
+import { aboutSections } from './about-section';
 import { addresses } from './address';
 import { attributeValues } from './attribute-value';
 import { attributes } from './attribute';
@@ -108,6 +109,9 @@ export const filesRelations = relations(files, ({ one, many }) => ({
   introductionTabletSections: many(introductionSections, { relationName: 'IntroductionTabletFile' }),
   introductionMobileSections: many(introductionSections, { relationName: 'IntroductionMobileFile' }),
   footerSections: many(footerSections, { relationName: 'FooterFile' }),
+  aboutHeaderSections: many(aboutSections, { relationName: 'AboutHeaderFile' }),
+  aboutFounderSections: many(aboutSections, { relationName: 'AboutFounderFile' }),
+  aboutFounderSignatureSections: many(aboutSections, { relationName: 'AboutFounderSignatureFile' }),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
@@ -202,6 +206,7 @@ export const pageSectionsRelations = relations(pageSections, ({ one, many }) => 
   introductionSection: one(introductionSections, { fields: [pageSections.id], references: [introductionSections.sectionId] }),
   headerSections: many(headerSections),
   footerSections: many(footerSections),
+  aboutSection: one(aboutSections, { fields: [pageSections.id], references: [aboutSections.sectionId] }),
 }));
 
 export const sliderSectionsRelations = relations(sliderSections, ({ one }) => ({
@@ -246,6 +251,17 @@ export const footerSectionsRelations = relations(footerSections, ({ one }) => ({
   section: one(pageSections, { fields: [footerSections.sectionId], references: [pageSections.id] }),
   file: one(files, { fields: [footerSections.fileId], references: [files.id], relationName: 'FooterFile' }),
   category: one(categories, { fields: [footerSections.categoryId], references: [categories.id] }),
+}));
+
+export const aboutSectionsRelations = relations(aboutSections, ({ one }) => ({
+  section: one(pageSections, { fields: [aboutSections.sectionId], references: [pageSections.id] }),
+  headerFile: one(files, { fields: [aboutSections.headerFileId], references: [files.id], relationName: 'AboutHeaderFile' }),
+  founderFile: one(files, { fields: [aboutSections.founderFileId], references: [files.id], relationName: 'AboutFounderFile' }),
+  founderSignatureFile: one(files, {
+    fields: [aboutSections.founderSignatureFileId],
+    references: [files.id],
+    relationName: 'AboutFounderSignatureFile',
+  }),
 }));
 
 export const productListSectionsRelations = relations(productListSections, ({ one }) => ({

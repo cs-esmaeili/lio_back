@@ -1,5 +1,6 @@
 export * from './enums';
 export * from './address';
+export * from './about-section';
 export * from './attribute';
 export * from './attribute-value';
 export * from './auth-session';

@@ -13522,7 +13522,8 @@
           "INTRODUCTION",
           "HEADER",
           "FOOTER",
-          "CONTACT"
+          "CONTACT",
+          "ABOUT"
         ]
       },
       "PageSectionLocation": {
@@ -13537,7 +13538,8 @@
           "INTRODUCTION",
           "HEADER",
           "FOOTER",
-          "CONTACT"
+          "CONTACT",
+          "ABOUT"
         ],
         "description": "Render location; defaults to the section type when omitted"
       },
@@ -14202,6 +14204,16 @@
             "example": "شنبه تا چهارشنبه ۹ تا ۱۸",
             "nullable": true
           },
+          "mapLat": {
+            "type": "number",
+            "example": 32.655599,
+            "nullable": true
+          },
+          "mapLng": {
+            "type": "number",
+            "example": 51.699845,
+            "nullable": true
+          },
           "supportPhone": {
             "type": "object",
             "example": "021-12345678",
@@ -14218,8 +14230,129 @@
           "address",
           "email",
           "supportHour",
+          "mapLat",
+          "mapLng",
           "supportPhone",
           "socials"
+        ]
+      },
+      "AboutStatisticDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "مشتری راضی"
+          },
+          "description": {
+            "type": "string",
+            "example": "از سراسر ایران"
+          },
+          "number": {
+            "type": "number",
+            "example": 10000
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "number"
+        ]
+      },
+      "AboutSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "headerTitle": {
+            "type": "object",
+            "example": "درباره لیو",
+            "nullable": true
+          },
+          "headerDescription": {
+            "type": "object",
+            "example": "<p>متن معرفی...</p>",
+            "nullable": true
+          },
+          "headerFileId": {
+            "type": "object",
+            "example": 101,
+            "nullable": true
+          },
+          "headerFileUrl": {
+            "type": "object",
+            "example": "/uploads/images/about-header.png",
+            "nullable": true
+          },
+          "historyTitle": {
+            "type": "object",
+            "example": "تاریخچه ما",
+            "nullable": true
+          },
+          "historyDescription": {
+            "type": "object",
+            "example": "<p>تاریخچه...</p>",
+            "nullable": true
+          },
+          "founderTitle": {
+            "type": "object",
+            "example": "پیام موسس",
+            "nullable": true
+          },
+          "founderSubtitle": {
+            "type": "object",
+            "example": "مدیرعامل لیو",
+            "nullable": true
+          },
+          "founderDescription": {
+            "type": "object",
+            "example": "<p>متن پیام...</p>",
+            "nullable": true
+          },
+          "founderFileId": {
+            "type": "object",
+            "example": 102,
+            "nullable": true
+          },
+          "founderFileUrl": {
+            "type": "object",
+            "example": "/uploads/images/founder.png",
+            "nullable": true
+          },
+          "founderSignatureFileId": {
+            "type": "object",
+            "example": 103,
+            "nullable": true
+          },
+          "founderSignatureFileUrl": {
+            "type": "object",
+            "example": "/uploads/images/signature.png",
+            "nullable": true
+          },
+          "statistics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AboutStatisticDto"
+            }
+          }
+        },
+        "required": [
+          "headerTitle",
+          "headerDescription",
+          "headerFileId",
+          "headerFileUrl",
+          "historyTitle",
+          "historyDescription",
+          "founderTitle",
+          "founderSubtitle",
+          "founderDescription",
+          "founderFileId",
+          "founderFileUrl",
+          "founderSignatureFileId",
+          "founderSignatureFileUrl",
+          "statistics"
         ]
       },
       "CreateSectionResponseDto": {
@@ -14294,6 +14427,9 @@
               },
               {
                 "$ref": "#/components/schemas/ContactSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/AboutSectionDataDto"
               }
             ]
           }
@@ -14382,6 +14518,9 @@
               },
               {
                 "$ref": "#/components/schemas/ContactSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/AboutSectionDataDto"
               }
             ]
           }
@@ -14656,6 +14795,100 @@
             "type": "object",
             "example": "شنبه تا چهارشنبه ۹ تا ۱۸",
             "nullable": true
+          },
+          "mapLat": {
+            "type": "object",
+            "example": 32.655599,
+            "nullable": true,
+            "description": "Map latitude"
+          },
+          "mapLng": {
+            "type": "object",
+            "example": 51.699845,
+            "nullable": true,
+            "description": "Map longitude"
+          }
+        }
+      },
+      "AboutStatisticInputDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "object",
+            "example": "مشتری راضی",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "example": "از سراسر ایران",
+            "nullable": true
+          },
+          "number": {
+            "type": "object",
+            "example": 10000,
+            "nullable": true
+          }
+        }
+      },
+      "AboutInputDto": {
+        "type": "object",
+        "properties": {
+          "headerTitle": {
+            "type": "object",
+            "example": "درباره لیو",
+            "nullable": true
+          },
+          "headerDescription": {
+            "type": "object",
+            "example": "<p>متن معرفی...</p>",
+            "nullable": true
+          },
+          "headerFileId": {
+            "type": "object",
+            "example": 101,
+            "nullable": true
+          },
+          "historyTitle": {
+            "type": "object",
+            "example": "تاریخچه ما",
+            "nullable": true
+          },
+          "historyDescription": {
+            "type": "object",
+            "example": "<p>تاریخچه...</p>",
+            "nullable": true
+          },
+          "founderTitle": {
+            "type": "object",
+            "example": "پیام موسس",
+            "nullable": true
+          },
+          "founderSubtitle": {
+            "type": "object",
+            "example": "مدیرعامل لیو",
+            "nullable": true
+          },
+          "founderDescription": {
+            "type": "object",
+            "example": "<p>متن پیام...</p>",
+            "nullable": true
+          },
+          "founderFileId": {
+            "type": "object",
+            "example": 102,
+            "nullable": true
+          },
+          "founderSignatureFileId": {
+            "type": "object",
+            "example": 103,
+            "nullable": true
+          },
+          "statistics": {
+            "description": "Counter items (full replacement list)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AboutStatisticInputDto"
+            }
           }
         }
       },
@@ -14692,6 +14925,9 @@
               },
               {
                 "$ref": "#/components/schemas/ContactInputDto"
+              },
+              {
+                "$ref": "#/components/schemas/AboutInputDto"
               }
             ]
           }
@@ -14773,6 +15009,9 @@
               },
               {
                 "$ref": "#/components/schemas/ContactSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/AboutSectionDataDto"
               }
             ]
           }

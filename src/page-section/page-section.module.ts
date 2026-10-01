@@ -12,6 +12,7 @@ import { IntroductionSectionService } from './services/introduction-section.serv
 import { HeaderSectionService } from './services/header-section.service';
 import { FooterSectionService } from './services/footer-section.service';
 import { ContactSectionService } from './services/contact-section.service';
+import { AboutSectionService } from './services/about-section.service';
 
 @Module({
   imports: [AuthModule, AuthorizationModule, ProductModule],
@@ -25,6 +26,7 @@ import { ContactSectionService } from './services/contact-section.service';
     HeaderSectionService,
     FooterSectionService,
     ContactSectionService,
+    AboutSectionService,
   ],
 })
 export class PageSectionModule {}

@@ -299,6 +299,64 @@ export class ContactSectionDataDto {
   socials!: ContactSocialDto[];
 }
 
+export class AboutStatisticDto {
+  @ApiProperty({ example: 1 })
+  id!: number;
+
+  @ApiProperty({ example: 'مشتری راضی' })
+  title!: string;
+
+  @ApiProperty({ example: 'از سراسر ایران' })
+  description!: string;
+
+  @ApiProperty({ example: 10000 })
+  number!: number;
+}
+
+export class AboutSectionDataDto {
+  @ApiProperty({ example: 'درباره لیو', nullable: true })
+  headerTitle!: string | null;
+
+  @ApiProperty({ example: '<p>متن معرفی...</p>', nullable: true })
+  headerDescription!: string | null;
+
+  @ApiProperty({ example: 101, nullable: true })
+  headerFileId!: number | null;
+
+  @ApiProperty({ example: '/uploads/images/about-header.png', nullable: true })
+  headerFileUrl!: string | null;
+
+  @ApiProperty({ example: 'تاریخچه ما', nullable: true })
+  historyTitle!: string | null;
+
+  @ApiProperty({ example: '<p>تاریخچه...</p>', nullable: true })
+  historyDescription!: string | null;
+
+  @ApiProperty({ example: 'پیام موسس', nullable: true })
+  founderTitle!: string | null;
+
+  @ApiProperty({ example: 'مدیرعامل لیو', nullable: true })
+  founderSubtitle!: string | null;
+
+  @ApiProperty({ example: '<p>متن پیام...</p>', nullable: true })
+  founderDescription!: string | null;
+
+  @ApiProperty({ example: 102, nullable: true })
+  founderFileId!: number | null;
+
+  @ApiProperty({ example: '/uploads/images/founder.png', nullable: true })
+  founderFileUrl!: string | null;
+
+  @ApiProperty({ example: 103, nullable: true })
+  founderSignatureFileId!: number | null;
+
+  @ApiProperty({ example: '/uploads/images/signature.png', nullable: true })
+  founderSignatureFileUrl!: string | null;
+
+  @ApiProperty({ type: [AboutStatisticDto] })
+  statistics!: AboutStatisticDto[];
+}
+
 @ApiExtraModels(
   SliderSectionDataDto,
   ProductListSectionDataDto,
@@ -307,6 +365,7 @@ export class ContactSectionDataDto {
   HeaderSectionDataDto,
   FooterSectionDataDto,
   ContactSectionDataDto,
+  AboutSectionDataDto,
 )
 export class CreateSectionResponseDto {
   @ApiProperty({ example: 50 })
@@ -342,7 +401,16 @@ export class CreateSectionResponseDto {
       { $ref: getSchemaPath(HeaderSectionDataDto) },
       { $ref: getSchemaPath(FooterSectionDataDto) },
       { $ref: getSchemaPath(ContactSectionDataDto) },
+      { $ref: getSchemaPath(AboutSectionDataDto) },
     ],
   })
-  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto | HeaderSectionDataDto | FooterSectionDataDto | ContactSectionDataDto;
+  data!:
+    | SliderSectionDataDto
+    | ProductListSectionDataDto
+    | BannerSectionDataDto
+    | IntroductionSectionDataDto
+    | HeaderSectionDataDto
+    | FooterSectionDataDto
+    | ContactSectionDataDto
+    | AboutSectionDataDto;
 }

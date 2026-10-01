@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 import { UserStatus } from 'src/database/schema';
 
 export class AdminUserRoleDto {
@@ -16,7 +17,7 @@ export class AdminUserListItemDto {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: '09123456789' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE })
   username!: string;
 
   @ApiProperty({ example: 'Admin', nullable: true })

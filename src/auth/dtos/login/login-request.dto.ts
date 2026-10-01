@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 import { IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class LoginRequestDto {
   @ApiProperty({
     description: 'Phone number in 09XXXXXXXXX format',
-    example: '09123456789',
+    example: PHONE_NUMBER_EXAMPLE,
   })
   @IsString()
   @IsNotEmpty()

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 
 export class GetCheckoutProductDto {
   @ApiProperty({ example: 3342 })
@@ -69,7 +70,7 @@ export class GetCheckoutCustomerDto {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: '09123456789', description: 'Phone number (the login identifier), used to prefill the contact form' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE, description: 'Phone number (the login identifier), used to prefill the contact form' })
   phone!: string;
 
   @ApiProperty({ type: String, example: 'Ali', nullable: true })

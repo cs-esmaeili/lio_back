@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 import { OrderStatus, PaymentStatus } from 'src/database/schema';
 
 export class AdminOrderLineDto {
@@ -37,7 +38,7 @@ export class AdminOrderCustomerDto {
   @ApiProperty({ example: 'Esmaeili' })
   lastName!: string;
 
-  @ApiProperty({ example: '09123456789' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE })
   phone!: string;
 
   @ApiProperty({ example: 'Lio', nullable: true })
@@ -94,7 +95,7 @@ export class GetOrderResponseDto {
   @ApiProperty({ example: 2, nullable: true, description: 'Owner user id; null for a guest or a deleted user' })
   userId!: number | null;
 
-  @ApiProperty({ example: '09123456789', nullable: true, description: 'Owner username; null for a guest or a deleted user' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE, nullable: true, description: 'Owner username; null for a guest or a deleted user' })
   username!: string | null;
 
   @ApiProperty({ type: AdminOrderCustomerDto })

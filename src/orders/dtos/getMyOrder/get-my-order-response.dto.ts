@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 import { OrderStatus, PaymentStatus } from 'src/database/schema';
 
 export class MyOrderLineDto {
@@ -37,7 +38,7 @@ export class MyOrderCustomerDto {
   @ApiProperty({ example: 'Esmaeili' })
   lastName!: string;
 
-  @ApiProperty({ example: '09123456789' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE })
   phone!: string;
 
   @ApiProperty({ example: 'Lio', nullable: true })

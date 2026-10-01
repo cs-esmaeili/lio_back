@@ -3,6 +3,14 @@ import { join } from 'node:path';
 const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
 const LOG_REQUESTS_MODES = ['all', 'errors', 'off'] as const;
 
+/**
+ * Fallback phone number shared by the seeded admin user and every Swagger
+ * phone example. DTO decorators are evaluated before `ConfigModule` loads
+ * `.env`, so they reference this constant; `swagger.setup.ts` then swaps it
+ * for the configured `seed.adminPhone` when the OpenAPI document is built.
+ */
+export const PHONE_NUMBER_EXAMPLE = '09123456789';
+
 export default () => {
   const port = parseInt(process.env.PORT ?? '3000', 10);
   const origins = (process.env.APP_ORIGIN ?? 'http://localhost:3000')
@@ -19,6 +27,11 @@ export default () => {
       // First concrete origin, used to build absolute file URLs. `*` is not a
       // usable URL, so fall back to the local server origin.
       origin: origins.find((value) => value !== '*') ?? `http://localhost:${port}`,
+    },
+    seed: {
+      // Login identifier of the seeded admin user. Reused as the Swagger
+      // example phone number so the demo account can be tried from the docs.
+      adminPhone: process.env.SEED_ADMIN_PHONE?.trim() || PHONE_NUMBER_EXAMPLE,
     },
     uploads: {
       publicDir: join(process.cwd(), 'public'),

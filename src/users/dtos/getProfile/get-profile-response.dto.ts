@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 
 export class GetProfileResponseDto {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: '09123456789', description: 'Phone number (login identifier) — read-only' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE, description: 'Phone number (login identifier) — read-only' })
   username!: string;
 
   @ApiProperty({ example: 'Ali', nullable: true })

@@ -1,7 +1,9 @@
 import type { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { OpenAPIObject, OperationObject, ReferenceObject, SchemaObject } from '@nestjs/swagger';
 import { STATUS_CODES } from 'node:http';
+import { PHONE_NUMBER_EXAMPLE } from '../../config/configuration';
 
 const SWAGGER_URL = 'docs';
 
@@ -66,11 +68,43 @@ function wrapSwaggerEnvelope(document: OpenAPIObject): void {
   }
 }
 
+/** Recursively replace every string equal to `from`, in place. */
+function replaceStringValue(node: unknown, from: string, to: string): void {
+  if (Array.isArray(node)) {
+    for (const item of node) replaceStringValue(item, from, to);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+
+  for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+    if (typeof value === 'string') {
+      if (value === from) (node as Record<string, unknown>)[key] = to;
+    } else {
+      replaceStringValue(value, from, to);
+    }
+  }
+}
+
+/**
+ * Swaps the DTO example placeholder for the configured `SEED_ADMIN_PHONE`.
+ *
+ * DTO decorators are evaluated before `ConfigModule` loads `.env`, so they all
+ * carry the `PHONE_NUMBER_EXAMPLE` default. Here the env is loaded and the
+ * document can be built with the real value.
+ */
+function applyConfiguredPhoneExample(app: INestApplication, document: OpenAPIObject): void {
+  const phone = app.get(ConfigService).get<string>('seed.adminPhone')?.trim();
+  if (!phone || phone === PHONE_NUMBER_EXAMPLE) return;
+
+  replaceStringValue(document, PHONE_NUMBER_EXAMPLE, phone);
+}
+
 export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
   const swaggerConfig = new DocumentBuilder().setTitle('Lio API').setDescription('Authentication and session management API').setVersion('1.0').addCookieAuth('session').build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   wrapSwaggerEnvelope(document);
+  applyConfiguredPhoneExample(app, document);
   return document;
 }
 

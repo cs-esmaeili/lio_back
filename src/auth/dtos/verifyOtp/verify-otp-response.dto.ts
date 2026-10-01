@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PHONE_NUMBER_EXAMPLE } from '../../../config/configuration';
 
 export class VerifyOtpResponseDto {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: '09123456789', description: 'Phone number (login identifier)' })
+  @ApiProperty({ example: PHONE_NUMBER_EXAMPLE, description: 'Phone number (login identifier)' })
   username!: string;
 
   @ApiProperty({ example: 'Ali', nullable: true })

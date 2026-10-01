@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { PasswordService } from '../../auth/services/password.service';
+import configuration from '../../config/configuration';
 import { roles, users } from '../schema';
 import type { SeedDb } from './db';
 
-const ADMIN_PHONE = '09123456789';
 const ADMIN_PASSWORD = 'secret-password';
 
 export async function seedAdmin(db: SeedDb): Promise<number> {
@@ -13,10 +13,11 @@ export async function seedAdmin(db: SeedDb): Promise<number> {
   }
 
   const passwordHash = await new PasswordService().hash(ADMIN_PASSWORD);
+  const { adminPhone } = configuration().seed;
 
   const [user] = await db
     .insert(users)
-    .values({ username: ADMIN_PHONE, name: 'Admin', passwordHash, roleId: role.id })
+    .values({ username: adminPhone, name: 'Admin', passwordHash, roleId: role.id })
     .onConflictDoUpdate({ target: users.username, set: { roleId: role.id, passwordHash } })
     .returning();
 

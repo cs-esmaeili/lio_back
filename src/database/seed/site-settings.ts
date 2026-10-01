@@ -38,6 +38,17 @@ const SITE_SETTINGS: SiteSettingSeed[] = [
     isPrivate: false,
   },
   {
+    key: 'socials',
+    data: {
+      items: [
+        { key: 'instagram', title: 'اینستاگرام', image: '/uploads/statics/instagram.svg', fullUrl: 'https://instagram.com/liobrand' },
+        { key: 'telegram', title: 'تلگرام', image: '/uploads/statics/telegram.svg', fullUrl: 'https://t.me/liobrand' },
+        { key: 'whatsapp', title: 'واتساپ', image: '/uploads/statics/whatsapp.svg', fullUrl: 'https://wa.me/989123456789' },
+      ],
+    },
+    isPrivate: false,
+  },
+  {
     key: 'shipping',
     data: {
       enabled: true,

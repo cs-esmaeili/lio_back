@@ -262,7 +262,52 @@ export class FooterSectionDataDto {
   categories!: FooterCategoryDto[];
 }
 
-@ApiExtraModels(SliderSectionDataDto, ProductListSectionDataDto, BannerSectionDataDto, IntroductionSectionDataDto, HeaderSectionDataDto, FooterSectionDataDto)
+export class ContactSocialDto {
+  @ApiProperty({ example: 'instagram' })
+  key!: string;
+
+  @ApiProperty({ example: 'اینستاگرام' })
+  title!: string;
+
+  @ApiProperty({ example: '/uploads/images/instagram.svg' })
+  image!: string;
+
+  @ApiProperty({ example: 'https://instagram.com/liobrand' })
+  fullUrl!: string;
+}
+
+export class ContactSectionDataDto {
+  @ApiProperty({ example: 'اصفهان، خیابان ...', nullable: true })
+  address!: string | null;
+
+  @ApiProperty({ example: 'info@liobrand.ir', nullable: true })
+  email!: string | null;
+
+  @ApiProperty({ example: 'شنبه تا چهارشنبه ۹ تا ۱۸', nullable: true })
+  supportHour!: string | null;
+
+  @ApiProperty({ type: Number, example: 32.655599, nullable: true })
+  mapLat!: number | null;
+
+  @ApiProperty({ type: Number, example: 51.699845, nullable: true })
+  mapLng!: number | null;
+
+  @ApiProperty({ example: '021-12345678', nullable: true })
+  supportPhone!: string | null;
+
+  @ApiProperty({ type: [ContactSocialDto] })
+  socials!: ContactSocialDto[];
+}
+
+@ApiExtraModels(
+  SliderSectionDataDto,
+  ProductListSectionDataDto,
+  BannerSectionDataDto,
+  IntroductionSectionDataDto,
+  HeaderSectionDataDto,
+  FooterSectionDataDto,
+  ContactSectionDataDto,
+)
 export class UpdateSectionDataResponseDto {
   @ApiProperty({ example: 50 })
   id!: number;
@@ -296,7 +341,8 @@ export class UpdateSectionDataResponseDto {
       { $ref: getSchemaPath(IntroductionSectionDataDto) },
       { $ref: getSchemaPath(HeaderSectionDataDto) },
       { $ref: getSchemaPath(FooterSectionDataDto) },
+      { $ref: getSchemaPath(ContactSectionDataDto) },
     ],
   })
-  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto | HeaderSectionDataDto | FooterSectionDataDto;
+  data!: SliderSectionDataDto | ProductListSectionDataDto | BannerSectionDataDto | IntroductionSectionDataDto | HeaderSectionDataDto | FooterSectionDataDto | ContactSectionDataDto;
 }

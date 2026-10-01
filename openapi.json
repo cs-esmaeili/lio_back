@@ -2198,6 +2198,266 @@
         ]
       }
     },
+    "/profile": {
+      "get": {
+        "operationId": "ProfileController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The profile of the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetProfileResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get the authenticated user's profile",
+        "tags": [
+          "Profile"
+        ]
+      },
+      "patch": {
+        "operationId": "ProfileController_updateProfile",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated profile of the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UpdateProfileResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "National code is already in use by another user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update the authenticated user's profile (name, lastName, nationalCode)",
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
     "/files": {
       "get": {
         "operationId": "FileManagerController_listFiles",
@@ -8058,6 +8318,190 @@
         ]
       }
     },
+    "/contact-form/save": {
+      "post": {
+        "operationId": "ContactController_save",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveContactFormRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Saved message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 201
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SaveContactFormResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Created"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Submit a contact form message",
+        "tags": [
+          "Contact"
+        ]
+      }
+    },
+    "/admin/contact-forms": {
+      "get": {
+        "operationId": "ContactAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListContactFormsResponseDto"
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List all contact form messages",
+        "tags": [
+          "ContactAdmin"
+        ]
+      }
+    },
     "/cart": {
       "get": {
         "operationId": "CartController_getCart",
@@ -8867,6 +9311,44 @@
               }
             }
           },
+          "409": {
+            "description": "Payment requirements are not met. The body carries `code: PAYMENT_NOT_ALLOWED` and a `reasons` array of `{ code, message, fields? }`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 409
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conflict"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
           "502": {
             "description": "The payment gateway rejected the request; the order was canceled",
             "content": {
@@ -9589,6 +10071,1129 @@
         "summary": "Set one of the current user addresses as the default",
         "tags": [
           "Address"
+        ]
+      }
+    },
+    "/profile/orders": {
+      "get": {
+        "operationId": "ProfileOrdersController_listMyOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive partial match on the order number",
+            "schema": {
+              "example": "ORD-20260926",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated orders placed by the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListMyOrdersResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List the authenticated user's orders (paginated, filterable by status and order number)",
+        "tags": [
+          "ProfileOrders"
+        ]
+      }
+    },
+    "/profile/orders/summary": {
+      "get": {
+        "operationId": "ProfileOrdersController_getMyOrderSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Order count per status for the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetMyOrderSummaryResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Counts of the authenticated user's orders grouped by status",
+        "tags": [
+          "ProfileOrders"
+        ]
+      }
+    },
+    "/profile/orders/{orderNumber}": {
+      "get": {
+        "operationId": "ProfileOrdersController_getMyOrder",
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "required": true,
+            "in": "path",
+            "description": "Human-readable order number",
+            "schema": {
+              "example": "ORD-20260926-4F2A9C10BD",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetMyOrderResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found for the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get one of the authenticated user's orders",
+        "tags": [
+          "ProfileOrders"
+        ]
+      }
+    },
+    "/admin/orders": {
+      "get": {
+        "operationId": "AdminOrdersController_listOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive partial match on the order number, first name, last name or phone",
+            "schema": {
+              "example": "0912",
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Only orders placed by this user id",
+            "schema": {
+              "example": 2,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated orders from every customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListOrdersResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List all orders (paginated, filterable by status, owner and order number/customer)",
+        "tags": [
+          "AdminOrders"
+        ]
+      }
+    },
+    "/admin/orders/{id}": {
+      "get": {
+        "operationId": "AdminOrdersController_getOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order id",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GetOrderResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get a single order",
+        "tags": [
+          "AdminOrders"
+        ]
+      }
+    },
+    "/admin/orders/{id}/ship": {
+      "patch": {
+        "operationId": "AdminOrdersController_shipOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order id",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipOrderRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order marked as shipped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ShipOrderResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The order is not in the PAID status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Mark a paid order as shipped and record its postal tracking code",
+        "tags": [
+          "AdminOrders"
+        ]
+      }
+    },
+    "/admin/orders/{id}/complete": {
+      "patch": {
+        "operationId": "AdminOrdersController_completeOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order id",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "CSRF token from GET /auth/csrf — copy the csrfToken field into this header.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order marked as completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CompleteOrderResponseDto"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The order is not in the SHIPPED status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bad Request"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 403
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Not Found"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Mark a shipped order as completed",
+        "tags": [
+          "AdminOrders"
         ]
       }
     },
@@ -10650,7 +12255,7 @@
           "username": {
             "type": "string",
             "description": "Phone number in 09XXXXXXXXX format",
-            "example": "09123456789"
+            "example": "09137378601"
           }
         },
         "required": [
@@ -10676,7 +12281,7 @@
           "username": {
             "type": "string",
             "description": "Phone number in 09XXXXXXXXX format",
-            "example": "09123456789"
+            "example": "09137378601"
           },
           "code": {
             "type": "string",
@@ -10698,7 +12303,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789",
+            "example": "09137378601",
             "description": "Phone number (login identifier)"
           },
           "name": {
@@ -10731,7 +12336,7 @@
           "username": {
             "type": "string",
             "description": "Phone number in 09XXXXXXXXX format",
-            "example": "09123456789"
+            "example": "09137378601"
           },
           "password": {
             "type": "string",
@@ -10753,7 +12358,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789",
+            "example": "09137378601",
             "description": "Phone number (login identifier)"
           },
           "name": {
@@ -10827,7 +12432,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789",
+            "example": "09137378601",
             "description": "Phone number (login identifier)"
           },
           "name": {
@@ -10893,7 +12498,7 @@
           "username": {
             "type": "string",
             "description": "Phone number to log in as.",
-            "example": "09123456789"
+            "example": "09137378601"
           }
         },
         "required": [
@@ -10909,7 +12514,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789"
+            "example": "09137378601"
           },
           "name": {
             "type": "object",
@@ -11018,7 +12623,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789"
+            "example": "09137378601"
           },
           "name": {
             "type": "object",
@@ -11110,7 +12715,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789"
+            "example": "09137378601"
           },
           "name": {
             "type": "object",
@@ -11184,7 +12789,7 @@
           },
           "username": {
             "type": "string",
-            "example": "09123456789"
+            "example": "09137378601"
           },
           "name": {
             "type": "object",
@@ -11503,6 +13108,116 @@
           "ok"
         ]
       },
+      "GetProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "example": "09137378601",
+            "description": "Phone number (login identifier) — read-only"
+          },
+          "name": {
+            "type": "object",
+            "example": "Ali",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "object",
+            "example": "Rezaei",
+            "nullable": true
+          },
+          "nationalCode": {
+            "type": "object",
+            "example": "1234567890",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "name",
+          "lastName",
+          "nationalCode",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateProfileRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ali"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Rezaei"
+          },
+          "nationalCode": {
+            "type": "string",
+            "example": "1234567890",
+            "description": "Iranian national code (10 digits)"
+          }
+        }
+      },
+      "UpdateProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "example": "09137378601",
+            "description": "Phone number (login identifier) — read-only"
+          },
+          "name": {
+            "type": "object",
+            "example": "Ali",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "object",
+            "example": "Rezaei",
+            "nullable": true
+          },
+          "nationalCode": {
+            "type": "object",
+            "example": "1234567890",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "name",
+          "lastName",
+          "nationalCode",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "EntryDto": {
         "type": "object",
         "properties": {
@@ -11806,7 +13521,8 @@
           "BANNER",
           "INTRODUCTION",
           "HEADER",
-          "FOOTER"
+          "FOOTER",
+          "CONTACT"
         ]
       },
       "PageSectionLocation": {
@@ -11820,7 +13536,8 @@
           "BANNER_4",
           "INTRODUCTION",
           "HEADER",
-          "FOOTER"
+          "FOOTER",
+          "CONTACT"
         ],
         "description": "Render location; defaults to the section type when omitted"
       },
@@ -12440,6 +14157,71 @@
           "categories"
         ]
       },
+      "ContactSocialDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "instagram"
+          },
+          "title": {
+            "type": "string",
+            "example": "اینستاگرام"
+          },
+          "image": {
+            "type": "string",
+            "example": "/uploads/images/instagram.svg"
+          },
+          "fullUrl": {
+            "type": "string",
+            "example": "https://instagram.com/liobrand"
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "image",
+          "fullUrl"
+        ]
+      },
+      "ContactSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "object",
+            "example": "اصفهان، خیابان ...",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "example": "info@liobrand.ir",
+            "nullable": true
+          },
+          "supportHour": {
+            "type": "object",
+            "example": "شنبه تا چهارشنبه ۹ تا ۱۸",
+            "nullable": true
+          },
+          "supportPhone": {
+            "type": "object",
+            "example": "021-12345678",
+            "nullable": true
+          },
+          "socials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactSocialDto"
+            }
+          }
+        },
+        "required": [
+          "address",
+          "email",
+          "supportHour",
+          "supportPhone",
+          "socials"
+        ]
+      },
       "CreateSectionResponseDto": {
         "type": "object",
         "properties": {
@@ -12509,6 +14291,9 @@
               },
               {
                 "$ref": "#/components/schemas/FooterSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/ContactSectionDataDto"
               }
             ]
           }
@@ -12594,6 +14379,9 @@
               },
               {
                 "$ref": "#/components/schemas/FooterSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/ContactSectionDataDto"
               }
             ]
           }
@@ -12851,6 +14639,26 @@
           "type"
         ]
       },
+      "ContactInputDto": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "object",
+            "example": "اصفهان، خیابان ...",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "example": "info@liobrand.ir",
+            "nullable": true
+          },
+          "supportHour": {
+            "type": "object",
+            "example": "شنبه تا چهارشنبه ۹ تا ۱۸",
+            "nullable": true
+          }
+        }
+      },
       "PageSectionDataRequestDto": {
         "type": "object",
         "properties": {
@@ -12881,6 +14689,9 @@
               },
               {
                 "$ref": "#/components/schemas/FooterItemInputDto"
+              },
+              {
+                "$ref": "#/components/schemas/ContactInputDto"
               }
             ]
           }
@@ -12959,6 +14770,9 @@
               },
               {
                 "$ref": "#/components/schemas/FooterSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/ContactSectionDataDto"
               }
             ]
           }
@@ -16130,6 +17944,99 @@
           "updatedAt"
         ]
       },
+      "SaveContactFormRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Sender full name",
+            "example": "علی رضایی",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "description": "Iranian mobile number in 09XXXXXXXXX format",
+            "example": "09137378601"
+          },
+          "message": {
+            "type": "string",
+            "description": "Message body",
+            "example": "سلام، درباره سفارش ...",
+            "minLength": 10,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "message"
+        ]
+      },
+      "SaveContactFormResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "علی رضایی"
+          },
+          "phone": {
+            "type": "string",
+            "example": "09137378601"
+          },
+          "message": {
+            "type": "string",
+            "example": "سلام، درباره سفارش ..."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "message",
+          "createdAt"
+        ]
+      },
+      "ListContactFormsResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "علی رضایی"
+          },
+          "phone": {
+            "type": "string",
+            "example": "09137378601"
+          },
+          "message": {
+            "type": "string",
+            "example": "سلام، درباره سفارش ..."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-02T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "message",
+          "createdAt"
+        ]
+      },
       "GetCartProductDto": {
         "type": "object",
         "properties": {
@@ -16860,7 +18767,7 @@
           },
           "phone": {
             "type": "string",
-            "example": "09123456789",
+            "example": "09137378601",
             "description": "Phone number (the login identifier), used to prefill the contact form"
           },
           "name": {
@@ -16968,6 +18875,55 @@
           "provider"
         ]
       },
+      "GetCheckoutPaymentEligibilityReasonDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "PROFILE_INCOMPLETE",
+            "description": "Stable machine-readable reason code; switch on this, not on the message"
+          },
+          "message": {
+            "type": "string",
+            "example": "Complete your profile (name, lastName and nationalCode) before paying"
+          },
+          "fields": {
+            "example": [
+              "nationalCode"
+            ],
+            "description": "Fields that must be fixed for this reason, when applicable",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "GetCheckoutPaymentEligibilityDto": {
+        "type": "object",
+        "properties": {
+          "eligible": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the current user may start a payment right now"
+          },
+          "reasons": {
+            "description": "Unmet payment requirements; empty when the user is eligible",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetCheckoutPaymentEligibilityReasonDto"
+            }
+          }
+        },
+        "required": [
+          "eligible",
+          "reasons"
+        ]
+      },
       "GetCheckoutResponseDto": {
         "type": "object",
         "properties": {
@@ -17034,6 +18990,14 @@
           },
           "payment": {
             "$ref": "#/components/schemas/GetCheckoutPaymentDto"
+          },
+          "paymentEligibility": {
+            "description": "Preconditions that must hold before the user can pay. Disable the pay button and show the reasons when eligible is false.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GetCheckoutPaymentEligibilityDto"
+              }
+            ]
           }
         },
         "required": [
@@ -17049,7 +19013,8 @@
           "customer",
           "addresses",
           "defaultAddressId",
-          "payment"
+          "payment",
+          "paymentEligibility"
         ]
       },
       "CreatePaymentRequestDto": {
@@ -17542,6 +19507,821 @@
           "ok": {
             "type": "boolean",
             "example": true
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_PAYMENT",
+          "PAID",
+          "CANCELED",
+          "EXPIRED",
+          "SHIPPED",
+          "COMPLETED"
+        ]
+      },
+      "MyOrderListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 42
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20260926-4F2A9C10BD"
+          },
+          "status": {
+            "example": "PAID",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderStatus"
+              }
+            ]
+          },
+          "total": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Amount payable in Toman"
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Number of purchased lines"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "paidAt": {
+            "type": "object",
+            "example": "2026-08-30T12:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "status",
+          "total",
+          "itemCount",
+          "createdAt",
+          "paidAt"
+        ]
+      },
+      "ListMyOrdersResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyOrderListItemDto"
+            }
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "MyOrderStatusCountDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "example": "PAID",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderStatus"
+              }
+            ]
+          },
+          "count": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "status",
+          "count"
+        ]
+      },
+      "GetMyOrderSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 7,
+            "description": "Total orders placed by the current user"
+          },
+          "items": {
+            "description": "One entry per status, including statuses with a zero count",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyOrderStatusCountDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "MyOrderCustomerDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Javad"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Esmaeili"
+          },
+          "phone": {
+            "type": "string",
+            "example": "09137378601"
+          },
+          "company": {
+            "type": "object",
+            "example": "Lio",
+            "nullable": true
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "phone",
+          "company"
+        ]
+      },
+      "MyOrderAddressDto": {
+        "type": "object",
+        "properties": {
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "address": {
+            "type": "string",
+            "example": "Valiasr St, No. 1"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          }
+        },
+        "required": [
+          "province",
+          "city",
+          "address",
+          "postalCode"
+        ]
+      },
+      "PaymentStatus": {
+        "type": "string",
+        "enum": [
+          "INITIATED",
+          "VERIFIED",
+          "FAILED",
+          "CANCELED"
+        ]
+      },
+      "MyOrderPaymentDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "object",
+            "example": "zarinpal",
+            "nullable": true
+          },
+          "status": {
+            "example": "VERIFIED",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentStatus"
+              }
+            ]
+          },
+          "refId": {
+            "type": "object",
+            "example": "123456789",
+            "nullable": true
+          }
+        },
+        "required": [
+          "provider",
+          "status",
+          "refId"
+        ]
+      },
+      "MyOrderLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 7
+          },
+          "productId": {
+            "type": "object",
+            "example": 15,
+            "nullable": true,
+            "description": "Trace only; the line snapshot below is the source of truth"
+          },
+          "productName": {
+            "type": "string",
+            "example": "قهوه اسپرسو"
+          },
+          "productSlug": {
+            "type": "string",
+            "example": "espresso-coffee"
+          },
+          "sku": {
+            "type": "string",
+            "example": "ESP-250"
+          },
+          "unitPrice": {
+            "type": "number",
+            "example": 500000
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 1000000
+          },
+          "imageUrl": {
+            "type": "object",
+            "example": "https://api.local/uploads/images/product-1.png",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "productName",
+          "productSlug",
+          "sku",
+          "unitPrice",
+          "quantity",
+          "lineTotal",
+          "imageUrl"
+        ]
+      },
+      "GetMyOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 42
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20260926-4F2A9C10BD"
+          },
+          "status": {
+            "example": "PAID",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderStatus"
+              }
+            ]
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3000000
+          },
+          "discount": {
+            "type": "number",
+            "example": 0
+          },
+          "shippingCost": {
+            "type": "number",
+            "example": 388000
+          },
+          "total": {
+            "type": "number",
+            "example": 3388000
+          },
+          "customer": {
+            "$ref": "#/components/schemas/MyOrderCustomerDto"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/MyOrderAddressDto"
+          },
+          "payment": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MyOrderPaymentDto"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyOrderLineDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "paidAt": {
+            "type": "object",
+            "example": "2026-08-30T12:05:00.000Z",
+            "nullable": true
+          },
+          "canceledAt": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "trackingCode": {
+            "type": "object",
+            "example": "12345678901234567890",
+            "nullable": true,
+            "description": "Postal tracking code, set when the order is shipped"
+          },
+          "shippedAt": {
+            "type": "object",
+            "example": "2026-08-31T09:00:00.000Z",
+            "nullable": true,
+            "description": "Moment the order was shipped"
+          },
+          "completedAt": {
+            "type": "object",
+            "example": null,
+            "nullable": true,
+            "description": "Moment the order was completed"
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2026-08-30T12:30:00.000Z",
+            "description": "Moment the reserved stock is released if still unpaid"
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "status",
+          "subtotal",
+          "discount",
+          "shippingCost",
+          "total",
+          "customer",
+          "shippingAddress",
+          "payment",
+          "items",
+          "createdAt",
+          "updatedAt",
+          "trackingCode",
+          "expiresAt"
+        ]
+      },
+      "AdminOrderListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 42
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20260926-4F2A9C10BD"
+          },
+          "status": {
+            "example": "PAID",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderStatus"
+              }
+            ]
+          },
+          "total": {
+            "type": "number",
+            "example": 3388000,
+            "description": "Amount payable in Toman"
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3,
+            "description": "Number of purchased lines"
+          },
+          "customerName": {
+            "type": "string",
+            "example": "Javad Esmaeili"
+          },
+          "phone": {
+            "type": "string",
+            "example": "09137378601"
+          },
+          "userId": {
+            "type": "object",
+            "example": 2,
+            "nullable": true,
+            "description": "Owner user id; null for a guest or a deleted user"
+          },
+          "username": {
+            "type": "object",
+            "example": "09137378601",
+            "nullable": true,
+            "description": "Owner username; null for a guest or a deleted user"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "paidAt": {
+            "type": "object",
+            "example": "2026-08-30T12:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "status",
+          "total",
+          "itemCount",
+          "customerName",
+          "phone",
+          "userId",
+          "username",
+          "createdAt",
+          "paidAt"
+        ]
+      },
+      "ListOrdersResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderListItemDto"
+            }
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "AdminOrderCustomerDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Javad"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Esmaeili"
+          },
+          "phone": {
+            "type": "string",
+            "example": "09137378601"
+          },
+          "company": {
+            "type": "object",
+            "example": "Lio",
+            "nullable": true
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "phone",
+          "company"
+        ]
+      },
+      "AdminOrderAddressDto": {
+        "type": "object",
+        "properties": {
+          "province": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tehran"
+          },
+          "address": {
+            "type": "string",
+            "example": "Valiasr St, No. 1"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "1234567890"
+          }
+        },
+        "required": [
+          "province",
+          "city",
+          "address",
+          "postalCode"
+        ]
+      },
+      "AdminOrderPaymentDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "object",
+            "example": "zarinpal",
+            "nullable": true
+          },
+          "status": {
+            "example": "VERIFIED",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentStatus"
+              }
+            ]
+          },
+          "refId": {
+            "type": "object",
+            "example": "123456789",
+            "nullable": true
+          }
+        },
+        "required": [
+          "provider",
+          "status",
+          "refId"
+        ]
+      },
+      "AdminOrderLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 7
+          },
+          "productId": {
+            "type": "object",
+            "example": 15,
+            "nullable": true,
+            "description": "Trace only; the line snapshot below is the source of truth"
+          },
+          "productName": {
+            "type": "string",
+            "example": "قهوه اسپرسو"
+          },
+          "productSlug": {
+            "type": "string",
+            "example": "espresso-coffee"
+          },
+          "sku": {
+            "type": "string",
+            "example": "ESP-250"
+          },
+          "unitPrice": {
+            "type": "number",
+            "example": 500000
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 1000000
+          },
+          "imageUrl": {
+            "type": "object",
+            "example": "https://api.local/uploads/images/product-1.png",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "productName",
+          "productSlug",
+          "sku",
+          "unitPrice",
+          "quantity",
+          "lineTotal",
+          "imageUrl"
+        ]
+      },
+      "GetOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 42
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20260926-4F2A9C10BD"
+          },
+          "status": {
+            "example": "PAID",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderStatus"
+              }
+            ]
+          },
+          "subtotal": {
+            "type": "number",
+            "example": 3000000
+          },
+          "discount": {
+            "type": "number",
+            "example": 0
+          },
+          "shippingCost": {
+            "type": "number",
+            "example": 388000
+          },
+          "total": {
+            "type": "number",
+            "example": 3388000
+          },
+          "userId": {
+            "type": "object",
+            "example": 2,
+            "nullable": true,
+            "description": "Owner user id; null for a guest or a deleted user"
+          },
+          "username": {
+            "type": "object",
+            "example": "09137378601",
+            "nullable": true,
+            "description": "Owner username; null for a guest or a deleted user"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/AdminOrderCustomerDto"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AdminOrderAddressDto"
+          },
+          "payment": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdminOrderPaymentDto"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderLineDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-08-30T12:00:00.000Z"
+          },
+          "paidAt": {
+            "type": "object",
+            "example": "2026-08-30T12:05:00.000Z",
+            "nullable": true
+          },
+          "canceledAt": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "trackingCode": {
+            "type": "object",
+            "example": "12345678901234567890",
+            "nullable": true,
+            "description": "Postal tracking code, set when the order is shipped"
+          },
+          "shippedAt": {
+            "type": "object",
+            "example": "2026-08-31T09:00:00.000Z",
+            "nullable": true,
+            "description": "Moment the order was shipped"
+          },
+          "completedAt": {
+            "type": "object",
+            "example": null,
+            "nullable": true,
+            "description": "Moment the order was completed"
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2026-08-30T12:30:00.000Z",
+            "description": "Moment the reserved stock is released if still unpaid"
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "status",
+          "subtotal",
+          "discount",
+          "shippingCost",
+          "total",
+          "userId",
+          "username",
+          "customer",
+          "shippingAddress",
+          "payment",
+          "items",
+          "createdAt",
+          "updatedAt",
+          "trackingCode",
+          "expiresAt"
+        ]
+      },
+      "ShipOrderRequestDto": {
+        "type": "object",
+        "properties": {
+          "trackingCode": {
+            "type": "string",
+            "example": "12345678901234567890",
+            "description": "Postal tracking code issued by the carrier"
+          }
+        },
+        "required": [
+          "trackingCode"
+        ]
+      },
+      "ShipOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true,
+            "description": "True once the order moved to `SHIPPED`"
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
+      "CompleteOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true,
+            "description": "True once the order moved to `COMPLETED`"
           }
         },
         "required": [

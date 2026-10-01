@@ -9,6 +9,7 @@ import { seedProducts } from './products';
 import { seedHome } from './home';
 import { seedHeader } from './header';
 import { seedFooter } from './footer';
+import { seedContact } from './contact';
 import { seedSiteSettings } from './site-settings';
 import { seedLocation } from './location';
 
@@ -23,6 +24,7 @@ const SEEDS = {
   home: seedHome,
   header: seedHeader,
   footer: seedFooter,
+  contact: seedContact,
   siteSettings: seedSiteSettings,
 } as const;
 

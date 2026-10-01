@@ -17,6 +17,7 @@ import { SiteSettingModule } from './site-setting/site-setting.module';
 import { PageSectionModule } from './page-section/page-section.module';
 import { CategoryModule } from './category/category.module';
 import { AttributeModule } from './attribute/attribute.module';
+import { ContactModule } from './contact/contact.module';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { CheckoutModule } from './checkout/checkout.module';
@@ -55,6 +56,7 @@ import configuration from './config/configuration';
     PageSectionModule,
     CategoryModule,
     AttributeModule,
+    ContactModule,
     ProductModule,
     CartModule,
     CheckoutModule,

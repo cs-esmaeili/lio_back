@@ -11,10 +11,20 @@ import { BannerSectionService } from './services/banner-section.service';
 import { IntroductionSectionService } from './services/introduction-section.service';
 import { HeaderSectionService } from './services/header-section.service';
 import { FooterSectionService } from './services/footer-section.service';
+import { ContactSectionService } from './services/contact-section.service';
 
 @Module({
   imports: [AuthModule, AuthorizationModule, ProductModule],
   controllers: [PageSectionController, PageSectionPublicController],
-  providers: [PageSectionService, SliderSectionService, ProductListSectionService, BannerSectionService, IntroductionSectionService, HeaderSectionService, FooterSectionService],
+  providers: [
+    PageSectionService,
+    SliderSectionService,
+    ProductListSectionService,
+    BannerSectionService,
+    IntroductionSectionService,
+    HeaderSectionService,
+    FooterSectionService,
+    ContactSectionService,
+  ],
 })
 export class PageSectionModule {}

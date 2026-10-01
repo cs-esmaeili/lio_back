@@ -1,6 +1,6 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDefined, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDefined, IsEmail, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { FooterSectionType, HeaderSectionType, PageSectionType } from 'src/database/schema';
 
 /**
@@ -197,11 +197,38 @@ export class FooterItemInputDto {
   sortOrder?: number;
 }
 
+export class ContactInputDto {
+  @ApiPropertyOptional({ example: 'اصفهان، خیابان ...', nullable: true })
+  @IsOptional()
+  @IsString()
+  address?: string | null;
+
+  @ApiPropertyOptional({ example: 'info@liobrand.ir', nullable: true })
+  @IsOptional()
+  @IsEmail()
+  email?: string | null;
+
+  @ApiPropertyOptional({ example: 'شنبه تا چهارشنبه ۹ تا ۱۸', nullable: true })
+  @IsOptional()
+  @IsString()
+  supportHour?: string | null;
+
+  @ApiPropertyOptional({ example: 32.655599, nullable: true, description: 'Map latitude' })
+  @IsOptional()
+  @IsNumber()
+  mapLat?: number | null;
+
+  @ApiPropertyOptional({ example: 51.699845, nullable: true, description: 'Map longitude' })
+  @IsOptional()
+  @IsNumber()
+  mapLng?: number | null;
+}
+
 /**
  * Body of `POST` (create item), `PATCH` (update item) and the query of `DELETE`
  * on `/admin/page-sections/{id}/data`. `type` selects the section handler.
  */
-@ApiExtraModels(SliderSlideInputDto, ProductListItemInputDto, BannerInputDto, IntroductionInputDto, HeaderItemInputDto, FooterItemInputDto)
+@ApiExtraModels(SliderSlideInputDto, ProductListItemInputDto, BannerInputDto, IntroductionInputDto, HeaderItemInputDto, FooterItemInputDto, ContactInputDto)
 export class PageSectionDataRequestDto {
   @ApiProperty({ enum: PageSectionType, enumName: 'PageSectionType', example: PageSectionType.SLIDER })
   @IsEnum(PageSectionType)
@@ -215,6 +242,7 @@ export class PageSectionDataRequestDto {
       { $ref: getSchemaPath(IntroductionInputDto) },
       { $ref: getSchemaPath(HeaderItemInputDto) },
       { $ref: getSchemaPath(FooterItemInputDto) },
+      { $ref: getSchemaPath(ContactInputDto) },
     ],
   })
   @IsDefined()
@@ -232,14 +260,17 @@ export class PageSectionDataRequestDto {
         return HeaderItemInputDto;
       case PageSectionType.FOOTER:
         return FooterItemInputDto;
+      case PageSectionType.CONTACT:
+        return ContactInputDto;
       default:
         return SliderSlideInputDto;
     }
   })
-  data!: SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto;
+  data!: SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto | ContactInputDto;
 }
 
-export type PageSectionItemInput = SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto;
+export type PageSectionItemInput =
+  SliderSlideInputDto | ProductListItemInputDto | BannerInputDto | IntroductionInputDto | HeaderItemInputDto | FooterItemInputDto | ContactInputDto;
 
 /**
  * `POST`/`PATCH` send `{ type, data }`. `DELETE` needs only the item id (the

@@ -6,6 +6,8 @@ export * from './auth-session';
 export * from './banner-section';
 export * from './cart';
 export * from './category';
+export * from './contact-form';
+export * from './contact-section';
 export * from './category-attribute';
 export * from './file';
 export * from './footer-section';
